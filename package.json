@@ -1,0 +1,82 @@
+{
+  "name": "seorap",
+  "productName": "Seorap",
+  "version": "1.0.0",
+  "description": "서랍 (Seorap): 이미지, 글, 링크, 파일을 잠시 넣어두는 Windows 트레이 앱. 자동 저장 메모와 마스터 비밀번호 금고 포함.",
+  "main": "out/src/main/main.js",
+  "author": "bbjbc",
+  "license": "MIT",
+  "private": true,
+  "homepage": "https://github.com/bbjbc/seorap",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bbjbc/seorap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bbjbc/seorap/issues"
+  },
+  "scripts": {
+    "compile": "tsc -b && node out/scripts/copy-static.js",
+    "start": "npm run compile && electron .",
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint .",
+    "check": "npm run typecheck && npm run lint",
+    "test": "npm run compile && node out/scripts/run-tests.js",
+    "icons": "npm run compile && electron out/scripts/gen-icons.js",
+    "build": "npm run compile && electron-builder --win",
+    "build:dir": "npm run compile && electron-builder --win --dir",
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "electron": "^44.1.1",
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.9.1",
+    "globals": "^17.12.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0"
+  },
+  "build": {
+    "appId": "dev.boongranii.seorap",
+    "productName": "Seorap",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "서랍 (Seorap)",
+      "artifactName": "Seorap-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "Seorap-${version}-portable.exe"
+    },
+    "electronLanguages": [
+      "ko",
+      "en-US"
+    ],
+    "compression": "maximum"
+  }
+}
