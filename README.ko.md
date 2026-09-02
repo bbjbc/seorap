@@ -18,6 +18,7 @@
 
 [![Release](https://img.shields.io/github/v/release/bbjbc/seorap?display_name=tag&style=flat-square)](https://github.com/bbjbc/seorap/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/bbjbc/seorap/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/bbjbc/seorap/actions/workflows/ci.yml)
+[![Downloads](https://img.shields.io/github/downloads/bbjbc/seorap/total?style=flat-square&label=downloads)](https://github.com/bbjbc/seorap/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-lightgrey?style=flat-square)](#quickstart)
 
