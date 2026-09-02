@@ -1,7 +1,7 @@
 {
   "name": "seorap",
   "productName": "Seorap",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "서랍 (Seorap): 이미지, 글, 링크, 파일을 잠시 넣어두는 Windows 트레이 앱. 자동 저장 메모와 마스터 비밀번호 금고 포함.",
   "main": "out/src/main/main.js",
   "author": "bbjbc",
