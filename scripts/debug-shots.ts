@@ -45,7 +45,7 @@ export default async function run({ app, win, store, vault, showToast, toastWin 
   await shot('03-vault-setup');
   if (!vault.exists) vault.setup('Correct-Horse-Battery-2026!');
   else vault.unlock('Correct-Horse-Battery-2026!');
-  vault.add({ name: 'AWS 루트 계정', username: 'jobc4@example.com', password: 'x', url: 'https://console.aws.amazon.com', notes: 'MFA는 폰에' });
+  vault.add({ name: 'AWS 루트 계정', username: 'me@example.com', password: 'x', url: 'https://console.aws.amazon.com', notes: 'MFA는 폰에' });
   vault.add({ name: '집 와이파이', password: 'y' });
   vault.add({ name: 'OpenAI API key', username: 'sk-...', password: 'z' });
   await js(`__seorap.refreshVault().then(() => __seorap.selectSecret(__seorap.vaultEntryIds()[0]))`);
