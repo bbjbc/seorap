@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck + lint
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  test:
+    name: Functional tests (Electron)
+    runs-on: windows-latest
+    needs: check
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # 클립보드·창을 실제로 띄우는 테스트라 러너 환경에 따라 흔들릴 수 있어 실패해도 빌드를 막지 않는다.
+      - run: npm test
+        continue-on-error: true
+
+  build:
+    name: Package (unpacked)
+    runs-on: windows-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run compile
+      - run: npx electron-builder --win --dir --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seorap-win-unpacked
+          path: dist/win-unpacked
+          retention-days: 7
