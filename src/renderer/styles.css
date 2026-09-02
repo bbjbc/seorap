@@ -429,7 +429,7 @@ select {
 }
 .side-head { display: flex; gap: 8px; padding: 10px 10px 8px; align-items: center; }
 .side-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; min-height: 40px; }
-.pane { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.pane { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; position: relative; } /* .editor-empty(inset:0) 의 기준 */
 .pane-actions { display: flex; gap: 2px; margin-left: auto; }
 .save-state { font-size: 11px; color: var(--muted); white-space: nowrap; }
 .save-state.saving { color: var(--accent); }
@@ -464,6 +464,7 @@ select {
 .editor-empty {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; color: var(--muted); padding: 40px;
+  pointer-events: none; /* 안내 문구일 뿐, 클릭을 가로채면 안 된다 */
 }
 .editor-empty[hidden] { display: none; }
 .editor-foot {

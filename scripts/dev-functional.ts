@@ -142,6 +142,20 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     vault.remove(e.id);
   });
 
+  // 회귀 방지: 금고가 열린 상태에서 빈 안내 패널이 창 전체를 덮어 클릭을 삼키던 버그 (v0.1.0)
+  await check('vault open state does not block clicks on the rail', async () => {
+    await js(`__seorap.setMode('vault')`);
+    await js(`__seorap.refreshVault()`);
+    await sleep(500);
+    const hit = await js(
+      `(() => { const el = document.elementFromPoint(33, 140); return (el && el.closest('.rail-btn') && el.closest('.rail-btn').dataset.mode) || (el && el.id) || (el && el.className) || 'none'; })()`,
+    );
+    assert.strictEqual(hit, 'notes', `rail button expected under (33,140), got ${String(hit)}`);
+    const paneHit = await js(`(() => { const el = document.elementFromPoint(700, 400); return el ? el.className : 'none'; })()`);
+    assert(!String(paneHit).includes('editor-empty'), 'empty-state panel must not receive pointer events');
+    await js(`__seorap.setMode('board')`);
+  });
+
   await check('vault copy clears clipboard later', async () => {
     const e = vault.add({ name: 'clip', password: 'secret-value-1' });
     await js(`scrap.setSettings({ vault: { clipboardClearSeconds: 5 } })`);
