@@ -1,4 +1,4 @@
-# termcast.xyz tape. Source of the demo SVG in README.en.md.
+# termcast.xyz tape. Source of the demo SVG in README.md (English).
 # URL: https://termcast.xyz/t/v3/<base64url(deflateRaw(tape))>.svg
 title PowerShell
 theme dark

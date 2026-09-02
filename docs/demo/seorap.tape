@@ -1,4 +1,4 @@
-# termcast.xyz 테이프. README 상단 데모 SVG 의 원본.
+# termcast.xyz 테이프. README.ko.md 상단 데모 SVG 의 원본.
 # URL: https://termcast.xyz/t/v3/<base64url(deflateRaw(tape))>.svg
 title PowerShell
 theme dark
