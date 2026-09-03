@@ -30,6 +30,8 @@ declare namespace Seorap {
     url?: string;
     linkTitle?: string;
     note?: boolean;
+    /** 메모 리스트 '직접 정렬' 순서. 작을수록 위. 없는 항목은 맨 위에 최신순으로. */
+    order?: number;
   }
 
   /** 렌더러로 보낼 때 붙는 파생 필드 */
@@ -88,6 +90,7 @@ declare namespace Seorap {
   type ClickAction = 'copy' | 'detail';
   type Mode = 'board' | 'notes' | 'vault';
   type ShortcutKey = 'toggle' | 'quickSave' | 'newNote';
+  type NoteSort = 'recent' | 'manual';
 
   interface Settings {
     shortcuts: Record<ShortcutKey, string>;
@@ -95,7 +98,7 @@ declare namespace Seorap {
     autoStart: boolean;
     toast: boolean;
     board: { cardSize: CardSize; clickAction: ClickAction };
-    notes: { mono: boolean; fontSize: number; showClipboardText: boolean };
+    notes: { mono: boolean; fontSize: number; showClipboardText: boolean; sort: NoteSort };
     vault: { autoLockMinutes: number; clipboardClearSeconds: number; contentProtection: boolean; lockOnHide: boolean };
     cleanup: { enabled: boolean; days: number };
     /** 첫 실행 시각. 스타 요청 배너 타이밍에 쓴다. */
@@ -190,6 +193,7 @@ declare namespace Seorap {
     'items:captureClipboard': { args: []; result: AddResult | null };
     'items:update': { args: [id: string, patch: ItemPatch]; result: ClientItem | null };
     'items:delete': { args: [ids: string[]]; result: number };
+    'items:reorder': { args: [ids: string[]]; result: void };
     'items:copy': { args: [id: string]; result: boolean };
     'items:open': { args: [id: string]; result: void };
     'items:showInFolder': { args: [id: string]; result: void };
@@ -267,6 +271,7 @@ declare namespace Seorap {
     captureClipboard(): Promise<AddResult | null>;
     updateItem(id: string, patch: ItemPatch): Promise<ClientItem | null>;
     deleteItems(ids: string[]): Promise<number>;
+    reorderItems(ids: string[]): Promise<void>;
     copyItem(id: string): Promise<boolean>;
     openItem(id: string): Promise<void>;
     showInFolder(id: string): Promise<void>;
@@ -326,6 +331,8 @@ declare namespace Seorap {
     evaluateStarNudge(): void;
     findInNote(q: string): { open: boolean; count: number; index: number; selStart: number; selEnd: number };
     closeFind(): void;
+    noteListIds(): string[];
+    moveNote(id: string, beforeId: string | null): Promise<void>;
   }
 }
 

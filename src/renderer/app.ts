@@ -616,7 +616,7 @@
   // =====================================================================
   let dragDepth = 0;
   window.addEventListener('dragenter', (e) => {
-    if (!e.dataTransfer?.types.length) return;
+    if (!e.dataTransfer?.types.length || isNoteDrag(e.dataTransfer)) return;
     dragDepth++;
     el.dropText.textContent = state.mode === 'notes' ? '놓으면 메모로 저장돼요' : '놓으면 저장돼요';
     el.dropOverlay.hidden = false;
@@ -632,7 +632,7 @@
     e.preventDefault();
     dragDepth = 0;
     el.dropOverlay.hidden = true;
-    if (e.dataTransfer) void handleDrop(e.dataTransfer);
+    if (e.dataTransfer && !isNoteDrag(e.dataTransfer)) void handleDrop(e.dataTransfer);
   });
 
   async function handleDrop(dt: DataTransfer): Promise<void> {
@@ -687,9 +687,19 @@
     const list = state.items.filter(
       (it) => it.type === 'text' && (showClip || it.note || it.id === state.noteId) && (!q || (it.text ?? '').toLowerCase().includes(q)),
     );
-    list.sort((a, b) => Number(b.pinned) - Number(a.pinned) || (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt));
+    const recent = (a: Item, b: Item): number => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt);
+    if (noteSortMode() === 'manual') {
+      // 순서가 없는(새) 메모는 맨 위에 최신순으로, 나머지는 사용자가 정한 순서대로.
+      list.sort((a, b) => {
+        if (a.order === undefined && b.order === undefined) return recent(a, b);
+        if (a.order === undefined) return -1;
+        if (b.order === undefined) return 1;
+        return a.order - b.order;
+      });
+    } else list.sort((a, b) => Number(b.pinned) - Number(a.pinned) || recent(a, b));
     return list;
   }
+  const noteSortMode = (): Seorap.NoteSort => state.settings?.notes.sort ?? 'recent';
 
   function groupOf(ts: number): string {
     const d = new Date(ts);
@@ -709,11 +719,19 @@
       el.noteList.innerHTML = `<div class="none">${state.noteQuery ? '검색 결과가 없어요' : '메모가 없어요.<br><b>Ctrl+N</b>으로 시작하세요.'}</div>`;
       return;
     }
+    const manual = noteSortMode() === 'manual';
+    el.noteList.classList.toggle('manual', manual);
     const frag = document.createDocumentFragment();
+    if (manual) {
+      const hint = document.createElement('div');
+      hint.className = 'sort-hint';
+      hint.innerHTML = `<span>직접 정렬 · 끌어서 옮기세요</span><button type="button" id="sortReset">최신순으로</button>`;
+      frag.appendChild(hint);
+    }
     let lastGroup: string | null = null;
     for (const it of list) {
-      const g = it.pinned ? '고정' : groupOf(it.updatedAt ?? it.createdAt);
-      if (g !== lastGroup) {
+      const g = manual ? null : it.pinned ? '고정' : groupOf(it.updatedAt ?? it.createdAt);
+      if (g !== null && g !== lastGroup) {
         const h = document.createElement('div');
         h.className = 'group';
         h.textContent = g;
@@ -726,6 +744,7 @@
       const d = document.createElement('div');
       d.className = 'note-item' + (it.id === state.noteId ? ' active' : '');
       d.dataset['id'] = it.id;
+      d.draggable = !state.noteQuery.trim();
       d.innerHTML = `
       <div class="n-title${first ? '' : ' untitled'}">${it.pinned ? PIN_SVG : ''}<span>${esc(first || '새 메모')}</span></div>
       <div class="n-sub"><span class="n-snip">${esc(snip || (first ? '' : '내용 없음'))}</span><span class="n-time">${fmtTime(it.updatedAt ?? it.createdAt)}</span></div>
@@ -736,8 +755,103 @@
   }
 
   el.noteList.addEventListener('click', (e) => {
+    if (closest(e.target, '#sortReset')) {
+      void save({ notes: { sort: 'recent' } });
+      return;
+    }
     const id = closest(e.target, '.note-item')?.dataset['id'];
     if (id) openNote(id);
+  });
+
+  // ---------- 리스트 드래그 정렬 ----------
+  // 한 번이라도 끌어서 옮기면 '직접 정렬' 모드가 된다. 검색 중에는 순서가 왜곡되므로 끌 수 없다.
+  const NOTE_DRAG_MIME = 'application/x-seorap-note';
+  const drag = { id: null as string | null, over: null as HTMLElement | null, after: false };
+  const isNoteDrag = (dt: DataTransfer | null): boolean => !!dt && Array.from(dt.types).includes(NOTE_DRAG_MIME);
+  function clearDropMarks(): void {
+    drag.over?.classList.remove('drop-before', 'drop-after');
+    drag.over = null;
+  }
+  el.noteList.addEventListener('dragstart', (e) => {
+    const row = closest(e.target, '.note-item');
+    const id = row?.dataset['id'];
+    if (!row || !id || !e.dataTransfer || state.noteQuery.trim()) {
+      e.preventDefault();
+      return;
+    }
+    drag.id = id;
+    e.dataTransfer.setData(NOTE_DRAG_MIME, id);
+    e.dataTransfer.effectAllowed = 'move';
+    row.classList.add('dragging');
+  });
+  el.noteList.addEventListener('dragover', (e) => {
+    if (!drag.id || !isNoteDrag(e.dataTransfer)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    const row = closest(e.target, '.note-item');
+    if (!row || row.dataset['id'] === drag.id) {
+      clearDropMarks();
+      return;
+    }
+    const r = row.getBoundingClientRect();
+    const after = e.clientY > r.top + r.height / 2;
+    if (row !== drag.over || after !== drag.after) {
+      clearDropMarks();
+      drag.over = row;
+      drag.after = after;
+      row.classList.add(after ? 'drop-after' : 'drop-before');
+    }
+  });
+  el.noteList.addEventListener('drop', (e) => {
+    if (!drag.id || !isNoteDrag(e.dataTransfer)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const target = drag.over?.dataset['id'] ?? null;
+    const after = drag.after;
+    const id = drag.id;
+    endNoteDrag();
+    if (!target || target === id) return;
+    void moveNote(id, target, after);
+  });
+  el.noteList.addEventListener('dragend', endNoteDrag);
+  function endNoteDrag(): void {
+    clearDropMarks();
+    el.noteList.querySelector('.note-item.dragging')?.classList.remove('dragging');
+    drag.id = null;
+  }
+  /** id 를 target 앞(또는 뒤)으로 옮기고 전체 순서를 저장한다. 최신순이었다면 지금 보이는 순서를 출발점으로 직접 정렬로 전환. */
+  async function moveNote(id: string, target: string | null, after: boolean): Promise<void> {
+    const ids = noteItems().map((it) => it.id);
+    const from = ids.indexOf(id);
+    if (from === -1) return;
+    ids.splice(from, 1);
+    let to = target ? ids.indexOf(target) : -1;
+    if (to === -1) to = ids.length;
+    else if (after) to += 1;
+    ids.splice(to, 0, id);
+    ids.forEach((x, i) => {
+      const it = findItem(x);
+      if (it) it.order = i;
+    });
+    if (noteSortMode() !== 'manual') await save({ notes: { sort: 'manual' } });
+    renderNoteList();
+    await api.reorderItems(ids);
+  }
+  $('#btnNoteSort').addEventListener('click', () => {
+    const manual = noteSortMode() === 'manual';
+    if (manual) {
+      void save({ notes: { sort: 'recent' } });
+      return;
+    }
+    // 최신순 → 직접 정렬: 지금 보이는 순서를 그대로 고정한다.
+    const ids = noteItems().map((it) => it.id);
+    ids.forEach((x, i) => {
+      const it = findItem(x);
+      if (it) it.order = i;
+    });
+    void api.reorderItems(ids);
+    void save({ notes: { sort: 'manual' } });
   });
   el.noteList.addEventListener('contextmenu', (e) => {
     const id = closest(e.target, '.note-item')?.dataset['id'];
@@ -1865,6 +1979,9 @@
     document.documentElement.style.setProperty('--editor-size', `${s.notes.fontSize || 15}px`);
     el.optShowClipText.checked = s.notes.showClipboardText;
     $('#btnNoteMono').classList.toggle('active', s.notes.mono);
+    const sortBtn = $('#btnNoteSort');
+    sortBtn.classList.toggle('active', s.notes.sort === 'manual');
+    sortBtn.title = s.notes.sort === 'manual' ? '정렬: 직접 정렬 (클릭하면 최신순)' : '정렬: 최신순 (클릭하면 직접 정렬)';
     renderNoteList();
     if (!el.settings.hidden) {
       setSeg('#segCardSize', s.board.cardSize);
@@ -2033,6 +2150,8 @@
       return { open: !el.findBar.hidden, count: find.matches.length, index: find.index, selStart: el.editor.selectionStart, selEnd: el.editor.selectionEnd };
     },
     closeFind,
+    noteListIds: () => $$('.note-item', el.noteList).map((d) => d.dataset['id'] ?? ''),
+    moveNote: (id, beforeId) => moveNote(id, beforeId, false),
   };
 
   // =====================================================================

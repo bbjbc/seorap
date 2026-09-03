@@ -21,6 +21,7 @@ const api: Seorap.Api = {
   captureClipboard: () => invoke('items:captureClipboard'),
   updateItem: (id, patch) => invoke('items:update', id, patch),
   deleteItems: (ids) => invoke('items:delete', ids),
+  reorderItems: (ids) => invoke('items:reorder', ids),
   copyItem: (id) => invoke('items:copy', id),
   openItem: (id) => invoke('items:open', id),
   showInFolder: (id) => invoke('items:showInFolder', id),

@@ -18,6 +18,7 @@ export const DEFAULTS: Seorap.Settings = {
     mono: false,
     fontSize: 15,
     showClipboardText: false,
+    sort: 'recent',
   },
   vault: {
     autoLockMinutes: 5,

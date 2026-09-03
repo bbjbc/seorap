@@ -473,6 +473,17 @@ select {
 .note-item .n-tags { margin-top: 4px; display: flex; gap: 6px; font-size: 11px; color: var(--blue); }
 .note-item .n-tags span::before { content: "#"; opacity: .7; }
 .notelist .group { padding: 10px 12px 4px; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+/* 직접 정렬: 끌어서 옮기기 */
+.notelist.manual .note-item { cursor: grab; }
+.note-item.dragging { opacity: .4; }
+.note-item.drop-before::before, .note-item.drop-after::after {
+  content: ""; position: absolute; left: 8px; right: 8px; height: 2px; border-radius: 2px; background: var(--accent);
+}
+.note-item.drop-before::before { top: -2px; }
+.note-item.drop-after::after { bottom: -2px; }
+.notelist .sort-hint { padding: 8px 12px 2px; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.notelist .sort-hint button { border: 0; background: transparent; color: var(--blue); font-size: 11px; padding: 0; cursor: pointer; }
+.notelist .sort-hint button:hover { text-decoration: underline; }
 .notelist .none { padding: 30px 16px; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; }
 
 .editor-wrap { flex: 1; min-height: 0; position: relative; display: flex; }

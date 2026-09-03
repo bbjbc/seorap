@@ -140,6 +140,30 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     await sleep(700);
   });
 
+  await check('note list drag reorder switches to manual sort and persists order', async () => {
+    const a = (await store.addText('정렬 A', { source: 'manual', note: true }))?.item;
+    const b = (await store.addText('정렬 B', { source: 'manual', note: true }))?.item;
+    const c = (await store.addText('정렬 C', { source: 'manual', note: true }))?.item;
+    assert(a && b && c);
+    await sleep(400);
+    const before = (await js('__seorap.noteListIds()')) as string[];
+    assert.deepStrictEqual(before.slice(0, 3), [c.id, b.id, a.id], 'recent first');
+    await js(`__seorap.moveNote(${JSON.stringify(a.id)}, ${JSON.stringify(c.id)})`); // A 를 C 앞으로
+    await sleep(500);
+    const after = (await js('__seorap.noteListIds()')) as string[];
+    assert.deepStrictEqual(after.slice(0, 3), [a.id, c.id, b.id], `manual order applied: ${after.join(',')}`);
+    const s = (await js('scrap.getSettings().then(r => r.settings.notes.sort)')) as string;
+    assert.strictEqual(s, 'manual');
+    assert.strictEqual(store.get(a.id)?.order, 0);
+    assert.strictEqual(store.get(c.id)?.order, 1);
+    assert.strictEqual(store.get(b.id)?.order, 2);
+    assert.strictEqual(await js(`document.querySelectorAll('#noteList .group').length`), 0, 'no group headers in manual mode');
+    await js(`scrap.setSettings({ notes: { sort: 'recent' } })`);
+    await sleep(300);
+    await store.remove([a.id, b.id, c.id]);
+    await sleep(300);
+  });
+
   await check('empty note is discarded on leave', async () => {
     await js(`__seorap.newNote()`);
     await sleep(300);

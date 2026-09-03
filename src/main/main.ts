@@ -704,6 +704,7 @@ handle('items:update', (id, patch) => {
   return it ? serialize(it) : null;
 });
 handle('items:delete', (ids) => store.remove(ids));
+handle('items:reorder', (ids) => store.reorder(ids));
 handle('items:copy', (id) => copyItem(id));
 handle('items:open', (id) => openItem(id));
 handle('items:showInFolder', (id) => {

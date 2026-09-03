@@ -76,6 +76,7 @@ function toItem(raw: unknown): Seorap.Item | null {
   set('linkTitle', optStr(raw['linkTitle']));
   if (typeof raw['truncated'] === 'boolean') item.truncated = raw['truncated'];
   if (typeof raw['note'] === 'boolean') item.note = raw['note'];
+  set('order', optNum(raw['order']));
   return item;
 }
 
@@ -415,6 +416,16 @@ export class Store {
     this.scheduleSave();
     this.emit({ type: 'update', item });
     return item;
+  }
+
+  /** 메모 '직접 정렬': 주어진 순서대로 order 를 다시 매긴다. 렌더러가 이미 화면을 바꾼 뒤 부르므로 이벤트는 내지 않는다. */
+  reorder(ids: string[]): void {
+    const byId = new Map(this.items.map((it) => [it.id, it]));
+    ids.forEach((id, i) => {
+      const it = byId.get(id);
+      if (it) it.order = i;
+    });
+    this.scheduleSave();
   }
 
   async remove(ids: string[]): Promise<number> {
