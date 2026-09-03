@@ -1,11 +1,16 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "types": []
   },
   "include": [
     "src/shared/**/*.d.ts",
+    "src/shared/locales.ts",
     "src/renderer/**/*.ts",
     "src/toast/toast.ts"
   ]

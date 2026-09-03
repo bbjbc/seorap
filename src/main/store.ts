@@ -3,6 +3,7 @@ import fsp from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import { nativeImage, type NativeImage } from 'electron';
+import { t } from './i18n';
 
 export const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.svg', '.avif', '.tiff', '.tif']);
 const THUMB_MAX = 400;
@@ -476,11 +477,11 @@ export class Store {
   async moveTo(newDirRaw: string): Promise<void> {
     const newDir = path.resolve(newDirRaw);
     if (newDir === this.dir) return;
-    if (newDir.startsWith(this.dir + path.sep)) throw new Error('현재 폴더 안쪽으로는 옮길 수 없습니다.');
+    if (newDir.startsWith(this.dir + path.sep)) throw new Error(t('store.inside_current'));
     this.flush();
     await fsp.mkdir(newDir, { recursive: true });
     const existing = await fsp.readdir(newDir);
-    if (existing.some((n) => !n.startsWith('.'))) throw new Error('비어 있는 폴더를 선택해 주세요.');
+    if (existing.some((n) => !n.startsWith('.'))) throw new Error(t('store.not_empty'));
     for (const sub of ['items', 'thumbs']) {
       await fsp.cp(path.join(this.dir, sub), path.join(newDir, sub), { recursive: true });
     }

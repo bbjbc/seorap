@@ -91,8 +91,11 @@ declare namespace Seorap {
   type Mode = 'board' | 'notes' | 'vault';
   type ShortcutKey = 'toggle' | 'quickSave' | 'newNote';
   type NoteSort = 'recent' | 'manual';
+  /** UI 언어. 'system' 은 OS 언어를 따른다 (한국어가 아니면 영어). */
+  type Language = 'system' | 'ko' | 'en';
 
   interface Settings {
+    language: Language;
     shortcuts: Record<ShortcutKey, string>;
     autoCollect: boolean;
     autoStart: boolean;
@@ -119,6 +122,8 @@ declare namespace Seorap {
     shortcutErrors: Partial<Record<ShortcutKey, string>>;
     isPackaged: boolean;
     version: string;
+    /** OS 언어 (app.getLocale). language 가 'system' 일 때 렌더러가 참고한다. */
+    systemLocale: string;
   }
 
   interface SettingsApplyResult {

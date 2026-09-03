@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 export const DEFAULTS: Seorap.Settings = {
+  language: 'system',
   shortcuts: {
     toggle: 'Ctrl+Alt+Space',
     quickSave: 'Ctrl+Alt+V',

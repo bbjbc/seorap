@@ -36,12 +36,13 @@ Things you only need for a while never have a place to go. So they end up as Sla
 
 - `Ctrl+Alt+V` from any app saves the clipboard (image, text, link or file). The window stays hidden; a small toast confirms it
 - On the board, click a card to copy it, drag it into another app to drop it as a file
-- A notepad with no save button. Stop typing and it is saved; `Ctrl+K` searches note bodies and opens the match
+- A notepad with no save button. Stop typing and it is saved; `Ctrl+K` searches note bodies and opens the match, `Ctrl+F` finds inside the open note, and the list can be reordered by dragging
 - A master-password vault: scrypt + AES-256-GCM, auto-lock, copied passwords cleared from the clipboard after 30 seconds
 - Duplicates are caught by hash, deletes can be undone for six seconds, old items can be cleaned up automatically
+- English and Korean UI (Settings > General). When a new version is out, a single quiet button appears in the rail
 - Electron 44 + TypeScript (strict). Zero runtime npm dependencies, no bundler
 
-![Board view](docs/screenshots/board.png)
+![Board view](docs/screenshots/en/board.png)
 
 ## Quickstart
 
@@ -135,7 +136,7 @@ The three global shortcuts can be remapped in Settings.
 
 Originals are plain files, so there is no item limit and the folder opens in Explorer like any other. The grid renders thumbnails only, and only the visible cards, so thousands of items stay fast. Settings > Storage can move the folder to another drive or into OneDrive. Using the same folder from several PCs **at the same time** can overwrite `index.json`, so concurrent use is not supported yet.
 
-> **Network**: the app talks to the network only to fetch a link's title and to download images dragged from a browser. It collects no usage data and never sends your items anywhere.
+> **Network**: the app talks to the network only to fetch a link's title, to download images dragged from a browser, and (every 6 hours, can be turned off in Settings > Updates) to ask GitHub Releases for the latest version number. It collects no usage data and never sends your items anywhere.
 
 ---
 
@@ -195,9 +196,9 @@ git tag v1.1.0 && git push origin main v1.1.0
 
 ### Explore
 
-[**Screenshots**](docs/screenshots/): board, notes, vault and settings.
+[**Screenshots**](docs/screenshots/en/): board, notes, vault and settings (Korean UI in [docs/screenshots/](docs/screenshots/)).
 
-**Roadmap**: sync-safe storage for concurrent use across PCs, importing unsaved tabs from Windows Notepad, an app lock, a light theme, an English UI.
+**Roadmap**: sync-safe storage for concurrent use across PCs, importing unsaved tabs from Windows Notepad, an app lock, a light theme.
 
 [**Contributing**](https://github.com/bbjbc/seorap/issues): issues and pull requests are welcome. Please open an issue first for larger changes, and run `npm run check` and `npm test` before committing.
 

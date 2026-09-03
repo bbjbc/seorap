@@ -22,6 +22,7 @@ import { Settings } from './settings';
 import { Vault, VaultError, checkStrength, generatePassword } from './vault';
 import * as cb from './clipboard';
 import { checkForUpdate } from './update';
+import { t, setLanguage } from './i18n';
 
 const ASSETS = path.join(__dirname, '..', '..', 'assets');
 const ICON_ICO = path.join(ASSETS, 'icon.ico');
@@ -95,6 +96,7 @@ function migrateLegacyUserData(): void {
 void app.whenReady().then(() => {
   migrateLegacyUserData();
   settings = new Settings(path.join(app.getPath('userData'), 'settings.json'));
+  setLanguage(settings.data.language, app.getLocale());
   if (!settings.data.installedAt) settings.set({ installedAt: Date.now() });
   const dataDir = process.env['SEORAP_DATA_DIR'] ?? settings.data.dataDir ?? path.join(app.getPath('userData'), 'data');
   store = new Store(dataDir);
@@ -174,7 +176,7 @@ function createWindow(): BrowserWindow {
     minHeight: 480,
     show: false,
     backgroundColor: '#111114',
-    title: '서랍',
+    title: t('app.name'),
     icon: fs.existsSync(ICON_ICO) ? ICON_ICO : undefined,
     titleBarStyle: 'hidden',
     titleBarOverlay: { color: '#111114', symbolColor: '#c9c9cf', height: 44 },
@@ -279,7 +281,7 @@ function createTray(): void {
   const iconPath = fs.existsSync(ICON_ICO) ? ICON_ICO : ICON_PNG;
   const img = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty();
   tray = new Tray(img);
-  tray.setToolTip('서랍');
+  tray.setToolTip(t('app.name'));
   tray.on('click', () => toggleWindow());
   refreshTrayMenu();
 }
@@ -288,31 +290,31 @@ function refreshTrayMenu(): void {
   if (!tray) return;
   const s = settings.data;
   const items: MenuItemConstructorOptions[] = [
-    { label: '서랍 열기', click: () => showWindow() },
-    { label: `클립보드 저장  (${s.shortcuts.quickSave || '단축키 없음'})`, click: () => void quickSave('shortcut') },
-    { label: `새 메모  (${s.shortcuts.newNote || '단축키 없음'})`, click: () => newNoteFromShortcut() },
+    { label: t('tray.open'), click: () => showWindow() },
+    { label: t('tray.quick_save', { key: s.shortcuts.quickSave || t('tray.no_shortcut') }), click: () => void quickSave('shortcut') },
+    { label: t('tray.new_note', { key: s.shortcuts.newNote || t('tray.no_shortcut') }), click: () => newNoteFromShortcut() },
     { type: 'separator' },
     {
-      label: '클립보드 자동 수집',
+      label: t('tray.auto_collect'),
       type: 'checkbox',
       checked: s.autoCollect,
       click: (mi) => applySettings({ autoCollect: mi.checked }),
     },
-    { label: '금고 잠그기', enabled: vault.unlocked, click: () => vault.lock('manual') },
+    { label: t('tray.lock_vault'), enabled: vault.unlocked, click: () => vault.lock('manual') },
     { type: 'separator' },
     ...(latestUpdate
-      ? [{ label: `새 버전 ${latestUpdate.version} 받기…`, click: () => void shell.openExternal(latestUpdate?.url ?? '') } as MenuItemConstructorOptions]
+      ? [{ label: t('tray.update', { v: latestUpdate.version }), click: () => void shell.openExternal(latestUpdate?.url ?? '') } as MenuItemConstructorOptions]
       : []),
     {
-      label: '설정…',
+      label: t('tray.settings'),
       click: () => {
         showWindow();
         sendUi('settings');
       },
     },
-    { label: '저장 폴더 열기', click: () => void shell.openPath(store.dir) },
+    { label: t('tray.open_dir'), click: () => void shell.openPath(store.dir) },
     { type: 'separator' },
-    { label: '종료', click: () => app.quit() },
+    { label: t('tray.quit'), click: () => app.quit() },
   ];
   tray.setContextMenu(Menu.buildFromTemplate(items));
 }
@@ -335,7 +337,7 @@ function registerShortcuts(): Partial<Record<Seorap.ShortcutKey, string>> {
     } catch {
       ok = false;
     }
-    if (!ok) shortcutErrors[key] = `'${acc}' 단축키를 등록할 수 없어요. 다른 프로그램이 사용 중일 수 있어요.`;
+    if (!ok) shortcutErrors[key] = t('main.shortcut_failed', { acc });
   }
   return shortcutErrors;
 }
@@ -359,6 +361,12 @@ function applySettings(patch: Seorap.SettingsPatch): Seorap.SettingsApplyResult 
     else watcher.stop();
   }
   if (before.autoStart !== after.autoStart) applyAutoStart();
+  if (before.language !== after.language) {
+    setLanguage(after.language, app.getLocale());
+    registerShortcuts(); // 등록 실패 문구를 새 언어로
+    tray?.setToolTip(t('app.name'));
+    win?.setTitle(t('app.name'));
+  }
   if (JSON.stringify(before.vault) !== JSON.stringify(after.vault)) {
     applyContentProtection();
     if (vault.unlocked) resetAutoLock();
@@ -396,18 +404,18 @@ async function quickSave(source: string): Promise<Seorap.Item | null> {
   try {
     const res = await captureClipboard(source);
     if (!res) {
-      if (source !== 'auto') showToast({ kind: 'warn', text: '클립보드가 비어 있어요' });
+      if (source !== 'auto') showToast({ kind: 'warn', text: t('flash.clipboard_empty') });
       return null;
     }
     if (res.duplicate) {
-      if (source !== 'auto') showToast({ kind: 'info', text: '이미 저장된 항목이에요', thumb: thumbDataUrl(res.item) });
+      if (source !== 'auto') showToast({ kind: 'info', text: t('flash.already_saved'), thumb: thumbDataUrl(res.item) });
       return res.item;
     }
-    showToast({ kind: 'ok', text: '저장됨 · ' + describe(res.item), thumb: thumbDataUrl(res.item) });
+    showToast({ kind: 'ok', text: t('toast.saved', { what: describe(res.item) }), thumb: thumbDataUrl(res.item) });
     return res.item;
   } catch (err) {
     console.error(err);
-    showToast({ kind: 'warn', text: '저장 실패: ' + errMsg(err) });
+    showToast({ kind: 'warn', text: t('toast.save_failed', { e: errMsg(err) }) });
     return null;
   }
 }
@@ -438,13 +446,13 @@ async function captureClipboard(source: string): Promise<{ duplicate: boolean; i
 function describe(item: Seorap.Item): string {
   switch (item.type) {
     case 'image':
-      return item.width ? `이미지 ${item.width}×${item.height ?? '?'}` : '이미지';
+      return item.width ? t('toast.image_wh', { w: item.width, h: item.height ?? '?' }) : t('toast.image');
     case 'link':
-      return '링크';
+      return t('toast.link');
     case 'file':
-      return item.title || '파일';
+      return item.title || t('toast.file');
     case 'text':
-      return '텍스트 ' + (item.text ?? '').trim().slice(0, 24).replace(/\n/g, ' ');
+      return t('toast.text', { t: (item.text ?? '').trim().slice(0, 24).replace(/\n/g, ' ') });
   }
 }
 
@@ -566,7 +574,7 @@ async function copySecret(id: string, field: 'password' | 'username'): Promise<b
       if ((await cb.readText()) === value) cb.clear();
     })();
   }, sec * 1000);
-  if (field === 'password') showToast({ kind: 'info', text: `비밀번호 복사됨 · ${sec}초 후 클립보드에서 지워져요` });
+  if (field === 'password') showToast({ kind: 'info', text: t('toast.password_copied', { sec }) });
   return true;
 }
 
@@ -627,14 +635,14 @@ function showContextMenu(ids: string[]): void {
   const tpl: MenuItemConstructorOptions[] = [];
   if (one) {
     tpl.push({
-      label: '복사',
-      click: () => void copyItem(one.id).then(() => send('ui:flash', { text: '클립보드에 복사했어요' })),
+      label: t('menu.copy'),
+      click: () => void copyItem(one.id).then(() => send('ui:flash', { text: t('flash.copied') })),
     });
-    if (one.type === 'text') tpl.push({ label: one.note ? '메모에서 열기' : '메모로 보내기', click: () => sendAction('openNote') });
-    else tpl.push({ label: '자세히 보기', click: () => sendAction('detail') });
-    tpl.push({ label: one.type === 'link' ? '브라우저에서 열기' : '기본 앱으로 열기', click: () => openItem(one.id) });
+    if (one.type === 'text') tpl.push({ label: one.note ? t('menu.open_in_notes') : t('menu.send_to_notes'), click: () => sendAction('openNote') });
+    else tpl.push({ label: t('menu.detail'), click: () => sendAction('detail') });
+    tpl.push({ label: one.type === 'link' ? t('menu.open_browser') : t('menu.open_app'), click: () => openItem(one.id) });
     tpl.push({
-      label: '폴더에서 보기',
+      label: t('menu.show_in_folder'),
       click: () => {
         const p = store.absPath(one);
         if (p) shell.showItemInFolder(p);
@@ -643,13 +651,13 @@ function showContextMenu(ids: string[]): void {
     tpl.push({ type: 'separator' });
   }
   tpl.push({
-    label: allPinned ? '고정 해제' : '고정',
+    label: allPinned ? t('common.unpin') : t('common.pin'),
     click: () => items.forEach((i) => store.update(i.id, { pinned: !allPinned })),
   });
-  tpl.push({ label: '태그 편집…', click: () => sendAction('tags') });
-  if (one && (one.type === 'image' || one.type === 'file')) tpl.push({ label: '이름 바꾸기…', click: () => sendAction('rename') });
+  tpl.push({ label: t('menu.tags'), click: () => sendAction('tags') });
+  if (one && (one.type === 'image' || one.type === 'file')) tpl.push({ label: t('menu.rename'), click: () => sendAction('rename') });
   tpl.push({ type: 'separator' });
-  tpl.push({ label: items.length > 1 ? `${items.length}개 삭제` : '삭제', click: () => sendAction('delete') });
+  tpl.push({ label: items.length > 1 ? t('menu.delete_n', { n: items.length }) : t('common.delete'), click: () => sendAction('delete') });
   Menu.buildFromTemplate(tpl).popup({ window: win });
 }
 
@@ -728,7 +736,7 @@ handle('items:addUrl', async (url) => {
     const r = await store.addText(url, { source: 'drop' });
     if (r && !r.duplicate) void fetchLinkTitle(r.item);
     const out = wrap(r);
-    if (out) out.note = '내려받지 못해 링크로 저장했어요';
+    if (out) out.note = t('main.saved_as_link');
     return out;
   }
 });
@@ -803,19 +811,25 @@ handle('vault:strength', (pw) => checkStrength(pw));
 handle('vault:export', async (pw) => {
   const r = vaultCall(() => vault.exportPlain(pw));
   if (!r.ok) return r;
-  if (!win) return { ok: false, error: '창이 없어요' };
+  if (!win) return { ok: false, error: t('main.no_window') };
   const save = await dialog.showSaveDialog(win, {
-    title: '금고 내보내기 (암호화되지 않은 평문!)',
+    title: t('dialog.export_title'),
     defaultPath: path.join(app.getPath('documents'), 'seorap-vault-export.json'),
     filters: [{ name: 'JSON', extensions: ['json'] }],
   });
-  if (save.canceled || !save.filePath) return { ok: false, error: '취소했어요' };
+  if (save.canceled || !save.filePath) return { ok: false, error: t('main.canceled') };
   fs.writeFileSync(save.filePath, JSON.stringify(r.result, null, 2), 'utf8');
   return { ok: true, result: save.filePath };
 });
 
 // 설정
-handle('settings:get', () => ({ settings: settings.get(), shortcutErrors, isPackaged: app.isPackaged, version: app.getVersion() }));
+handle('settings:get', () => ({
+  settings: settings.get(),
+  shortcutErrors,
+  isPackaged: app.isPackaged,
+  version: app.getVersion(),
+  systemLocale: app.getLocale(),
+}));
 handle('settings:set', (patch) => applySettings(patch));
 handle('settings:stats', () => store.stats());
 handle('settings:openDataDir', async () => {
@@ -825,7 +839,7 @@ handle('settings:runCleanup', (days) => runCleanup(true, days));
 handle('settings:pickDataDir', async () => {
   if (!win) return { ok: false };
   const r = await dialog.showOpenDialog(win, {
-    title: '저장 폴더 선택 (비어 있는 폴더)',
+    title: t('dialog.pick_dir_title'),
     properties: ['openDirectory', 'createDirectory'],
   });
   const picked = r.filePaths[0];

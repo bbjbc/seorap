@@ -17,21 +17,43 @@ export default async function run({ app, win, store, vault, showToast, toastWin 
     console.log('shot', name);
   };
   const js = (code: string): Promise<unknown> => win.webContents.executeJavaScript(code, true);
+  // SEORAP_LANG=en 이면 영어 UI 로 찍는다 (README 영문 스크린샷용).
+  const lang = process.env['SEORAP_LANG'] === 'en' ? 'en' : 'ko';
+  await js(`scrap.setSettings({ language: ${JSON.stringify(lang)} })`);
+  const seedText = lang === 'en'
+    ? {
+        checklist: 'Release checklist\n- back up nginx config\n- check migration order\n  1. users table\n  2. orders table\n- prepare rollback script\n- post in Slack',
+        meeting: 'Meeting notes 9/2\nRequest from the dashboard team: add a weekly report. First draft by next Wednesday.',
+        groceries: 'Groceries\nmilk, eggs, tofu, green onions',
+        icon: 'App icon',
+        wide: 'Wide screenshot',
+        tags: ['electron', 'reference'],
+        iconTag: 'icon',
+      }
+    : {
+        checklist: '배포 체크리스트\n- nginx 설정 백업\n- DB 마이그레이션 순서 확인\n  1. users 테이블\n  2. orders 테이블\n- 롤백 스크립트 준비\n- 슬랙 공지',
+        meeting: '회의 메모 9/2\n김대리 요청사항: 대시보드에 주간 리포트 추가. 다음 주 수요일까지 초안.',
+        groceries: '장보기\n우유, 계란, 두부, 대파',
+        icon: '앱 아이콘',
+        wide: '와이드 스크린샷',
+        tags: ['electron', '참고'],
+        iconTag: '아이콘',
+      };
 
   if (!store.items.length) {
     const icon = nativeImage.createFromPath(path.join(ROOT, 'assets', 'icon.png'));
-    await store.addImage(icon, { source: 'seed', title: '앱 아이콘' });
-    await store.addImage(icon.resize({ width: 1600, height: 900 }), { source: 'seed', title: '와이드 스크린샷' });
-    await store.addText('배포 체크리스트\n- nginx 설정 백업\n- DB 마이그레이션 순서 확인\n  1. users 테이블\n  2. orders 테이블\n- 롤백 스크립트 준비\n- 슬랙 공지', { source: 'manual', note: true });
-    await store.addText('회의 메모 9/2\n김대리 요청사항: 대시보드에 주간 리포트 추가. 다음 주 수요일까지 초안.', { source: 'manual', note: true });
-    await store.addText('장보기\n우유, 계란, 두부, 대파', { source: 'manual', note: true });
+    await store.addImage(icon, { source: 'seed', title: seedText.icon });
+    await store.addImage(icon.resize({ width: 1600, height: 900 }), { source: 'seed', title: seedText.wide });
+    await store.addText(seedText.checklist, { source: 'manual', note: true });
+    await store.addText(seedText.meeting, { source: 'manual', note: true });
+    await store.addText(seedText.groceries, { source: 'manual', note: true });
     await store.addText('npx electron-builder --win --x64', { source: 'clipboard' });
     const link = await store.addText('https://www.electronjs.org/docs/latest/api/clipboard', { source: 'clipboard' });
-    if (link) store.update(link.item.id, { linkTitle: 'clipboard | Electron', tags: ['electron', '참고'] });
+    if (link) store.update(link.item.id, { linkTitle: 'clipboard | Electron', tags: seedText.tags });
     await store.addFile(path.join(ROOT, 'package.json'), { source: 'drop' });
     await store.addFile(path.join(ROOT, 'package-lock.json'), { source: 'drop' }).catch(() => null);
     const first = store.items[store.items.length - 1];
-    if (first) store.update(first.id, { pinned: true, tags: ['아이콘'] });
+    if (first) store.update(first.id, { pinned: true, tags: [seedText.iconTag] });
     store.flush();
   }
 
@@ -45,8 +67,9 @@ export default async function run({ app, win, store, vault, showToast, toastWin 
   await shot('03-vault-setup');
   if (!vault.exists) vault.setup('Correct-Horse-Battery-2026!');
   else vault.unlock('Correct-Horse-Battery-2026!');
-  vault.add({ name: 'AWS 루트 계정', username: 'me@example.com', password: 'x', url: 'https://console.aws.amazon.com', notes: 'MFA는 폰에' });
-  vault.add({ name: '집 와이파이', password: 'y' });
+  const en = lang === 'en';
+  vault.add({ name: en ? 'AWS root account' : 'AWS 루트 계정', username: 'me@example.com', password: 'x', url: 'https://console.aws.amazon.com', notes: en ? 'MFA on phone' : 'MFA는 폰에' });
+  vault.add({ name: en ? 'Home Wi-Fi' : '집 와이파이', password: 'y' });
   vault.add({ name: 'OpenAI API key', username: 'sk-...', password: 'z' });
   await js(`__seorap.refreshVault().then(() => __seorap.selectSecret(__seorap.vaultEntryIds()[0]))`);
   await sleep(900);
@@ -54,7 +77,7 @@ export default async function run({ app, win, store, vault, showToast, toastWin 
   await js(`__seorap.setMode('board'); __seorap.openSettings();`);
   await sleep(700);
   await shot('05-settings');
-  await js(`__seorap.closeAllModals(); __seorap.openSwitcher(); __seorap.searchSwitcher('메');`);
+  await js(`__seorap.closeAllModals(); __seorap.openSwitcher(); __seorap.searchSwitcher(${JSON.stringify(en ? 're' : '메')});`);
   await sleep(400);
   await shot('06-switcher');
   await js(`__seorap.closeAllModals(); __seorap.openDetail(__seorap.items().find(i => i.type === 'image').id);`);
@@ -64,7 +87,7 @@ export default async function run({ app, win, store, vault, showToast, toastWin 
   const thumbPath = img ? store.absThumb(img) : null;
   showToast({
     kind: 'ok',
-    text: '저장됨 · 이미지 1600×900',
+    text: en ? 'Saved · image 1600×900' : '저장됨 · 이미지 1600×900',
     thumb: thumbPath ? nativeImage.createFromPath(thumbPath).resize({ height: 56 }).toDataURL() : null,
     duration: 5000,
   });

@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { t } from './i18n';
 
 const KDF = { N: 2 ** 16, r: 8, p: 1, keyLen: 32, maxmem: 256 * 1024 * 1024 } as const;
 // 기존 금고 파일과의 호환을 위해 검증 문자열은 바꾸지 않는다.
@@ -103,7 +104,7 @@ function sanitize(f: Partial<EntryPlain> & Seorap.VaultFields): EntryPlain {
 
 function parseEntry(json: string): EntryPlain {
   const raw: unknown = JSON.parse(json);
-  if (!isRecord(raw)) throw new VaultError('항목 형식이 손상됐어요.');
+  if (!isRecord(raw)) throw new VaultError(t('vault.err_corrupt'));
   return sanitize({
     name: str(raw['name'], 200),
     username: str(raw['username'], 500),
@@ -131,7 +132,7 @@ function toPublic(id: string, e: EntryPlain): Seorap.VaultEntryPublic {
 }
 
 export function checkStrength(pw: unknown): Seorap.Strength {
-  if (typeof pw !== 'string') return { ok: false, score: 0, reason: '비밀번호를 입력하세요.' };
+  if (typeof pw !== 'string') return { ok: false, score: 0, reason: t('vault.err_enter_pw') };
   const len = pw.length;
   const classes = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/].filter((re) => re.test(pw)).length;
   if (len >= 16) return { ok: true, score: 4 };
@@ -140,7 +141,7 @@ export function checkStrength(pw: unknown): Seorap.Strength {
   return {
     ok: false,
     score: len >= 8 ? 1 : 0,
-    reason: '마스터 비밀번호는 16자 이상, 또는 대문자·소문자·숫자·기호 중 3종류 이상을 섞어 10자 이상이어야 해요.',
+    reason: t('vault.err_weak_rule'),
   };
 }
 
@@ -266,20 +267,20 @@ export class Vault {
   }
 
   private requireKey(): Buffer {
-    if (!this.key) throw new VaultError('금고가 잠겨 있어요.');
+    if (!this.key) throw new VaultError(t('vault.err_locked'));
     return this.key;
   }
 
   private requireData(): VaultFile {
-    if (!this.data) throw new VaultError('금고가 아직 없어요.');
+    if (!this.data) throw new VaultError(t('vault.err_missing'));
     return this.data;
   }
 
   // ---------- 생성 / 열기 / 잠금 ----------
   setup(password: string): Seorap.VaultStatus {
-    if (this.exists) throw new VaultError('금고가 이미 있어요.');
+    if (this.exists) throw new VaultError(t('vault.err_exists'));
     const strength = checkStrength(password);
-    if (!strength.ok) throw new VaultError(strength.reason ?? '비밀번호가 약해요.');
+    if (!strength.ok) throw new VaultError(strength.reason ?? t('vault.err_weak'));
     const salt = crypto.randomBytes(16).toString('base64');
     const key = this.deriveKey(password, salt);
     this.data = {
@@ -299,7 +300,7 @@ export class Vault {
     const now = Date.now();
     if (now < this.nextAllowedAt) {
       const wait = this.nextAllowedAt - now;
-      throw new VaultError(`잠시 후 다시 시도하세요 (${Math.ceil(wait / 1000)}초)`, wait);
+      throw new VaultError(t('vault.err_wait', { s: Math.ceil(wait / 1000) }), wait);
     }
     const key = this.deriveKey(password, data.kdf.salt);
     if (!this.verifies(key)) {
@@ -307,7 +308,7 @@ export class Vault {
       this.failedAttempts += 1;
       const delay = Math.min(30000, 500 * 2 ** Math.min(this.failedAttempts, 6));
       this.nextAllowedAt = Date.now() + delay;
-      throw new VaultError('마스터 비밀번호가 맞지 않아요.', delay);
+      throw new VaultError(t('vault.err_wrong'), delay);
     }
     this.failedAttempts = 0;
     this.nextAllowedAt = 0;
@@ -379,9 +380,9 @@ export class Vault {
     const oldKey = this.deriveKey(oldPw, data.kdf.salt);
     const ok = this.verifies(oldKey);
     oldKey.fill(0);
-    if (!ok) throw new VaultError('현재 마스터 비밀번호가 맞지 않아요.');
+    if (!ok) throw new VaultError(t('vault.err_wrong_current'));
     const strength = checkStrength(newPw);
-    if (!strength.ok) throw new VaultError(strength.reason ?? '비밀번호가 약해요.');
+    if (!strength.ok) throw new VaultError(strength.reason ?? t('vault.err_weak'));
 
     const plains = data.entries.map((e) => ({ id: e.id, plain: this.decrypt(e.blob, key) }));
     const salt = crypto.randomBytes(16).toString('base64');
@@ -402,7 +403,7 @@ export class Vault {
     const check = this.deriveKey(password, data.kdf.salt);
     const ok = this.verifies(check);
     check.fill(0);
-    if (!ok) throw new VaultError('마스터 비밀번호가 맞지 않아요.');
+    if (!ok) throw new VaultError(t('vault.err_wrong'));
     return data.entries.map((e) => ({ id: e.id, ...this.decode(e, key) }));
   }
 }

@@ -137,6 +137,26 @@
   const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
   const esc = (s: string | number | null | undefined): string => String(s ?? '').replace(/[&<>"']/g, (c) => ESC[c] ?? c);
 
+  // ---------- 언어 ----------
+  // 사전은 ../shared/locales.js (전역 SEORAP_LOCALES). 마크업은 한국어로 쓰고 시작할 때 data-i18n* 을 현재 언어로 바꾼다.
+  let lang: SeorapLang = 'ko';
+  let appVersion = '';
+  function t(key: SeorapLocaleKey, vars?: Record<string, string | number>): string {
+    return seorapFormat(SEORAP_LOCALES[lang][key] ?? SEORAP_LOCALES.ko[key] ?? key, vars);
+  }
+  function monthName(d: Date, style: 'short' | 'long' = 'short'): string {
+    return new Intl.DateTimeFormat(lang === 'ko' ? 'ko-KR' : 'en-US', { month: style }).format(d);
+  }
+  function applyI18n(): void {
+    document.documentElement.lang = lang;
+    document.title = t('app.name');
+    const key = (e: HTMLElement, attr: string): SeorapLocaleKey => (e.dataset[attr] ?? '') as SeorapLocaleKey;
+    for (const e of $$('[data-i18n]')) e.textContent = t(key(e, 'i18n'));
+    for (const e of $$('[data-i18n-html]')) e.innerHTML = t(key(e, 'i18nHtml'));
+    for (const e of $$('[data-i18n-title]')) e.title = t(key(e, 'i18nTitle'));
+    for (const e of $$<HTMLInputElement>('[data-i18n-ph]')) e.placeholder = t(key(e, 'i18nPh'));
+  }
+
   function debounce(fn: () => void, ms: number): () => void {
     let t: number | null = null;
     return () => {
@@ -150,11 +170,11 @@
     const d = new Date(ts);
     const now = Date.now();
     const diff = now - ts;
-    if (diff < 60e3) return '방금';
-    if (diff < 3600e3) return `${Math.floor(diff / 60e3)}분 전`;
-    if (diff < 86400e3 && d.getDate() === new Date().getDate()) return `${Math.floor(diff / 3600e3)}시간 전`;
-    if (d.toDateString() === new Date(now - 86400e3).toDateString()) return '어제';
-    if (d.getFullYear() === new Date().getFullYear()) return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+    if (diff < 60e3) return t('common.just_now');
+    if (diff < 3600e3) return t('time.min_ago', { n: Math.floor(diff / 60e3) });
+    if (diff < 86400e3 && d.getDate() === new Date().getDate()) return t('time.hour_ago', { n: Math.floor(diff / 3600e3) });
+    if (d.toDateString() === new Date(now - 86400e3).toDateString()) return t('common.yesterday');
+    if (d.getFullYear() === new Date().getFullYear()) return t('time.month_day', { m: d.getMonth() + 1, d: d.getDate(), mon: monthName(d) });
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
   }
   function fmtFull(ts: number | undefined): string {
@@ -178,7 +198,7 @@
       return '';
     }
   }
-  const TYPE_LABEL: Record<Seorap.ItemType, string> = { image: '이미지', text: '글', link: '링크', file: '파일' };
+  const TYPE_LABEL = (type: Seorap.ItemType): string => t(`type.${type}`);
   function isTyping(): boolean {
     const a = document.activeElement;
     return a instanceof HTMLInputElement || a instanceof HTMLTextAreaElement || (a instanceof HTMLElement && a.isContentEditable);
@@ -225,15 +245,15 @@
   async function grabClipboard(): Promise<void> {
     const r = await api.captureClipboard();
     if (!r) {
-      flash('클립보드가 비어 있어요');
+      flash(t('flash.clipboard_empty'));
       return;
     }
     if (r.duplicate) {
-      flash('이미 저장된 항목이에요');
+      flash(t('flash.already_saved'));
       highlight(r.item.id);
       return;
     }
-    flash('저장했어요');
+    flash(t('flash.saved'));
     if (state.mode === 'board') {
       el.boardScroll.scrollTop = 0;
       highlight(r.item.id);
@@ -365,14 +385,12 @@
     el.empty.hidden = list.length > 0;
     if (!el.empty.hidden) {
       if (all.length === 0) {
-        el.emptyTitle.textContent = '아직 아무것도 없어요';
+        el.emptyTitle.textContent = t('board.empty_title');
         const key = state.settings?.shortcuts.quickSave ?? '';
-        el.emptyDesc.innerHTML = `이미지·파일·글을 이 창으로 끌어다 놓거나, <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙이세요.<br>다른 앱에서 작업 중일 때는 ${
-          key ? `<kbd>${esc(key)}</kbd>로` : '트레이 메뉴에서'
-        } 바로 저장할 수 있어요.`;
+        el.emptyDesc.innerHTML = t('board.empty_desc', { how: key ? t('board.empty_how_key', { key: esc(key) }) : t('board.empty_how_tray') });
       } else {
-        el.emptyTitle.textContent = '조건에 맞는 항목이 없어요';
-        el.emptyDesc.textContent = '검색어나 필터를 바꿔 보세요.';
+        el.emptyTitle.textContent = t('board.no_match_title');
+        el.emptyDesc.textContent = t('board.no_match_desc');
       }
     }
   }
@@ -382,19 +400,19 @@
     d.className = `card type-${it.type}${it.pinned ? ' pinned' : ''}${state.selected.has(it.id) ? ' selected' : ''}`;
     d.dataset['id'] = it.id;
     d.draggable = true;
-    d.title = it.type === 'text' ? '클릭: 복사 · 더블클릭: 메모로 보내기' : '클릭: 복사 · 더블클릭: 자세히';
+    d.title = it.type === 'text' ? t('board.card_tip_text') : t('board.card_tip');
 
     let body = '';
     if (it.type === 'image') {
       const src = it.thumbUrl ?? it.fileUrl;
       body = `<div class="card-media${it.thumbUrl ? '' : ' contain'}">${
-        src ? `<img src="${esc(src)}" decoding="async" alt="">` : '<div class="noimg">미리보기 없음</div>'
+        src ? `<img src="${esc(src)}" decoding="async" alt="">` : `<div class="noimg">${t('board.no_preview')}</div>`
       }</div>`;
     } else if (it.type === 'text') {
-      const t = (it.text ?? '').trim();
-      const first = firstLineOf(t);
-      const rest = t.slice(first.length).trim();
-      body = `<div class="card-text"><div class="t-title">${esc(first || '(빈 메모)')}</div><div class="t-body">${esc(rest)}</div></div>`;
+      const txt = (it.text ?? '').trim();
+      const first = firstLineOf(txt);
+      const rest = txt.slice(first.length).trim();
+      body = `<div class="card-text"><div class="t-title">${esc(first || t('board.empty_note'))}</div><div class="t-body">${esc(rest)}</div></div>`;
     } else if (it.type === 'link') {
       body = `<div class="card-link"><div class="l-host">${esc(hostOf(it.url))}</div><div class="l-title">${esc(it.linkTitle ?? it.url)}</div>${
         it.linkTitle ? `<div class="l-url">${esc(it.url)}</div>` : ''
@@ -413,9 +431,9 @@
     <div class="card-meta"><span>${fmtTime(it.createdAt)}</span>${tags}<span class="dim">${esc(dim)}</span></div>
     <span class="pin">${PIN_SVG}</span>
     <div class="card-actions">
-      <button class="act-pin" title="${it.pinned ? '고정 해제' : '고정'}">${PIN_SVG}</button>
-      <button class="act-copy" title="복사"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>
-      <button class="del" title="삭제"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      <button class="act-pin" title="${it.pinned ? t('common.unpin') : t('common.pin')}">${PIN_SVG}</button>
+      <button class="act-copy" title="${t('common.copy')}"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>
+      <button class="del" title="${t('common.delete')}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>`;
     return d;
   }
@@ -507,7 +525,7 @@
       target.classList.remove('flash-copy');
       requestAnimationFrame(() => target.classList.add('flash-copy'));
     }
-    if (!ok) flash('복사하지 못했어요');
+    if (!ok) flash(t('flash.copy_failed'));
   }
   function openAny(id: string): void {
     const it = findItem(id);
@@ -587,7 +605,7 @@
       void renderEditor();
     }
     state.pendingDelete = { ids, removed };
-    el.undoText.textContent = ids.length > 1 ? `${ids.length}개를 삭제했어요` : '삭제했어요';
+    el.undoText.textContent = ids.length > 1 ? t('board.deleted_n', { n: ids.length }) : t('board.deleted');
     el.undoBar.hidden = false;
     if (undoTimer !== null) clearTimeout(undoTimer);
     undoTimer = window.setTimeout(commitDelete, 6000);
@@ -618,7 +636,7 @@
   window.addEventListener('dragenter', (e) => {
     if (!e.dataTransfer?.types.length || isNoteDrag(e.dataTransfer)) return;
     dragDepth++;
-    el.dropText.textContent = state.mode === 'notes' ? '놓으면 메모로 저장돼요' : '놓으면 저장돼요';
+    el.dropText.textContent = state.mode === 'notes' ? t('board.drop_as_note') : t('board.drop_here');
     el.dropOverlay.hidden = false;
   });
   window.addEventListener('dragleave', () => {
@@ -673,7 +691,7 @@
       else if (text) bump(await api.addText(text, { note: state.mode === 'notes' }));
     }
     if (added || dup) {
-      flash(added ? `${added}개 저장했어요${dup ? ` · ${dup}개는 이미 있어요` : ''}` : '이미 저장된 항목이에요');
+      flash(added ? (dup ? t('board.saved_n_dup', { n: added, d: dup }) : t('board.saved_n', { n: added })) : t('flash.already_saved'));
       if (state.mode === 'board') el.boardScroll.scrollTop = 0;
     }
   }
@@ -704,19 +722,19 @@
   function groupOf(ts: number): string {
     const d = new Date(ts);
     const now = new Date();
-    if (d.toDateString() === now.toDateString()) return '오늘';
-    if (d.toDateString() === new Date(now.getTime() - 86400e3).toDateString()) return '어제';
-    if (now.getTime() - ts < 7 * 86400e3) return '이번 주';
-    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return '이번 달';
-    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+    if (d.toDateString() === now.toDateString()) return t('common.today');
+    if (d.toDateString() === new Date(now.getTime() - 86400e3).toDateString()) return t('common.yesterday');
+    if (now.getTime() - ts < 7 * 86400e3) return t('time.this_week');
+    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return t('time.this_month');
+    return t('time.year_month', { y: d.getFullYear(), m: d.getMonth() + 1, mon: monthName(d, 'long') });
   }
 
   function renderNoteList(): void {
     if (state.mode !== 'notes') return;
     const list = noteItems();
-    el.noteCount.textContent = list.length ? `${list.length}개` : '';
+    el.noteCount.textContent = list.length ? t('notes.count', { n: list.length }) : '';
     if (!list.length) {
-      el.noteList.innerHTML = `<div class="none">${state.noteQuery ? '검색 결과가 없어요' : '메모가 없어요.<br><b>Ctrl+N</b>으로 시작하세요.'}</div>`;
+      el.noteList.innerHTML = `<div class="none">${state.noteQuery ? t('notes.no_result') : t('notes.empty_list')}</div>`;
       return;
     }
     const manual = noteSortMode() === 'manual';
@@ -725,12 +743,12 @@
     if (manual) {
       const hint = document.createElement('div');
       hint.className = 'sort-hint';
-      hint.innerHTML = `<span>직접 정렬 · 끌어서 옮기세요</span><button type="button" id="sortReset">최신순으로</button>`;
+      hint.innerHTML = `<span>${t('notes.sort_hint')}</span><button type="button" id="sortReset">${t('notes.sort_reset')}</button>`;
       frag.appendChild(hint);
     }
     let lastGroup: string | null = null;
     for (const it of list) {
-      const g = manual ? null : it.pinned ? '고정' : groupOf(it.updatedAt ?? it.createdAt);
+      const g = manual ? null : it.pinned ? t('notes.group_pinned') : groupOf(it.updatedAt ?? it.createdAt);
       if (g !== null && g !== lastGroup) {
         const h = document.createElement('div');
         h.className = 'group';
@@ -738,16 +756,16 @@
         frag.appendChild(h);
         lastGroup = g;
       }
-      const t = (it.text ?? '').trim();
-      const first = firstLineOf(t);
-      const snip = t.slice(first.length).trim().replace(/\s+/g, ' ').slice(0, 80);
+      const txt = (it.text ?? '').trim();
+      const first = firstLineOf(txt);
+      const snip = txt.slice(first.length).trim().replace(/\s+/g, ' ').slice(0, 80);
       const d = document.createElement('div');
       d.className = 'note-item' + (it.id === state.noteId ? ' active' : '');
       d.dataset['id'] = it.id;
       d.draggable = !state.noteQuery.trim();
       d.innerHTML = `
-      <div class="n-title${first ? '' : ' untitled'}">${it.pinned ? PIN_SVG : ''}<span>${esc(first || '새 메모')}</span></div>
-      <div class="n-sub"><span class="n-snip">${esc(snip || (first ? '' : '내용 없음'))}</span><span class="n-time">${fmtTime(it.updatedAt ?? it.createdAt)}</span></div>
+      <div class="n-title${first ? '' : ' untitled'}">${it.pinned ? PIN_SVG : ''}<span>${esc(first || t('common.new_note'))}</span></div>
+      <div class="n-sub"><span class="n-snip">${esc(snip || (first ? '' : t('notes.no_content')))}</span><span class="n-time">${fmtTime(it.updatedAt ?? it.createdAt)}</span></div>
       ${it.tags.length ? `<div class="n-tags">${it.tags.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}`;
       frag.appendChild(d);
     }
@@ -924,7 +942,7 @@
     el.noteTagInput.disabled = !has;
     if (!has) closeFind();
     if (!it) {
-      el.noteTitle.textContent = '메모';
+      el.noteTitle.textContent = t('common.notes');
       el.saveState.textContent = '';
       el.editorStats.textContent = '';
       el.noteTagList.innerHTML = '';
@@ -939,16 +957,16 @@
       el.findHl.hidden = true;
     }
     renderEditorMeta();
-    el.saveState.textContent = it.updatedAt ? `저장됨 · ${fmtTime(it.updatedAt)}` : '';
+    el.saveState.textContent = it.updatedAt ? t('notes.saved_at', { t: fmtTime(it.updatedAt) }) : '';
     el.saveState.classList.remove('saving');
   }
   function renderEditorMeta(): void {
     const it = findItem(state.noteId);
     if (!it) return;
     const text = el.editor.value;
-    el.noteTitle.textContent = firstLineOf(text) || '새 메모';
+    el.noteTitle.textContent = firstLineOf(text) || t('common.new_note');
     const lines = text ? text.split('\n').length : 0;
-    el.editorStats.textContent = text ? `${text.length.toLocaleString()}자 · ${lines}줄` : '';
+    el.editorStats.textContent = text ? t('notes.stats', { chars: text.length.toLocaleString(), lines }) : '';
     $('#btnNotePin').classList.toggle('active', it.pinned);
     $('#btnNoteMono').classList.toggle('active', state.settings?.notes.mono ?? false);
     el.noteTagList.innerHTML = it.tags.map((t) => `<span class="tag" data-tag="${esc(t)}">${esc(t)}<b>×</b></span>`).join('');
@@ -959,7 +977,7 @@
     if (!it) return;
     it.text = el.editor.value;
     it.updatedAt = Date.now();
-    el.saveState.textContent = '저장 중…';
+    el.saveState.textContent = t('notes.saving');
     el.saveState.classList.add('saving');
     renderEditorMeta();
     if (state.noteSaveTimer !== null) clearTimeout(state.noteSaveTimer);
@@ -978,7 +996,7 @@
     if (!id || !findItem(id)) return;
     const saved = await api.updateItem(id, { text: el.editor.value, note: true });
     if (saved && state.noteId === id) {
-      el.saveState.textContent = '저장됨 · 방금';
+      el.saveState.textContent = t('notes.saved_now');
       el.saveState.classList.remove('saving');
     }
     renderNoteList();
@@ -996,7 +1014,7 @@
   function renderFindCount(): void {
     const n = find.matches.length;
     const q = el.findInput.value;
-    el.findCount.textContent = !q ? '' : n ? `${find.index + 1} / ${n}` : '결과 없음';
+    el.findCount.textContent = !q ? '' : n ? `${find.index + 1} / ${n}` : t('notes.find_none');
     el.findCount.classList.toggle('none', !!q && !n);
   }
   /** 선택을 옮기고 그 위치가 보이도록 스크롤한다. 포커스는 찾기 입력칸에 남긴다. */
@@ -1126,7 +1144,7 @@
   $('#btnNoteCopy').addEventListener('click', () => {
     if (!state.noteId) return;
     void api.copyItem(state.noteId).then((ok) => {
-      if (ok) flash('메모를 복사했어요');
+      if (ok) flash(t('flash.note_copied'));
     });
   });
   $('#btnNoteDelete').addEventListener('click', () => {
@@ -1166,7 +1184,7 @@
   }
   function switcherTitle(it: Item): string {
     if (it.type === 'link') return it.linkTitle ?? it.url ?? '';
-    if (it.type === 'text') return firstLineOf(it.text ?? '') || '새 메모';
+    if (it.type === 'text') return firstLineOf(it.text ?? '') || t('common.new_note');
     return it.title || it.file || '';
   }
   function renderSwitcher(): void {
@@ -1178,14 +1196,14 @@
     sw.results = list.slice(0, 40);
     sw.index = 0;
     if (!sw.results.length) {
-      sw.list.innerHTML = `<div class="sw-empty">${q ? '결과가 없어요' : '메모가 없어요'}</div>`;
+      sw.list.innerHTML = `<div class="sw-empty">${q ? t('switcher.no_result') : t('switcher.no_notes')}</div>`;
       return;
     }
     sw.list.innerHTML = sw.results
       .map((it, i) => {
         const title = switcherTitle(it);
         const sub = it.type === 'text' ? (it.text ?? '').trim().slice(title.length, title.length + 120).replace(/\s+/g, ' ') : (it.url ?? '');
-        return `<div class="sw-item${i === 0 ? ' active' : ''}" data-i="${i}"><span class="badge ${it.type}">${TYPE_LABEL[it.type]}</span><div class="sw-text"><div class="sw-title">${esc(
+        return `<div class="sw-item${i === 0 ? ' active' : ''}" data-i="${i}"><span class="badge ${it.type}">${TYPE_LABEL(it.type)}</span><div class="sw-text"><div class="sw-title">${esc(
           title,
         )}</div><div class="sw-sub">${esc(sub)}</div></div><span class="sw-time">${fmtTime(it.updatedAt ?? it.createdAt)}</span></div>`;
       })
@@ -1232,7 +1250,7 @@
     }
     detailId = id;
     const badge = $('#detailType');
-    badge.textContent = TYPE_LABEL[it.type];
+    badge.textContent = TYPE_LABEL(it.type);
     badge.className = 'badge ' + it.type;
     detailTitle.value = it.type === 'link' ? (it.linkTitle ?? '') : it.title;
     detailTitle.readOnly = it.type === 'link';
@@ -1249,7 +1267,7 @@
     renderDetailTags();
     const dim = it.type === 'image' && it.width ? ` · ${it.width}×${it.height ?? '?'}` : '';
     $('#detailMeta').textContent = `${fmtFull(it.createdAt)}${dim}${it.size ? ' · ' + fmtSize(it.size) : ''}`;
-    dPin.textContent = it.pinned ? '고정 해제' : '고정';
+    dPin.textContent = it.pinned ? t('common.unpin') : t('common.pin');
     openModal(el.detail);
   }
   function renderDetailTags(): void {
@@ -1282,7 +1300,7 @@
   dPin.addEventListener('click', () => {
     if (!detailId) return;
     void togglePin([detailId]).then(() => {
-      dPin.textContent = findItem(detailId)?.pinned ? '고정 해제' : '고정';
+      dPin.textContent = findItem(detailId)?.pinned ? t('common.unpin') : t('common.pin');
     });
   });
   $('#dOpen').addEventListener('click', () => {
@@ -1299,7 +1317,7 @@
   $('#dCopy').addEventListener('click', () => {
     if (!detailId) return;
     void api.copyItem(detailId).then((ok) => {
-      if (ok) flash('클립보드에 복사했어요');
+      if (ok) flash(t('flash.copied'));
     });
   });
 
@@ -1337,7 +1355,7 @@
         .join('');
       wrap.hidden = !fields.length;
       const ok = button('#promptOk');
-      ok.textContent = opts.okText ?? '확인';
+      ok.textContent = opts.okText ?? t('common.ok');
       const values = (): string[] => fields.map((_f, i) => input(`#pf${i}`).value);
 
       const cleanup = (): void => {
@@ -1388,9 +1406,9 @@
     if (!head) return;
     const common = items.length === 1 ? head.tags : items.reduce<string[]>((acc, it) => acc.filter((t) => it.tags.includes(t)), head.tags);
     const r = await promptDialog({
-      title: items.length > 1 ? `${items.length}개 항목 태그` : '태그 편집',
-      desc: '쉼표나 공백으로 구분해요.',
-      fields: [{ value: common.join(', '), placeholder: '업무, 참고' }],
+      title: items.length > 1 ? t('prompt.tags_n', { n: items.length }) : t('prompt.tags'),
+      desc: t('prompt.tags_desc'),
+      fields: [{ value: common.join(', '), placeholder: t('prompt.tags_ph') }],
     });
     const raw = r?.[0];
     if (raw === undefined) return;
@@ -1410,11 +1428,11 @@
   async function promptRename(id: string): Promise<void> {
     const it = findItem(id);
     if (!it) return;
-    const r = await promptDialog({ title: '이름 바꾸기', fields: [{ value: it.title }] });
+    const r = await promptDialog({ title: t('prompt.rename'), fields: [{ value: it.title }] });
     const v = r?.[0];
     if (v !== undefined) await api.updateItem(id, { title: v.trim() });
   }
-  async function confirmDialog(title: string, desc: string, okText = '삭제'): Promise<boolean> {
+  async function confirmDialog(title: string, desc: string, okText = t('common.delete')): Promise<boolean> {
     return (await promptDialog({ title, desc, okText })) !== null;
   }
 
@@ -1437,14 +1455,14 @@
   }
   function renderLockScreen(): void {
     const setup = !(V.status?.exists ?? false);
-    el.lockTitle.textContent = setup ? '금고 만들기' : '금고가 잠겨 있어요';
+    el.lockTitle.textContent = setup ? t('vault.setup_title') : t('vault.locked_title');
     el.lockDesc.textContent = setup
-      ? '마스터 비밀번호 하나로 모든 항목을 암호화해요. 이 비밀번호는 어디에도 저장되지 않으니 꼭 기억하세요.'
-      : '마스터 비밀번호를 입력하세요.';
+      ? t('vault.setup_desc')
+      : t('vault.locked_desc');
     el.lockPw2.hidden = !setup;
     el.strength.hidden = !setup;
     el.lockAck.hidden = !setup;
-    el.lockBtn.textContent = setup ? '금고 만들기' : '열기';
+    el.lockBtn.textContent = setup ? t('vault.setup_title') : t('vault.unlock');
     el.lockPw.value = '';
     el.lockPw2.value = '';
     el.lockAckBox.checked = false;
@@ -1470,8 +1488,8 @@
     try {
       let r: Seorap.VaultResult<Seorap.VaultStatus>;
       if (!(V.status?.exists ?? false)) {
-        if (pw !== el.lockPw2.value) throw new Error('두 비밀번호가 달라요.');
-        if (!el.lockAckBox.checked) throw new Error('복구 불가 안내를 확인해 주세요.');
+        if (pw !== el.lockPw2.value) throw new Error(t('vault.mismatch'));
+        if (!el.lockAckBox.checked) throw new Error(t('vault.ack_required'));
         r = await api.vault.setup(pw);
       } else {
         r = await api.vault.unlock(pw);
@@ -1495,7 +1513,7 @@
     el.vaultDot.hidden = true;
     if (state.mode === 'vault') {
       void refreshVault();
-      if (reason === 'timeout') flash('사용하지 않아 금고를 잠갔어요');
+      if (reason === 'timeout') flash(t('flash.vault_autolocked'));
     }
   });
 
@@ -1516,14 +1534,14 @@
       .filter((x) => !q || [x.name, x.username, x.url].join('\n').toLowerCase().includes(q))
       .sort((a, b) => Number(b.pinned) - Number(a.pinned) || a.name.localeCompare(b.name, 'ko') || b.updatedAt - a.updatedAt);
     if (!list.length) {
-      el.vaultList.innerHTML = `<div class="none">${q ? '검색 결과가 없어요' : '항목이 없어요.<br>+ 로 추가하세요.'}</div>`;
+      el.vaultList.innerHTML = `<div class="none">${q ? t('notes.no_result') : t('vault.empty_list')}</div>`;
       return;
     }
     el.vaultList.innerHTML = list
       .map(
         (x) => `
     <div class="note-item${x.id === V.id ? ' active' : ''}" data-id="${x.id}">
-      <div class="n-title${x.name ? '' : ' untitled'}"><span>${esc(x.name || '이름 없음')}</span></div>
+      <div class="n-title${x.name ? '' : ' untitled'}"><span>${esc(x.name || t('common.untitled'))}</span></div>
       <div class="n-sub"><span class="n-snip">${esc(x.username || hostOf(x.url))}</span><span class="n-time">${fmtTime(x.updatedAt)}</span></div>
     </div>`,
       )
@@ -1579,7 +1597,7 @@
     setPassVisible(false);
     const s = await api.vault.secret(x.id);
     el.vPass.value = s.ok ? s.result : '';
-    el.vMeta.textContent = `만든 날 ${fmtFull(x.createdAt)} · 수정 ${fmtTime(x.updatedAt)}`;
+    el.vMeta.textContent = t('vault.meta', { c: fmtFull(x.createdAt), u: fmtTime(x.updatedAt) });
     el.vSaveState.textContent = '';
     touchVault();
   }
@@ -1588,7 +1606,7 @@
   }
   function scheduleVaultSave(): void {
     if (!V.id) return;
-    el.vSaveState.textContent = '저장 중…';
+    el.vSaveState.textContent = t('notes.saving');
     el.vSaveState.classList.add('saving');
     if (V.saveTimer !== null) clearTimeout(V.saveTimer);
     V.saveTimer = window.setTimeout(() => void flushVaultSave(), 600);
@@ -1606,7 +1624,7 @@
       if (idx >= 0 && r.result) V.entries[idx] = r.result;
       renderVaultList();
       if (V.id === id) {
-        el.vSaveState.textContent = '저장됨 · 방금';
+        el.vSaveState.textContent = t('notes.saved_now');
         el.vSaveState.classList.remove('saving');
       }
     } else {
@@ -1631,7 +1649,7 @@
       await flushVaultSave();
       if (!V.id) return;
       const r = await api.vault.copy(V.id, 'password');
-      if (!r.ok || !r.result) flash('복사할 비밀번호가 없어요');
+      if (!r.ok || !r.result) flash(t('flash.no_password'));
       else touchVault();
     })();
   });
@@ -1640,7 +1658,7 @@
       await flushVaultSave();
       if (!V.id) return;
       const r = await api.vault.copy(V.id, 'username');
-      flash(r.ok && r.result ? '아이디를 복사했어요' : '복사할 아이디가 없어요');
+      flash(r.ok && r.result ? t('flash.user_copied') : t('flash.no_user'));
     })();
   });
   $('#vOpenUrl').addEventListener('click', () => {
@@ -1651,7 +1669,7 @@
     void (async () => {
       const x = V.entries.find((y) => y.id === V.id);
       if (!x) return;
-      const ok = await confirmDialog(`'${x.name || '이름 없음'}' 삭제`, '금고 항목은 실행 취소가 없어요. 정말 삭제할까요?');
+      const ok = await confirmDialog(t('vault.delete_title', { name: x.name || t('common.untitled') }), t('vault.delete_desc'));
       if (!ok) return;
       if (V.saveTimer !== null) {
         clearTimeout(V.saveTimer);
@@ -1676,13 +1694,13 @@
     if (state.mode !== 'vault' || !V.status?.unlocked) return;
     const min = state.settings?.vault.autoLockMinutes ?? 0;
     if (!min) {
-      el.lockCountdown.textContent = '자동 잠금 꺼짐';
+      el.lockCountdown.textContent = t('vault.autolock_off');
       return;
     }
     const left = Math.max(0, min * 60000 - (Date.now() - V.lastTouch));
     const m = Math.floor(left / 60000);
     const s = Math.floor((left % 60000) / 1000);
-    el.lockCountdown.textContent = left > 0 ? `${m}:${String(s).padStart(2, '0')} 후 잠김` : '';
+    el.lockCountdown.textContent = left > 0 ? t('vault.locks_in', { t: `${m}:${String(s).padStart(2, '0')}` }) : '';
   }, 1000);
   $('#viewVault').addEventListener('pointerdown', () => {
     if (V.status?.unlocked) touchVault();
@@ -1732,11 +1750,11 @@
   function showUpdate(info: Seorap.UpdateInfo): void {
     update = info;
     railUpdate.hidden = false;
-    railUpdate.title = `새 버전 ${info.version}이 나왔어요. 클릭하면 받기 페이지로 갑니다.`;
+    railUpdate.title = t('rail.update_title', { v: info.version });
     $('#railUpdateLabel').textContent = `v${info.version}`;
     btnGetUpdate.hidden = false;
-    btnGetUpdate.textContent = `v${info.version} 받기`;
-    $('#updateStatus').textContent = `새 버전 ${info.version}이 있어요`;
+    btnGetUpdate.textContent = t('settings.update_get_v', { v: info.version });
+    $('#updateStatus').textContent = t('settings.update_available', { v: info.version });
   }
   const openUpdate = (): void => {
     if (update) void api.openExternal(update.url);
@@ -1752,12 +1770,12 @@
       const status = $('#updateStatus');
       const btn = button('#btnCheckUpdate');
       btn.disabled = true;
-      status.textContent = '확인 중…';
+      status.textContent = t('settings.update_checking');
       const r = await api.checkUpdate();
       btn.disabled = false;
       if (r.status === 'update') showUpdate(r.info);
-      else if (r.status === 'latest') status.textContent = '최신 버전이에요';
-      else status.textContent = `확인하지 못했어요 (${r.error})`;
+      else if (r.status === 'latest') status.textContent = t('settings.update_latest');
+      else status.textContent = t('settings.update_failed', { e: r.error });
     })();
   });
 
@@ -1789,7 +1807,7 @@
     const autoStart = input('#optAutoStart');
     autoStart.checked = s.autoStart;
     autoStart.disabled = !b.isPackaged;
-    $('#autoStartHint').textContent = b.isPackaged ? '트레이에만 조용히 떠 있어요.' : '설치된 버전에서만 설정할 수 있어요 (개발 모드).';
+    $('#autoStartHint').textContent = b.isPackaged ? t('settings.autostart_hint') : t('settings.autostart_dev');
     setSeg('#segCardSize', s.board.cardSize);
     setSeg('#segClick', s.board.clickAction);
     input('#optMono').checked = s.notes.mono;
@@ -1801,8 +1819,9 @@
     input('#optCleanup').checked = s.cleanup.enabled;
     input('#optCleanupDays').value = String(s.cleanup.days);
     input('#optUpdateCheck').checked = s.updates.check;
-    if (!update) $('#updateStatus').textContent = s.updates.lastCheckedAt ? `마지막 확인 ${fmtTime(s.updates.lastCheckedAt)}` : '';
-    $('#aboutVersion').textContent = `서랍 (Seorap) ${b.version}`;
+    if (!update) $('#updateStatus').textContent = s.updates.lastCheckedAt ? t('settings.update_last', { t: fmtTime(s.updates.lastCheckedAt) }) : '';
+    $('#aboutVersion').textContent = `${t('app.name_full')} ${b.version}`;
+    select('#optLanguage').value = s.language;
     updateCleanupPreview();
   }
   function setSeg(sel: string, v: string): void {
@@ -1811,10 +1830,10 @@
   async function refreshStats(): Promise<void> {
     const st = await api.getStats();
     $('#stats').innerHTML = `
-    <div class="stat"><b>${st.count.toLocaleString()}</b><span>항목 · 고정 ${st.pinned}</span></div>
-    <div class="stat"><b>${fmtSize(st.bytes)}</b><span>원본 용량</span></div>
-    <div class="stat"><b>${fmtSize(st.thumbBytes)}</b><span>썸네일</span></div>
-    <div class="stat"><b>${st.byType.image}</b><span>이미지 · 글 ${st.byType.text} · 링크 ${st.byType.link} · 파일 ${st.byType.file}</span></div>`;
+    <div class="stat"><b>${st.count.toLocaleString()}</b><span>${t('settings.stat_items', { n: st.pinned })}</span></div>
+    <div class="stat"><b>${fmtSize(st.bytes)}</b><span>${t('settings.stat_bytes')}</span></div>
+    <div class="stat"><b>${fmtSize(st.thumbBytes)}</b><span>${t('settings.stat_thumbs')}</span></div>
+    <div class="stat"><b>${st.byType.image}</b><span>${t('settings.stat_types', { t: st.byType.text, l: st.byType.link, f: st.byType.file })}</span></div>`;
     $('#dataDir').textContent = st.dir;
   }
   function cleanupDays(): number {
@@ -1826,8 +1845,8 @@
   }
   function updateCleanupPreview(): void {
     const days = cleanupDays();
-    $('#cleanupPreview').textContent = days > 0 ? `지금 실행하면 ${staleCount(days)}개가 지워져요` : '';
-    $('#btnCleanupNow').textContent = `${days || 30}일 지난 항목 지금 정리`;
+    $('#cleanupPreview').textContent = days > 0 ? t('settings.cleanup_preview', { n: staleCount(days) }) : '';
+    $('#btnCleanupNow').textContent = t('settings.cleanup_now', { days: days || 30 });
   }
   async function save(patch: Seorap.SettingsPatch): Promise<void> {
     const r = await api.setSettings(patch);
@@ -1859,6 +1878,7 @@
   onCheck('#optContentProtection', (c) => ({ vault: { contentProtection: c } }));
   onCheck('#optCleanup', (c) => ({ cleanup: { enabled: c } }));
   onCheck('#optUpdateCheck', (c) => ({ updates: { check: c } }));
+  onSelect('#optLanguage', (v) => ({ language: v === 'ko' || v === 'en' ? v : 'system' }));
   onSelect('#optAutoLock', (v) => ({ vault: { autoLockMinutes: Number(v) } }));
   onSelect('#optClipClear', (v) => ({ vault: { clipboardClearSeconds: Number(v) } }));
   onSeg('#segCardSize', (v) => ({ board: { cardSize: v === 'small' || v === 'large' ? v : 'medium' } }));
@@ -1879,7 +1899,7 @@
       const r = await api.pickDataDir();
       if (r.error) $('#dirError').textContent = r.error;
       if (r.ok) {
-        flash('저장 폴더를 옮겼어요');
+        flash(t('flash.dir_moved'));
         await refreshStats();
       }
     })();
@@ -1889,13 +1909,13 @@
       const days = cleanupDays() || 30;
       const n = staleCount(days);
       if (!n) {
-        flash(`${days}일 지난 항목이 없어요`);
+        flash(t('flash.no_stale', { days }));
         return;
       }
-      const ok = await confirmDialog(`${n}개 항목 삭제`, `${days}일보다 오래된, 고정하지 않은 항목 ${n}개를 지워요. 이 작업은 되돌릴 수 없어요.`);
+      const ok = await confirmDialog(t('settings.cleanup_confirm_title', { n }), t('settings.cleanup_confirm_desc', { n, days }));
       if (!ok) return;
       const removed = await api.runCleanup(days);
-      flash(`${removed}개를 정리했어요`);
+      flash(t('flash.cleaned', { n: removed }));
       await refreshStats();
       updateCleanupPreview();
     })();
@@ -1904,52 +1924,52 @@
     void (async () => {
       const st = await api.vault.status();
       if (!st.exists) {
-        flash('먼저 금고를 만들어 주세요');
+        flash(t('flash.vault_create_first'));
         return;
       }
       if (!st.unlocked) {
-        flash('금고를 먼저 열어 주세요');
+        flash(t('flash.vault_unlock_first'));
         return;
       }
       const r = await promptDialog({
-        title: '마스터 비밀번호 변경',
-        desc: '모든 항목을 새 비밀번호로 다시 암호화해요.',
+        title: t('settings.master_title'),
+        desc: t('settings.master_desc'),
         fields: [
-          { type: 'password', placeholder: '현재 비밀번호' },
-          { type: 'password', placeholder: '새 비밀번호' },
-          { type: 'password', placeholder: '새 비밀번호 확인' },
+          { type: 'password', placeholder: t('settings.master_cur') },
+          { type: 'password', placeholder: t('settings.master_new') },
+          { type: 'password', placeholder: t('settings.master_new2') },
         ],
-        okText: '변경',
+        okText: t('settings.master_ok'),
         validate: async ([o, n, n2]) => {
-          if (!o || !n) return '모두 입력해 주세요.';
-          if (n !== n2) return '새 비밀번호가 서로 달라요.';
+          if (!o || !n) return t('settings.master_fill');
+          if (n !== n2) return t('settings.master_mismatch');
           const s = await api.vault.strength(n);
-          if (!s.ok) return s.reason ?? '비밀번호가 약해요.';
+          if (!s.ok) return s.reason ?? t('settings.weak_password');
           const res = await api.vault.changePassword(o, n);
           return res.ok ? null : res.error;
         },
       });
-      if (r) flash('마스터 비밀번호를 바꿨어요');
+      if (r) flash(t('flash.master_changed'));
     })();
   });
   $('#btnExportVault').addEventListener('click', () => {
     void (async () => {
       const st = await api.vault.status();
       if (!st.unlocked) {
-        flash('금고를 먼저 열어 주세요');
+        flash(t('flash.vault_unlock_first'));
         return;
       }
       const r = await promptDialog({
-        title: '평문으로 내보내기',
-        desc: '암호화되지 않은 JSON 파일이 만들어져요. 백업 후에는 안전한 곳에 두거나 바로 지우세요.',
-        fields: [{ type: 'password', placeholder: '마스터 비밀번호 확인' }],
-        okText: '내보내기',
+        title: t('settings.export_title'),
+        desc: t('settings.export_desc'),
+        fields: [{ type: 'password', placeholder: t('settings.export_confirm_ph') }],
+        okText: t('settings.export_ok'),
         validate: async ([pw]) => {
           const res = await api.vault.export(pw ?? '');
           return res.ok ? null : res.error;
         },
       });
-      if (r) flash('내보냈어요');
+      if (r) flash(t('flash.exported'));
     })();
   });
 
@@ -1961,11 +1981,11 @@
       inp.classList.add('recording');
       inp.dataset['prev'] = inp.value;
       inp.value = '';
-      inp.placeholder = '키 조합을 누르세요… (Esc 취소)';
+      inp.placeholder = t('settings.sc_record');
     });
     inp.addEventListener('blur', () => {
       inp.classList.remove('recording');
-      inp.placeholder = '없음';
+      inp.placeholder = t('common.none');
       if (!inp.value) inp.value = inp.dataset['prev'] ?? '';
     });
     inp.addEventListener('keydown', (e) => {
@@ -2015,6 +2035,21 @@
   function applySettingsToUi(): void {
     const s = state.settings;
     if (!s) return;
+    const nextLang = seorapResolveLang(s.language, navigator.language);
+    if (nextLang !== lang || document.documentElement.lang !== nextLang) {
+      lang = nextLang;
+      applyI18n();
+      // 코드에서 만든 문구도 새 언어로 다시 그린다.
+      renderBoard();
+      void renderEditor();
+      if (state.mode === 'vault') void refreshVault();
+      if (update) showUpdate(update);
+      if (!el.settings.hidden) {
+        updateCleanupPreview();
+        $('#aboutVersion').textContent = `${t('app.name_full')} ${appVersion}`;
+        void refreshStats();
+      }
+    }
     el.app.dataset['card'] = s.board.cardSize;
     document.documentElement.style.setProperty('--editor-font', s.notes.mono ? 'var(--mono)' : 'var(--font)');
     document.documentElement.style.setProperty('--editor-size', `${s.notes.fontSize || 15}px`);
@@ -2022,7 +2057,7 @@
     $('#btnNoteMono').classList.toggle('active', s.notes.mono);
     const sortBtn = $('#btnNoteSort');
     sortBtn.classList.toggle('active', s.notes.sort === 'manual');
-    sortBtn.title = s.notes.sort === 'manual' ? '정렬: 직접 정렬 (클릭하면 최신순)' : '정렬: 최신순 (클릭하면 직접 정렬)';
+    sortBtn.title = s.notes.sort === 'manual' ? t('notes.sort_manual_title') : t('notes.sort_recent_title');
     renderNoteList();
     if (!el.settings.hidden) {
       setSeg('#segCardSize', s.board.cardSize);
@@ -2203,6 +2238,7 @@
   void (async () => {
     const r = await api.getSettings();
     state.settings = r.settings;
+    appVersion = r.version;
     applySettingsToUi();
     await loadAll();
     setMode(r.settings.lastMode);

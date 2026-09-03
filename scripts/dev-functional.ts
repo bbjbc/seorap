@@ -288,6 +288,24 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     assert.strictEqual(await js(`document.getElementById('railUpdateLabel').textContent`), 'v9.9.9');
   });
 
+  await check('language switch re-renders static and dynamic strings', async () => {
+    await js(`scrap.setSettings({ language: 'en' })`);
+    await sleep(400);
+    assert.strictEqual(await js(`document.documentElement.lang`), 'en');
+    assert.strictEqual(await js(`document.getElementById('search').placeholder`), 'Search (Ctrl+F)');
+    assert.strictEqual(await js(`document.querySelector('.rail-btn[data-mode="board"] span').textContent`), 'Board');
+    assert.strictEqual(await js(`document.querySelector('.chip[data-type="image"] span').textContent`), 'Image');
+    assert.strictEqual(await js(`document.title`), 'Seorap');
+    assert.strictEqual(await js(`document.getElementById('noteTitle').textContent`), 'Notes');
+    // 메인 프로세스 문자열도 같은 사전을 쓴다
+    await assert.rejects(store.moveTo(path.join(store.dir, 'inner')), /inside the current one/);
+    await js(`scrap.setSettings({ language: 'ko' })`);
+    await sleep(400);
+    assert.strictEqual(await js(`document.getElementById('search').placeholder`), '검색 (Ctrl+F)');
+    assert.strictEqual(await js(`document.querySelector('.rail-btn[data-mode="board"] span').textContent`), '보드');
+    await assert.rejects(store.moveTo(path.join(store.dir, 'inner')), /현재 폴더 안쪽/);
+  });
+
   await check('stats', () => {
     const s = store.stats();
     assert(s.count === store.items.length && s.bytes > 0);
