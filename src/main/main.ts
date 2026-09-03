@@ -596,7 +596,7 @@ function showContextMenu(ids: string[]): void {
       label: '복사',
       click: () => void copyItem(one.id).then(() => send('ui:flash', { text: '클립보드에 복사했어요' })),
     });
-    if (one.type === 'text') tpl.push({ label: '메모에서 열기', click: () => sendAction('openNote') });
+    if (one.type === 'text') tpl.push({ label: one.note ? '메모에서 열기' : '메모로 보내기', click: () => sendAction('openNote') });
     else tpl.push({ label: '자세히 보기', click: () => sendAction('detail') });
     tpl.push({ label: one.type === 'link' ? '브라우저에서 열기' : '기본 앱으로 열기', click: () => openItem(one.id) });
     tpl.push({

@@ -109,6 +109,21 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     assert(it.note === true);
   });
 
+  await check('notes never show up on the board', async () => {
+    const id = await js('__seorap.noteId()');
+    assert(typeof id === 'string');
+    await js(`__seorap.setMode('board')`);
+    await sleep(300);
+    const onBoard = await js(`document.querySelectorAll('#grid .card[data-id="${id}"]').length`);
+    assert.strictEqual(onBoard, 0, 'note card must not render on board');
+    const clip = store.items.find((i) => i.type === 'text' && !i.note);
+    assert(clip, 'a clipboard text item exists');
+    const clipOnBoard = await js(`document.querySelectorAll('#grid .card[data-id="${clip.id}"]').length`);
+    assert.strictEqual(clipOnBoard, 1, 'clipboard text still renders on board');
+    await js(`__seorap.setMode('notes')`);
+    await sleep(200);
+  });
+
   await check('empty note is discarded on leave', async () => {
     await js(`__seorap.newNote()`);
     await sleep(300);

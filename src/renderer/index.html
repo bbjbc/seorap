@@ -58,11 +58,6 @@
       </div>
     </header>
 
-    <div class="composer">
-      <textarea id="quickNote" rows="1" placeholder="한 줄 메모 후 Enter  ·  이미지·파일·글을 여기로 끌어다 놓기  ·  Ctrl+V로 클립보드 붙이기" spellcheck="false"></textarea>
-      <button id="btnAddNote" class="btn primary" title="저장 (Enter)">저장</button>
-    </div>
-
     <div class="scroll" id="boardScroll" tabindex="-1">
       <div class="grid" id="grid"></div>
       <div id="sentinel" class="sentinel"></div>
@@ -101,7 +96,6 @@
           <button class="icon-btn" id="btnNotePin" title="고정"><svg viewBox="0 0 24 24"><path d="M16 3l5 5-4.2 1.4-2.7 2.7.5 4.9-2 2-3.6-3.6L4 21l-1-1 5.6-5-3.6-3.6 2-2 4.9.5 2.7-2.7z"/></svg></button>
           <button class="icon-btn" id="btnNoteMono" title="고정폭 글꼴"><svg viewBox="0 0 24 24"><path d="M7 8 3 12l4 4M17 8l4 4-4 4M14 4l-4 16"/></svg></button>
           <button class="icon-btn" id="btnNoteCopy" title="전체 복사"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>
-          <button class="icon-btn" id="btnNoteBoard" title="보드에서 보기"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></button>
           <button class="icon-btn danger" id="btnNoteDelete" title="삭제"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
         </div>
       </header>

@@ -73,8 +73,6 @@
     typeChips: $('#typeChips'),
     chipPinned: button('#chipPinned'),
     tagFilter: button('#tagFilter'),
-    quickNote: textarea('#quickNote'),
-    btnAddNote: button('#btnAddNote'),
     boardScroll: $('#boardScroll'),
     dropOverlay: $('#dropOverlay'),
     dropText: $('#dropText'),
@@ -313,7 +311,6 @@
   });
   api.onFlash((m) => flash(m.text));
   api.onWindowShown(() => {
-    if (state.mode === 'board' && !isTyping()) el.quickNote.focus();
     if (state.mode === 'notes' && state.noteId) el.editor.focus();
     if (state.mode === 'vault') void refreshVault();
   });
@@ -325,9 +322,13 @@
   // =====================================================================
   // 보드
   // =====================================================================
+  /** 보드는 클립보드 전용이다. 메모(note)는 메모 모드에서만 다룬다. */
+  const isBoardItem = (it: Item): boolean => !it.note;
+
   function boardItems(): Item[] {
     const q = state.query.trim().toLowerCase();
     const list = state.items.filter((it) => {
+      if (!isBoardItem(it)) return false;
       if (state.type !== 'all' && it.type !== state.type) return false;
       if (state.pinnedOnly && !it.pinned) return false;
       if (state.tag && !it.tags.includes(state.tag)) return false;
@@ -343,8 +344,9 @@
 
   function renderBoard(): void {
     const list = boardItems();
-    const counts: Record<string, number> = { all: state.items.length, image: 0, text: 0, link: 0, file: 0 };
-    for (const it of state.items) counts[it.type] = (counts[it.type] ?? 0) + 1;
+    const all = state.items.filter(isBoardItem);
+    const counts: Record<string, number> = { all: all.length, image: 0, text: 0, link: 0, file: 0 };
+    for (const it of all) counts[it.type] = (counts[it.type] ?? 0) + 1;
     for (const [k, v] of Object.entries(counts)) {
       const c = el.typeChips.querySelector(`[data-count="${k}"]`);
       if (c) c.textContent = v ? String(v) : '';
@@ -357,7 +359,7 @@
 
     el.empty.hidden = list.length > 0;
     if (!el.empty.hidden) {
-      if (state.items.length === 0) {
+      if (all.length === 0) {
         el.emptyTitle.textContent = '아직 아무것도 없어요';
         const key = state.settings?.shortcuts.quickSave ?? '';
         el.emptyDesc.innerHTML = `이미지·파일·글을 이 창으로 끌어다 놓거나, <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙이세요.<br>다른 앱에서 작업 중일 때는 ${
@@ -375,7 +377,7 @@
     d.className = `card type-${it.type}${it.pinned ? ' pinned' : ''}${state.selected.has(it.id) ? ' selected' : ''}`;
     d.dataset['id'] = it.id;
     d.draggable = true;
-    d.title = it.type === 'text' ? '클릭: 복사 · 더블클릭: 메모에서 열기' : '클릭: 복사 · 더블클릭: 자세히';
+    d.title = it.type === 'text' ? '클릭: 복사 · 더블클릭: 메모로 보내기' : '클릭: 복사 · 더블클릭: 자세히';
 
     let body = '';
     if (it.type === 'image') {
@@ -566,41 +568,6 @@
   }
   el.tagFilter.addEventListener('click', () => setTagFilter(state.tag));
 
-  // 작성창
-  function autosize(ta: HTMLTextAreaElement): void {
-    ta.style.height = 'auto';
-    ta.style.height = `${Math.min(160, ta.scrollHeight)}px`;
-  }
-  el.quickNote.addEventListener('input', () => autosize(el.quickNote));
-  el.quickNote.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      void submitQuickNote();
-    }
-  });
-  el.quickNote.addEventListener('paste', (e) => {
-    const dt = e.clipboardData;
-    if (!dt) return;
-    if (Array.from(dt.items).some((i) => i.kind === 'file')) {
-      e.preventDefault();
-      void grabClipboard();
-    }
-  });
-  el.btnAddNote.addEventListener('click', () => void submitQuickNote());
-  async function submitQuickNote(): Promise<void> {
-    const text = el.quickNote.value;
-    if (!text.trim()) return;
-    const r = await api.addText(text, { note: true });
-    el.quickNote.value = '';
-    autosize(el.quickNote);
-    if (r?.duplicate) {
-      flash('이미 같은 내용이 있어요');
-      highlight(r.item.id);
-    } else if (r) {
-      el.boardScroll.scrollTop = 0;
-    }
-  }
-
   // 삭제 (실행 취소 가능)
   let undoTimer: number | null = null;
   function softDelete(rawIds: string[]): void {
@@ -678,8 +645,9 @@
       const blobs: Seorap.DroppedBlob[] = [];
       for (const f of files) {
         const p = api.getPathForFile(f);
+        // 메모 모드에 떨어진 텍스트 파일은 내용을 읽어 메모로 만든다. 보드에서는 파일 그대로 보관.
         const isTextFile = /\.(txt|md|markdown|log|csv|json)$/i.test(f.name) && f.size < 2 * 1024 * 1024;
-        if (isTextFile && (state.mode === 'notes' || /\.(txt|md|markdown)$/i.test(f.name))) {
+        if (isTextFile && state.mode === 'notes') {
           bump(await api.addText(await f.text(), { note: true }));
         } else if (p) paths.push(p);
         else blobs.push({ name: f.name, mime: f.type, data: await f.arrayBuffer() });
@@ -898,12 +866,6 @@
     void api.copyItem(state.noteId).then((ok) => {
       if (ok) flash('메모를 복사했어요');
     });
-  });
-  $('#btnNoteBoard').addEventListener('click', () => {
-    const id = state.noteId;
-    if (!id) return;
-    setMode('board');
-    highlight(id);
   });
   $('#btnNoteDelete').addEventListener('click', () => {
     if (state.noteId) softDelete([state.noteId]);
