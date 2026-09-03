@@ -1724,6 +1724,44 @@
   $('#btnIssue').addEventListener('click', () => void api.openExternal(REPO_URL + '/issues/new'));
 
   // =====================================================================
+  // 새 버전 알림 (메인이 확인해 알려 준다. 레일 버튼 + 설정의 받기 버튼)
+  // =====================================================================
+  let update: Seorap.UpdateInfo | null = null;
+  const railUpdate = button('#railUpdate');
+  const btnGetUpdate = button('#btnGetUpdate');
+  function showUpdate(info: Seorap.UpdateInfo): void {
+    update = info;
+    railUpdate.hidden = false;
+    railUpdate.title = `새 버전 ${info.version}이 나왔어요. 클릭하면 받기 페이지로 갑니다.`;
+    $('#railUpdateLabel').textContent = `v${info.version}`;
+    btnGetUpdate.hidden = false;
+    btnGetUpdate.textContent = `v${info.version} 받기`;
+    $('#updateStatus').textContent = `새 버전 ${info.version}이 있어요`;
+  }
+  const openUpdate = (): void => {
+    if (update) void api.openExternal(update.url);
+  };
+  railUpdate.addEventListener('click', openUpdate);
+  btnGetUpdate.addEventListener('click', openUpdate);
+  api.onUpdateAvailable(showUpdate);
+  void api.updateStatus().then((info) => {
+    if (info) showUpdate(info);
+  });
+  $('#btnCheckUpdate').addEventListener('click', () => {
+    void (async () => {
+      const status = $('#updateStatus');
+      const btn = button('#btnCheckUpdate');
+      btn.disabled = true;
+      status.textContent = '확인 중…';
+      const r = await api.checkUpdate();
+      btn.disabled = false;
+      if (r.status === 'update') showUpdate(r.info);
+      else if (r.status === 'latest') status.textContent = '최신 버전이에요';
+      else status.textContent = `확인하지 못했어요 (${r.error})`;
+    })();
+  });
+
+  // =====================================================================
   // 설정
   // =====================================================================
   async function openSettings(): Promise<void> {
@@ -1762,6 +1800,8 @@
     input('#optContentProtection').checked = s.vault.contentProtection;
     input('#optCleanup').checked = s.cleanup.enabled;
     input('#optCleanupDays').value = String(s.cleanup.days);
+    input('#optUpdateCheck').checked = s.updates.check;
+    if (!update) $('#updateStatus').textContent = s.updates.lastCheckedAt ? `마지막 확인 ${fmtTime(s.updates.lastCheckedAt)}` : '';
     $('#aboutVersion').textContent = `서랍 (Seorap) ${b.version}`;
     updateCleanupPreview();
   }
@@ -1818,6 +1858,7 @@
   onCheck('#optLockOnHide', (c) => ({ vault: { lockOnHide: c } }));
   onCheck('#optContentProtection', (c) => ({ vault: { contentProtection: c } }));
   onCheck('#optCleanup', (c) => ({ cleanup: { enabled: c } }));
+  onCheck('#optUpdateCheck', (c) => ({ updates: { check: c } }));
   onSelect('#optAutoLock', (v) => ({ vault: { autoLockMinutes: Number(v) } }));
   onSelect('#optClipClear', (v) => ({ vault: { clipboardClearSeconds: Number(v) } }));
   onSeg('#segCardSize', (v) => ({ board: { cardSize: v === 'small' || v === 'large' ? v : 'medium' } }));
@@ -2152,6 +2193,8 @@
     closeFind,
     noteListIds: () => $$('.note-item', el.noteList).map((d) => d.dataset['id'] ?? ''),
     moveNote: (id, beforeId) => moveNote(id, beforeId, false),
+    showUpdate,
+    updateVisible: () => !railUpdate.hidden,
   };
 
   // =====================================================================

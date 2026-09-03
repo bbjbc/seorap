@@ -26,6 +26,11 @@
       <i class="rail-dot" id="vaultDot" hidden></i>
     </button>
     <div class="rail-spacer"></div>
+    <button class="rail-btn nodrag update" id="railUpdate" title="새 버전이 나왔어요" hidden>
+      <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <span id="railUpdateLabel">새 버전</span>
+      <i class="rail-dot accent"></i>
+    </button>
     <button class="rail-btn nodrag" id="railGrab" title="지금 클립보드에 있는 내용을 보드에 저장 (Ctrl+V)">
       <svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4.5h6M12 10v7M9 13.5h6"/></svg>
       <span>클립보드</span>
@@ -351,6 +356,16 @@
           <button class="btn ghost small" id="btnMoveDir">폴더 옮기기…</button>
         </div>
         <p class="hint err" id="dirError"></p>
+      </section>
+
+      <section>
+        <h3>업데이트</h3>
+        <label class="row check"><input type="checkbox" id="optUpdateCheck"><span><b>새 버전 자동 확인</b><small>6시간마다 GitHub Releases 에서 최신 버전 번호만 조회해요. 내려받기와 설치는 직접 하세요.</small></span></label>
+        <div class="row btns">
+          <button class="btn ghost small" id="btnCheckUpdate">지금 확인</button>
+          <button class="btn primary small" id="btnGetUpdate" hidden>새 버전 받기</button>
+          <span class="muted" id="updateStatus"></span>
+        </div>
       </section>
 
       <section class="about">

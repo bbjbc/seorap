@@ -108,6 +108,9 @@ body, input, textarea, button, select { font-feature-settings: "ss05" 1; } /* Pr
   content: ""; position: absolute; left: -7px; top: 15px; width: 3px; height: 24px; border-radius: 3px; background: var(--accent);
 }
 .rail-dot { position: absolute; top: 9px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(111,211,154,0.18); }
+.rail-dot.accent { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.rail-btn.update { color: var(--accent); }
+.rail-btn.update:hover { background: var(--accent-soft); color: var(--accent); }
 .rail-spacer { flex: 1; }
 
 /* ===== 공통 컨트롤 ===== */

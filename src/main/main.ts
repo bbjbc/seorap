@@ -21,6 +21,7 @@ import { Store, type ChangeEvent } from './store';
 import { Settings } from './settings';
 import { Vault, VaultError, checkStrength, generatePassword } from './vault';
 import * as cb from './clipboard';
+import { checkForUpdate } from './update';
 
 const ASSETS = path.join(__dirname, '..', '..', 'assets');
 const ICON_ICO = path.join(ASSETS, 'icon.ico');
@@ -54,6 +55,7 @@ let autoLockTimer: NodeJS.Timeout | null = null;
 let clipboardClearTimer: NodeJS.Timeout | null = null;
 let quitting = false;
 let shortcutErrors: Partial<Record<Seorap.ShortcutKey, string>> = {};
+let latestUpdate: Seorap.UpdateInfo | null = null;
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -115,6 +117,12 @@ void app.whenReady().then(() => {
 
   void runCleanup();
   setInterval(() => void runCleanup(), 60 * 60 * 1000);
+
+  // 새 버전 확인: 시작 직후 한 번, 이후 6시간마다. 개발 모드에서는 자동 확인하지 않는다.
+  if (app.isPackaged) {
+    setTimeout(() => void autoCheckUpdate(), 8000);
+    setInterval(() => void autoCheckUpdate(), 6 * 60 * 60 * 1000);
+  }
 
   if (!START_HIDDEN) showWindow();
 
@@ -292,6 +300,9 @@ function refreshTrayMenu(): void {
     },
     { label: '금고 잠그기', enabled: vault.unlocked, click: () => vault.lock('manual') },
     { type: 'separator' },
+    ...(latestUpdate
+      ? [{ label: `새 버전 ${latestUpdate.version} 받기…`, click: () => void shell.openExternal(latestUpdate?.url ?? '') } as MenuItemConstructorOptions]
+      : []),
     {
       label: '설정…',
       click: () => {
@@ -355,6 +366,29 @@ function applySettings(patch: Seorap.SettingsPatch): Seorap.SettingsApplyResult 
   refreshTrayMenu();
   send('settings:changed', after);
   return { settings: after, shortcutErrors };
+}
+
+// ---------- 새 버전 확인 ----------
+async function runUpdateCheck(): Promise<Seorap.UpdateCheckResult> {
+  try {
+    const info = await checkForUpdate(app.getVersion());
+    settings.set({ updates: { lastCheckedAt: Date.now() } });
+    if (!info) return { status: 'latest' };
+    const isNew = latestUpdate?.version !== info.version;
+    latestUpdate = info;
+    if (isNew) {
+      refreshTrayMenu();
+      send('update:available', info);
+    }
+    return { status: 'update', info };
+  } catch (err) {
+    return { status: 'error', error: errMsg(err) };
+  }
+}
+
+async function autoCheckUpdate(): Promise<void> {
+  if (!settings.data.updates.check) return;
+  await runUpdateCheck();
 }
 
 // ---------- 클립보드 저장 ----------
@@ -807,6 +841,8 @@ handle('settings:pickDataDir', async () => {
     return { ok: false, error: errMsg(err) };
   }
 });
+handle('update:check', () => runUpdateCheck());
+handle('update:status', () => latestUpdate);
 handle('window:hide', () => {
   win?.hide();
 });

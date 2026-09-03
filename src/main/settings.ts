@@ -27,6 +27,7 @@ export const DEFAULTS: Seorap.Settings = {
     lockOnHide: true,
   },
   cleanup: { enabled: false, days: 30 },
+  updates: { check: true, lastCheckedAt: 0 },
   installedAt: null,
   starNudge: { done: false, snoozeUntil: 0 },
   dataDir: null,

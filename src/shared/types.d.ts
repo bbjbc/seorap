@@ -101,6 +101,8 @@ declare namespace Seorap {
     notes: { mono: boolean; fontSize: number; showClipboardText: boolean; sort: NoteSort };
     vault: { autoLockMinutes: number; clipboardClearSeconds: number; contentProtection: boolean; lockOnHide: boolean };
     cleanup: { enabled: boolean; days: number };
+    /** 새 버전 자동 확인 (GitHub Releases 조회, 6시간마다). 끄면 설정에서 수동 확인만. */
+    updates: { check: boolean; lastCheckedAt: number };
     /** 첫 실행 시각. 스타 요청 배너 타이밍에 쓴다. */
     installedAt: number | null;
     /** GitHub 스타 요청 배너 상태 */
@@ -138,6 +140,18 @@ declare namespace Seorap {
     dir?: string;
     error?: string;
   }
+
+  // ---------- 업데이트 ----------
+  interface UpdateInfo {
+    version: string;
+    url: string;
+    publishedAt: number;
+  }
+
+  type UpdateCheckResult =
+    | { status: 'update'; info: UpdateInfo }
+    | { status: 'latest' }
+    | { status: 'error'; error: string };
 
   // ---------- 금고 ----------
   interface VaultStatus {
@@ -222,6 +236,9 @@ declare namespace Seorap {
     'settings:runCleanup': { args: [days?: number]; result: number };
     'settings:pickDataDir': { args: []; result: PickDirResult };
 
+    'update:check': { args: []; result: UpdateCheckResult };
+    'update:status': { args: []; result: UpdateInfo | null };
+
     'window:hide': { args: []; result: void };
     'shell:openExternal': { args: [url: string]; result: void };
   }
@@ -236,6 +253,7 @@ declare namespace Seorap {
     'window:shown': undefined;
     'settings:changed': Settings;
     'vault:locked': VaultLocked;
+    'update:available': UpdateInfo;
   }
 
   type Unsubscribe = () => void;
@@ -291,6 +309,10 @@ declare namespace Seorap {
     hideWindow(): Promise<void>;
     openExternal(url: string): Promise<void>;
 
+    checkUpdate(): Promise<UpdateCheckResult>;
+    updateStatus(): Promise<UpdateInfo | null>;
+    onUpdateAvailable(cb: (info: UpdateInfo) => void): Unsubscribe;
+
     onItemsChanged(cb: (e: ItemsChangedEvent) => void): Unsubscribe;
     onUiAction(cb: (e: UiAction) => void): Unsubscribe;
     onFlash(cb: (e: Flash) => void): Unsubscribe;
@@ -333,6 +355,8 @@ declare namespace Seorap {
     closeFind(): void;
     noteListIds(): string[];
     moveNote(id: string, beforeId: string | null): Promise<void>;
+    showUpdate(info: UpdateInfo): void;
+    updateVisible(): boolean;
   }
 }
 

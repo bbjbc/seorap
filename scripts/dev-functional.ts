@@ -5,6 +5,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { clipboard, ClipboardItem, nativeImage, net, type NativeImage } from 'electron';
 import type { DebugContext } from '../src/main/main';
+import { isNewer, parseRelease } from '../src/main/update';
 
 const ROOT = path.join(__dirname, '..', '..');
 
@@ -272,6 +273,19 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     assert.strictEqual(await js('__seorap.starNudgeVisible()'), false, 'nudge hidden after dismiss');
     const r = await js('scrap.getSettings().then(r => r.settings.starNudge.done)');
     assert.strictEqual(r, true, 'dismissal persisted');
+  });
+
+  await check('update check: version compare, release parsing, rail button', async () => {
+    assert(isNewer('0.2.0', '0.1.4') && isNewer('v1.0.0', '0.9.9') && isNewer('0.1.10', '0.1.9'));
+    assert(!isNewer('0.1.4', '0.1.4') && !isNewer('0.1.3', '0.1.4') && !isNewer('garbage', '0.1.4'));
+    assert(isNewer('0.2.0', '0.2.0-beta.1') && !isNewer('0.2.0-beta.1', '0.2.0'));
+    const rel = parseRelease({ tag_name: 'v0.2.0', html_url: 'https://github.com/bbjbc/seorap/releases/tag/v0.2.0', published_at: '2026-09-04T00:00:00Z' });
+    assert(rel?.version === '0.2.0' && rel.url.endsWith('/v0.2.0') && rel.publishedAt > 0);
+    assert.strictEqual(parseRelease({ tag_name: 'nightly' }), null);
+    assert.strictEqual(await js('__seorap.updateVisible()'), false);
+    await js(`__seorap.showUpdate({ version: '9.9.9', url: 'https://example.com', publishedAt: 0 })`);
+    assert.strictEqual(await js('__seorap.updateVisible()'), true);
+    assert.strictEqual(await js(`document.getElementById('railUpdateLabel').textContent`), 'v9.9.9');
   });
 
   await check('stats', () => {

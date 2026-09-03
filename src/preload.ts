@@ -64,6 +64,10 @@ const api: Seorap.Api = {
   hideWindow: () => invoke('window:hide'),
   openExternal: (url) => invoke('shell:openExternal', url),
 
+  checkUpdate: () => invoke('update:check'),
+  updateStatus: () => invoke('update:status'),
+  onUpdateAvailable: (cb) => on('update:available', cb),
+
   onItemsChanged: (cb) => on('items:changed', cb),
   onUiAction: (cb) => on('ui:action', cb),
   onFlash: (cb) => on('ui:flash', cb),
