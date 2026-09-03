@@ -244,6 +244,7 @@
     state.items = await api.listItems();
     renderBoard();
     renderNoteList();
+    evaluateStarNudge();
   }
 
   api.onItemsChanged((evt) => {
@@ -278,6 +279,7 @@
     renderBoard();
     renderNoteList();
     if (evt.type === 'update' && evt.item.id === state.noteId) renderEditorMeta();
+    if (evt.type === 'add') evaluateStarNudge();
   });
 
   api.onUiAction((msg) => {
@@ -1466,6 +1468,38 @@
   });
 
   // =====================================================================
+  // GitHub 스타 요청 배너 (네트워크·계정 없음. 조건: 항목 50개 이상 또는 설치 7일 경과, 한 번만)
+  // =====================================================================
+  const REPO_URL = 'https://github.com/bbjbc/seorap';
+  const nudge = { el: $('#starNudge'), shownThisSession: false };
+  function evaluateStarNudge(): void {
+    const s = state.settings;
+    if (!s || nudge.shownThisSession) return;
+    if (s.starNudge.done || Date.now() < s.starNudge.snoozeUntil) return;
+    const enoughItems = state.items.length >= 50;
+    const oldEnough = s.installedAt !== null && Date.now() - s.installedAt > 7 * 86400e3;
+    if (!enoughItems && !oldEnough) return;
+    if (state.mode !== 'board' || anyModalOpen()) return;
+    nudge.el.hidden = false;
+    nudge.shownThisSession = true;
+  }
+  function closeNudge(patch: Partial<Seorap.Settings['starNudge']>): void {
+    nudge.el.hidden = true;
+    void save({ starNudge: patch });
+  }
+  $('#nudgeStar').addEventListener('click', () => {
+    void api.openExternal(REPO_URL);
+    closeNudge({ done: true });
+  });
+  $('#nudgeLater').addEventListener('click', () => closeNudge({ snoozeUntil: Date.now() + 14 * 86400e3 }));
+  $('#nudgeNever').addEventListener('click', () => closeNudge({ done: true }));
+  $('#btnStar').addEventListener('click', () => {
+    void api.openExternal(REPO_URL);
+    void save({ starNudge: { done: true } });
+  });
+  $('#btnIssue').addEventListener('click', () => void api.openExternal(REPO_URL + '/issues/new'));
+
+  // =====================================================================
   // 설정
   // =====================================================================
   async function openSettings(): Promise<void> {
@@ -1867,6 +1901,8 @@
       el.editor.value = text;
       el.editor.dispatchEvent(new Event('input'));
     },
+    starNudgeVisible: () => !nudge.el.hidden,
+    evaluateStarNudge,
   };
 
   // =====================================================================

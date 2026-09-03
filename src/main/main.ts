@@ -93,6 +93,7 @@ function migrateLegacyUserData(): void {
 void app.whenReady().then(() => {
   migrateLegacyUserData();
   settings = new Settings(path.join(app.getPath('userData'), 'settings.json'));
+  if (!settings.data.installedAt) settings.set({ installedAt: Date.now() });
   const dataDir = process.env['SEORAP_DATA_DIR'] ?? settings.data.dataDir ?? path.join(app.getPath('userData'), 'data');
   store = new Store(dataDir);
   store.onChange(broadcastChange);

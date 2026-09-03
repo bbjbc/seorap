@@ -98,6 +98,10 @@ declare namespace Seorap {
     notes: { mono: boolean; fontSize: number; showClipboardText: boolean };
     vault: { autoLockMinutes: number; clipboardClearSeconds: number; contentProtection: boolean; lockOnHide: boolean };
     cleanup: { enabled: boolean; days: number };
+    /** 첫 실행 시각. 스타 요청 배너 타이밍에 쓴다. */
+    installedAt: number | null;
+    /** GitHub 스타 요청 배너 상태 */
+    starNudge: { done: boolean; snoozeUntil: number };
     dataDir: string | null;
     windowBounds: { x: number; y: number; width: number; height: number } | null;
     lastMode: Mode;
@@ -318,6 +322,8 @@ declare namespace Seorap {
     items(): ClientItem[];
     noteId(): string | null;
     typeIntoEditor(text: string): void;
+    starNudgeVisible(): boolean;
+    evaluateStarNudge(): void;
   }
 }
 

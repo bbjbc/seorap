@@ -206,6 +206,19 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     await js(`scrap.setSettings({ autoCollect: false })`);
   });
 
+  await check('star nudge appears once after 7 days and respects dismissal', async () => {
+    await js(`scrap.setSettings({ installedAt: Date.now() - 8 * 86400e3, starNudge: { done: false, snoozeUntil: 0 } })`);
+    await js(`__seorap.setMode('board')`);
+    await sleep(200);
+    await js(`__seorap.evaluateStarNudge()`);
+    assert.strictEqual(await js('__seorap.starNudgeVisible()'), true, 'nudge should show');
+    await js(`document.getElementById('nudgeNever').click()`);
+    await sleep(300);
+    assert.strictEqual(await js('__seorap.starNudgeVisible()'), false, 'nudge hidden after dismiss');
+    const r = await js('scrap.getSettings().then(r => r.settings.starNudge.done)');
+    assert.strictEqual(r, true, 'dismissal persisted');
+  });
+
   await check('stats', () => {
     const s = store.stats();
     assert(s.count === store.items.length && s.bytes > 0);

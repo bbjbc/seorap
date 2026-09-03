@@ -26,6 +26,8 @@ export const DEFAULTS: Seorap.Settings = {
     lockOnHide: true,
   },
   cleanup: { enabled: false, days: 30 },
+  installedAt: null,
+  starNudge: { done: false, snoozeUntil: 0 },
   dataDir: null,
   windowBounds: null,
   lastMode: 'board',

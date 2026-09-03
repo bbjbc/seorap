@@ -222,6 +222,13 @@
   <div class="drop-box"><div class="drop-plus">＋</div><div id="dropText">놓으면 저장돼요</div></div>
 </div>
 <div id="flash" class="flash" hidden></div>
+<div id="starNudge" class="nudge" hidden>
+  <span class="nudge-star">⭐</span>
+  <span class="nudge-text">서랍이 쓸 만하다면 GitHub에 스타 하나 부탁해요. 다음에 무엇을 만들지 정하는 데 참고합니다.</span>
+  <button class="btn primary small" id="nudgeStar">스타 주기</button>
+  <button class="btn ghost small" id="nudgeLater">다음에</button>
+  <button class="xbtn" id="nudgeNever" title="다시 보지 않기">×</button>
+</div>
 <div id="undoBar" class="undo" hidden>
   <span id="undoText"></span>
   <button id="undoBtn" class="btn ghost small">실행 취소</button>
@@ -341,6 +348,10 @@
       <section class="about">
         <span id="aboutVersion">서랍</span>
         <span>Ctrl+1/2/3 모드 전환 · Ctrl+K 빠른 찾기 · Esc 창 숨기기</span>
+      </section>
+      <section class="about-links">
+        <button class="btn ghost small" id="btnStar">⭐ GitHub에서 스타 주기</button>
+        <button class="btn ghost small" id="btnIssue">버그 신고 · 제안</button>
       </section>
     </div>
   </div>

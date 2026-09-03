@@ -329,6 +329,17 @@ select {
 }
 .undo[hidden] { display: none; }
 
+.nudge {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 59;
+  display: flex; align-items: center; gap: 10px; max-width: min(720px, calc(100vw - 120px));
+  padding: 8px 8px 8px 14px; border-radius: 12px; background: #2a2a33; color: var(--text);
+  border: 1px solid var(--line-2); box-shadow: 0 8px 30px rgba(0,0,0,.4); animation: pop .18s ease-out;
+}
+.nudge[hidden] { display: none; }
+.nudge-star { font-size: 16px; }
+.nudge-text { font-size: 13px; line-height: 1.4; }
+.about-links { display: flex; gap: 8px; padding-top: 4px !important; }
+
 /* ===== 모달 ===== */
 .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 30px; }
 .modal[hidden] { display: none; }
