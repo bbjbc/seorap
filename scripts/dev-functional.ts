@@ -124,6 +124,22 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     await sleep(200);
   });
 
+  await check('Ctrl+F finds inside the open note, not the list', async () => {
+    await js(`__seorap.typeIntoEditor('사과 바나나 사과\\n포도 사과')`);
+    await sleep(200);
+    const r = (await js(`__seorap.findInNote('사과')`)) as { open: boolean; count: number; index: number; selStart: number; selEnd: number };
+    assert(r.open, 'find bar open');
+    assert.strictEqual(r.count, 3, 'three matches');
+    assert.strictEqual(r.index, 0);
+    assert.deepStrictEqual([r.selStart, r.selEnd], [0, 2], 'first match selected');
+    // 리스트 검색칸은 건드리지 않는다
+    assert.strictEqual(await js(`document.activeElement.id`), 'findInput');
+    await js(`__seorap.closeFind()`);
+    assert.strictEqual(await js(`document.getElementById('findBar').hidden`), true);
+    await js(`__seorap.typeIntoEditor('자동 저장 테스트\\n둘째 줄')`);
+    await sleep(700);
+  });
+
   await check('empty note is discarded on leave', async () => {
     await js(`__seorap.newNote()`);
     await sleep(300);

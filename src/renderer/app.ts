@@ -87,6 +87,11 @@
     optShowClipText: input('#optShowClipText'),
     editor: textarea('#editor'),
     editorEmpty: $('#editorEmpty'),
+    findBar: $('#findBar'),
+    findInput: input('#findInput'),
+    findCount: $('#findCount'),
+    findHl: $('#findHl'),
+    editorMirror: $('#editorMirror'),
     editorStats: $('#editorStats'),
     noteTitle: $('#noteTitle'),
     saveState: $('#saveState'),
@@ -803,6 +808,7 @@
       b.style.opacity = has ? '' : '.35';
     });
     el.noteTagInput.disabled = !has;
+    if (!has) closeFind();
     if (!it) {
       el.noteTitle.textContent = '메모';
       el.saveState.textContent = '';
@@ -812,6 +818,12 @@
     }
     const text = it.truncated ? await api.fullText(it.id) : (it.text ?? '');
     if (el.editor.value !== text) el.editor.value = text;
+    if (!el.findBar.hidden) {
+      find.index = -1;
+      findMatches();
+      renderFindCount();
+      el.findHl.hidden = true;
+    }
     renderEditorMeta();
     el.saveState.textContent = it.updatedAt ? `저장됨 · ${fmtTime(it.updatedAt)}` : '';
     el.saveState.classList.remove('saving');
@@ -857,6 +869,142 @@
     }
     renderNoteList();
   }
+  // ---------- 메모 안 찾기 (Ctrl+F) ----------
+  // 브라우저처럼 대소문자 구분 없이 앉은 자리부터 다음 일치를 찾아 선택한다. 편집기 내용은 건드리지 않는다.
+  const find = { matches: [] as number[], index: -1 };
+  function findMatches(): void {
+    const q = el.findInput.value.toLowerCase();
+    find.matches = [];
+    if (!q) return;
+    const hay = el.editor.value.toLowerCase();
+    for (let i = hay.indexOf(q); i !== -1; i = hay.indexOf(q, i + q.length)) find.matches.push(i);
+  }
+  function renderFindCount(): void {
+    const n = find.matches.length;
+    const q = el.findInput.value;
+    el.findCount.textContent = !q ? '' : n ? `${find.index + 1} / ${n}` : '결과 없음';
+    el.findCount.classList.toggle('none', !!q && !n);
+  }
+  /** 선택을 옮기고 그 위치가 보이도록 스크롤한다. 포커스는 찾기 입력칸에 남긴다. */
+  function revealMatch(i: number): void {
+    const start = find.matches[i];
+    if (start === undefined) return;
+    find.index = i;
+    const end = start + el.findInput.value.length;
+    // textarea 는 포커스를 받을 때 선택 영역을 화면에 드러내므로, 잠깐 포커스를 넘긴 뒤 되찾아 온다.
+    el.editor.focus({ preventScroll: true });
+    el.editor.setSelectionRange(start, end);
+    scrollEditorToSelection(start);
+    el.findInput.focus({ preventScroll: true });
+    renderFindCount();
+    drawFindHighlight();
+  }
+  /** 거울 div 에 같은 글을 넣고 일치 구간을 span 으로 감싸 좌표를 읽는다. */
+  function drawFindHighlight(): void {
+    const start = find.matches[find.index];
+    if (start === undefined || el.findBar.hidden) {
+      el.findHl.hidden = true;
+      return;
+    }
+    const text = el.editor.value;
+    const end = start + el.findInput.value.length;
+    const m = el.editorMirror;
+    m.style.width = `${el.editor.clientWidth}px`;
+    m.replaceChildren(document.createTextNode(text.slice(0, start)), Object.assign(document.createElement('span'), { textContent: text.slice(start, end) }));
+    const span = m.querySelector('span');
+    const r = span?.getClientRects()[0];
+    if (!r) {
+      el.findHl.hidden = true;
+      return;
+    }
+    const base = m.getBoundingClientRect();
+    const top = r.top - base.top - el.editor.scrollTop;
+    if (top < -r.height || top > el.editor.clientHeight) {
+      el.findHl.hidden = true;
+      return;
+    }
+    el.findHl.style.top = `${top}px`;
+    el.findHl.style.left = `${r.left - base.left}px`;
+    el.findHl.style.width = `${Math.max(2, r.width)}px`;
+    el.findHl.style.height = `${r.height}px`;
+    el.findHl.hidden = false;
+  }
+  el.editor.addEventListener('scroll', () => {
+    if (!el.findBar.hidden) drawFindHighlight();
+  });
+  function scrollEditorToSelection(pos: number): void {
+    // 선택 위치까지의 줄 수로 대략적인 y 를 구해 가운데쯤 오도록 스크롤한다.
+    const before = el.editor.value.slice(0, pos);
+    const lineHeight = parseFloat(getComputedStyle(el.editor).lineHeight) || 24;
+    const line = before.split('\n').length - 1;
+    const y = line * lineHeight;
+    const view = el.editor.clientHeight;
+    if (y < el.editor.scrollTop + lineHeight || y > el.editor.scrollTop + view - lineHeight * 2) {
+      el.editor.scrollTop = Math.max(0, y - view / 2);
+    }
+  }
+  function findStep(dir: 1 | -1): void {
+    findMatches();
+    if (!find.matches.length) {
+      find.index = -1;
+      renderFindCount();
+      el.findHl.hidden = true;
+      return;
+    }
+    // 처음 실행이면 커서 뒤의 첫 일치부터, 이후엔 순환.
+    if (find.index < 0 || find.index >= find.matches.length) {
+      const from = el.editor.selectionStart;
+      const first = find.matches.findIndex((m) => m >= from);
+      revealMatch(dir === 1 ? (first === -1 ? 0 : first) : first <= 0 ? find.matches.length - 1 : first - 1);
+      return;
+    }
+    revealMatch((find.index + dir + find.matches.length) % find.matches.length);
+  }
+  function openFind(): void {
+    if (!state.noteId) return;
+    const sel = el.editor.value.slice(el.editor.selectionStart, el.editor.selectionEnd);
+    if (sel && !sel.includes('\n') && sel.length <= 100) el.findInput.value = sel;
+    el.findBar.hidden = false;
+    find.index = -1;
+    el.findInput.focus();
+    el.findInput.select();
+    findMatches();
+    if (el.findInput.value) findStep(1);
+    else renderFindCount();
+  }
+  function closeFind(): void {
+    if (el.findBar.hidden) return;
+    el.findBar.hidden = true;
+    el.findHl.hidden = true;
+    find.matches = [];
+    find.index = -1;
+    if (state.noteId) el.editor.focus({ preventScroll: true });
+  }
+  el.findInput.addEventListener('input', () => {
+    find.index = -1;
+    findStep(1);
+  });
+  el.findInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      findStep(e.shiftKey ? -1 : 1);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      closeFind();
+    }
+  });
+  $('#findNext').addEventListener('click', () => findStep(1));
+  $('#findPrev').addEventListener('click', () => findStep(-1));
+  $('#findClose').addEventListener('click', closeFind);
+  el.editor.addEventListener('input', () => {
+    if (el.findBar.hidden) return;
+    find.index = -1;
+    findMatches();
+    renderFindCount();
+    el.findHl.hidden = true;
+  });
+
   $('#btnNotePin').addEventListener('click', () => {
     if (state.noteId) void togglePin([state.noteId]);
   });
@@ -1757,6 +1905,10 @@
         (document.activeElement as HTMLElement | null)?.blur();
         return;
       }
+      if (!el.findBar.hidden) {
+        closeFind();
+        return;
+      }
       void api.hideWindow();
       return;
     }
@@ -1777,11 +1929,19 @@
       void newNote();
       return;
     }
-    if (mod && e.key === 'f') {
+    if (mod && (e.key === 'f' || e.key === 'F')) {
       e.preventDefault();
       if (state.mode === 'board') el.search.focus();
-      else if (state.mode === 'notes') el.noteSearch.focus();
-      else el.vaultSearch.focus();
+      else if (state.mode === 'notes') {
+        // 메모가 열려 있으면 그 메모 안에서 찾고, 리스트 검색은 Shift 를 더한다.
+        if (state.noteId && !e.shiftKey) openFind();
+        else el.noteSearch.focus();
+      } else el.vaultSearch.focus();
+      return;
+    }
+    if ((e.key === 'F3' || (mod && e.key === 'g')) && state.mode === 'notes' && !el.findBar.hidden) {
+      e.preventDefault();
+      findStep(e.shiftKey ? -1 : 1);
       return;
     }
     if (mod && e.key === ',') {
@@ -1865,6 +2025,14 @@
     },
     starNudgeVisible: () => !nudge.el.hidden,
     evaluateStarNudge,
+    findInNote: (q) => {
+      openFind();
+      el.findInput.value = q;
+      find.index = -1;
+      findStep(1);
+      return { open: !el.findBar.hidden, count: find.matches.length, index: find.index, selStart: el.editor.selectionStart, selEnd: el.editor.selectionEnd };
+    },
+    closeFind,
   };
 
   // =====================================================================

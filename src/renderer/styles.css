@@ -426,6 +426,32 @@ select {
 }
 .side-head { display: flex; gap: 8px; padding: 10px 10px 8px; align-items: center; }
 .side-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; min-height: 40px; }
+
+/* ===== 메모 안 찾기 ===== */
+.findbar {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  padding: 6px 12px 6px 16px; border-bottom: 1px solid var(--line); background: var(--bg-2);
+}
+.findbar[hidden] { display: none; }
+.findbar > svg { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.findbar input { flex: 1; min-width: 0; height: 28px; border: 0; background: transparent; outline: 0; }
+.findbar input::placeholder { color: var(--muted); }
+.findbar .icon-btn { width: 28px; height: 28px; }
+.findbar .icon-btn svg { width: 15px; height: 15px; }
+.find-count { font-size: 11px; color: var(--muted); white-space: nowrap; min-width: 40px; text-align: right; }
+.find-count.none { color: var(--danger); }
+/* 현재 일치 위치 표시. textarea 는 포커스를 잃으면 선택을 그리지 않으므로 위치를 재서 따로 덧그린다. */
+.find-hl {
+  position: absolute; pointer-events: none; border-radius: 3px;
+  background: rgba(245, 179, 66, 0.35); outline: 1px solid rgba(245, 179, 66, 0.7);
+}
+.find-hl[hidden] { display: none; }
+/* 글자 위치 측정용 거울. textarea 와 같은 글꼴·여백·줄바꿈 규칙이어야 한다. */
+.editor-mirror {
+  position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; overflow: hidden;
+  padding: 22px 28px; line-height: 1.65; font-family: var(--editor-font); font-size: var(--editor-size);
+  white-space: pre-wrap; overflow-wrap: break-word; tab-size: 4; font-feature-settings: "ss05" 1;
+}
 .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; position: relative; } /* .editor-empty(inset:0) 의 기준 */
 .pane-actions { display: flex; gap: 2px; margin-left: auto; }
 .save-state { font-size: 11px; color: var(--muted); white-space: nowrap; }

@@ -324,6 +324,8 @@ declare namespace Seorap {
     typeIntoEditor(text: string): void;
     starNudgeVisible(): boolean;
     evaluateStarNudge(): void;
+    findInNote(q: string): { open: boolean; count: number; index: number; selStart: number; selEnd: number };
+    closeFind(): void;
   }
 }
 

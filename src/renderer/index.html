@@ -99,8 +99,19 @@
           <button class="icon-btn danger" id="btnNoteDelete" title="삭제"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
         </div>
       </header>
+      <!-- 메모 안 찾기 (Ctrl+F). 메모 리스트 검색은 Ctrl+Shift+F -->
+      <div class="findbar" id="findBar" hidden>
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <input id="findInput" type="text" placeholder="이 메모에서 찾기" spellcheck="false" autocomplete="off">
+        <span class="find-count" id="findCount"></span>
+        <button class="icon-btn" id="findPrev" title="이전 (Shift+Enter)"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+        <button class="icon-btn" id="findNext" title="다음 (Enter)"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="icon-btn" id="findClose" title="닫기 (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
       <div class="editor-wrap">
         <textarea id="editor" spellcheck="false" placeholder="여기에 적으면 자동으로 저장돼요"></textarea>
+        <div class="find-hl" id="findHl" hidden></div>
+        <div class="editor-mirror" id="editorMirror" aria-hidden="true"></div>
         <div class="editor-empty" id="editorEmpty">
           <div class="empty-art small"><i class="ea a"></i><i class="ea b"></i><i class="ea c"></i></div>
           <h2>메모장처럼, 저장 버튼 없이</h2>
