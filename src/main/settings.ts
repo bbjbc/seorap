@@ -26,6 +26,8 @@ export const DEFAULTS: Seorap.Settings = {
     clipboardClearSeconds: 30,
     contentProtection: true,
     lockOnHide: true,
+    genLength: 20,
+    genSymbols: true,
   },
   cleanup: { enabled: false, days: 30 },
   updates: { check: true, lastCheckedAt: 0 },

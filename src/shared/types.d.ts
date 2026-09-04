@@ -102,7 +102,7 @@ declare namespace Seorap {
     toast: boolean;
     board: { cardSize: CardSize; clickAction: ClickAction };
     notes: { mono: boolean; fontSize: number; showClipboardText: boolean; sort: NoteSort };
-    vault: { autoLockMinutes: number; clipboardClearSeconds: number; contentProtection: boolean; lockOnHide: boolean };
+    vault: { autoLockMinutes: number; clipboardClearSeconds: number; contentProtection: boolean; lockOnHide: boolean; genLength: number; genSymbols: boolean };
     cleanup: { enabled: boolean; days: number };
     /** 새 버전 자동 확인 (GitHub Releases 조회, 6시간마다). 끄면 설정에서 수동 확인만. */
     updates: { check: boolean; lastCheckedAt: number };

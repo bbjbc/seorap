@@ -19,6 +19,10 @@
   const select = (sel: string): HTMLSelectElement => $<HTMLSelectElement>(sel);
   const button = (sel: string): HTMLButtonElement => $<HTMLButtonElement>(sel);
 
+  // 비밀번호 생성 길이 범위. index.html 의 #vGenLen min/max, vault.ts 의 GEN_*_LENGTH 와 같아야 한다.
+  const GEN_MIN = 8;
+  const GEN_MAX = 64;
+
   function closest<T extends HTMLElement = HTMLElement>(target: EventTarget | null, sel: string): T | null {
     return target instanceof Element ? target.closest<T>(sel) : null;
   }
@@ -1638,12 +1642,33 @@
     touchVault();
   });
   $('#vGen').addEventListener('click', () => {
-    void api.vault.generate(20, true).then((pw) => {
+    const g = genOpts();
+    void api.vault.generate(g.length, g.symbols).then((pw) => {
       el.vPass.value = pw;
       setPassVisible(true);
       scheduleVaultSave();
     });
   });
+
+  // ---------- 비밀번호 생성 옵션 ----------
+  const genLen = input('#vGenLen');
+  const genSym = input('#vGenSymbols');
+  const genLenOut = $('#vGenLenOut');
+
+  /** 현재 슬라이더 값. 설정이 아직 없거나 값이 깨졌으면 기본값. */
+  function genOpts(): { length: number; symbols: boolean } {
+    const n = Number(genLen.value);
+    return {
+      length: Number.isFinite(n) ? Math.min(GEN_MAX, Math.max(GEN_MIN, Math.round(n))) : 20,
+      symbols: genSym.checked,
+    };
+  }
+  function showGenLen(): void {
+    genLenOut.textContent = genLen.value;
+  }
+  genLen.addEventListener('input', showGenLen);
+  genLen.addEventListener('change', () => void save({ vault: { genLength: genOpts().length } }));
+  genSym.addEventListener('change', () => void save({ vault: { genSymbols: genSym.checked } }));
   $('#vCopyPass').addEventListener('click', () => {
     void (async () => {
       await flushVaultSave();
@@ -2054,6 +2079,9 @@
     document.documentElement.style.setProperty('--editor-font', s.notes.mono ? 'var(--mono)' : 'var(--font)');
     document.documentElement.style.setProperty('--editor-size', `${s.notes.fontSize || 15}px`);
     el.optShowClipText.checked = s.notes.showClipboardText;
+    genLen.value = String(Math.min(GEN_MAX, Math.max(GEN_MIN, s.vault.genLength || 20)));
+    genSym.checked = s.vault.genSymbols;
+    showGenLen();
     $('#btnNoteMono').classList.toggle('active', s.notes.mono);
     const sortBtn = $('#btnNoteSort');
     sortBtn.classList.toggle('active', s.notes.sort === 'manual');

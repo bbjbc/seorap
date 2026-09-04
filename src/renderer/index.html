@@ -212,6 +212,12 @@
               <button class="icon-btn" id="vGen" title="강한 비밀번호 생성" data-i18n-title="vault.generate"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg></button>
               <button class="btn primary small" id="vCopyPass" data-i18n="common.copy">복사</button>
             </div>
+            <div class="gen-opts">
+              <span class="gen-label" data-i18n="vault.gen_len">생성 길이</span>
+              <input type="range" id="vGenLen" min="8" max="64" step="1" value="20">
+              <output id="vGenLenOut" for="vGenLen">20</output>
+              <label class="gen-sym"><input type="checkbox" id="vGenSymbols"><span data-i18n="vault.gen_symbols">기호 포함</span></label>
+            </div>
           </div>
           <div class="field grow">
             <label data-i18n="vault.f_notes">메모</label>

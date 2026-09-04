@@ -145,7 +145,12 @@ export function checkStrength(pw: unknown): Seorap.Strength {
   };
 }
 
+export const GEN_MIN_LENGTH = 8;
+export const GEN_MAX_LENGTH = 64;
+
 export function generatePassword(len = 20, symbols = true): string {
+  // 렌더러에서 넘어오는 값이라 범위를 벗어나면 조인다. 각 문자 집합에서 하나씩은 반드시 들어간다.
+  const n = Number.isFinite(len) ? Math.min(GEN_MAX_LENGTH, Math.max(GEN_MIN_LENGTH, Math.floor(len))) : 20;
   const lower = 'abcdefghijkmnopqrstuvwxyz';
   const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
   const digits = '23456789';
@@ -154,7 +159,7 @@ export function generatePassword(len = 20, symbols = true): string {
   const all = sets.join('');
   const pick = (s: string): string => s.charAt(crypto.randomInt(s.length));
   const out: string[] = sets.map(pick);
-  while (out.length < len) out.push(pick(all));
+  while (out.length < n) out.push(pick(all));
   for (let i = out.length - 1; i > 0; i--) {
     const j = crypto.randomInt(i + 1);
     const a = out[i];
