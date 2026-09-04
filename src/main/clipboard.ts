@@ -126,6 +126,14 @@ export async function signature(): Promise<string> {
   return '';
 }
 
+/**
+ * 앱이 스스로 클립보드에 쓴 직후 감시를 멈추는 시간.
+ * 첫 tick 에서 새 내용을 기준점으로 잡으면 그 뒤로는 어차피 다시 수집하지 않으므로,
+ * tick 간격(800ms)을 넉넉히 덮을 만큼만 있으면 된다. 이보다 길면 그 사이 사용자가
+ * 다른 앱에서 복사한 것을 삼키고 기준점으로 흡수해 버린다 (비밀번호 복사 후 32초 사각지대).
+ */
+export const SELF_WRITE_IGNORE_MS = 2500;
+
 /** Windows 에는 클립보드 변경 이벤트가 없어 폴링으로 감지한다. */
 export class ClipboardWatcher {
   private timer: NodeJS.Timeout | null = null;
@@ -158,7 +166,7 @@ export class ClipboardWatcher {
   }
 
   /** 앱 자신이 클립보드에 쓴 직후에는 수집하지 않는다. */
-  ignore(ms = 1500): void {
+  ignore(ms = SELF_WRITE_IGNORE_MS): void {
     this.ignoreUntil = Date.now() + ms;
     this.lastSig = null; // 다음 tick 에서 현재 내용을 기준점으로 다시 잡는다.
   }

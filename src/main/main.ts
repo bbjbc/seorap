@@ -507,7 +507,7 @@ async function copyItem(id: string): Promise<boolean> {
   const item = store.get(id);
   const fp = store.absPath(item);
   if (!item || !fp) return false;
-  watcher.ignore(2500);
+  watcher.ignore();
   try {
     if (item.type === 'text' || item.type === 'link') {
       await cb.writeText(store.readFullText(item));
@@ -566,7 +566,9 @@ async function copySecret(id: string, field: 'password' | 'username'): Promise<b
   const value = field === 'password' ? (vault.getSecret(id) ?? '') : entry.username;
   if (!value) return false;
   const sec = Math.max(5, settings.data.vault.clipboardClearSeconds || 30);
-  watcher.ignore(sec * 1000 + 2000);
+  // 무시 창은 짧게. 비밀번호 자체는 첫 tick 에서 기준점이 되어 이후에도 수집되지 않으니,
+  // 지우기까지 남은 시간(sec)만큼 길게 둘 이유가 없고, 그러면 사용자의 다른 복사를 삼킨다.
+  watcher.ignore();
   await cb.writeText(value);
   if (clipboardClearTimer) clearTimeout(clipboardClearTimer);
   clipboardClearTimer = setTimeout(() => {
