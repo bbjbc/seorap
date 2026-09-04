@@ -4,6 +4,7 @@
 import { defineConfig } from 'electron-vite';
 import type { Plugin } from 'vite';
 import { resolve } from 'path';
+import react from '@vitejs/plugin-react';
 
 /**
  * 개발 서버에서만 CSP 를 완화한다. Vite HMR 클라이언트는 inline script 와 ws 연결이 필요하다.
@@ -48,8 +49,9 @@ export default defineConfig({
     },
   },
   renderer: {
-    plugins: [devCsp()],
+    plugins: [react(), devCsp()],
     build: {
+      minify: true,
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),

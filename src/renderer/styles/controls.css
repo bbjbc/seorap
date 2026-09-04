@@ -1,0 +1,73 @@
+/* ===== 공통 컨트롤 ===== */
+.btn {
+  height: 32px; padding: 0 14px; border-radius: 9px; border: 1px solid transparent;
+  background: var(--bg-4); color: var(--text); font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: background .12s, border-color .12s, transform .08s;
+}
+.btn:hover { background: #2f2f39; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color: #1a1207; }
+.btn.primary:hover { background: #ffc35a; }
+.btn.ghost { background: transparent; border-color: var(--line-2); }
+.btn.ghost:hover { background: var(--bg-3); }
+.btn.ghost.danger { color: var(--danger); }
+.btn.ghost.danger:hover { background: var(--danger-soft); border-color: transparent; }
+.btn.small { height: 28px; padding: 0 10px; font-size: 12px; }
+.btn.wide { width: 100%; justify-content: center; height: 38px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 9px; border: 0; background: transparent; color: var(--muted);
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+}
+.icon-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn:hover { background: var(--bg-4); color: var(--text); }
+.icon-btn.active { color: var(--accent); }
+.icon-btn.danger:hover { color: var(--danger); background: var(--danger-soft); }
+.xbtn { border: 0; background: transparent; color: var(--muted); font-size: 16px; width: 22px; height: 22px; border-radius: 6px; line-height: 1; }
+.xbtn:hover { background: var(--bg-4); color: var(--text); }
+
+.search-wrap {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 10px; border-radius: 9px;
+  background: var(--bg-3); border: 1px solid transparent; min-width: 0;
+}
+.search-wrap:focus-within { border-color: var(--line-2); background: var(--bg-4); }
+.search-wrap svg { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.search-wrap input { flex: 1; min-width: 0; border: 0; background: transparent; outline: 0; }
+.search-wrap input::placeholder { color: var(--muted); }
+#viewBoard .search-wrap { width: 260px; }
+.side .search-wrap { flex: 1; }
+
+.chips { display: flex; align-items: center; gap: 4px; overflow: hidden; }
+.chip {
+  height: 28px; padding: 0 10px; border-radius: 8px; border: 0;
+  background: transparent; color: var(--muted); font-weight: 500;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.chip svg { width: 12px; height: 12px; fill: currentColor; }
+.chip em { font-style: normal; font-size: 11px; color: var(--muted); opacity: .8; }
+.chip em:empty { display: none; }
+.chip:hover { background: var(--bg-3); color: var(--text); }
+.chip.active { background: var(--bg-4); color: var(--text); }
+.chip.active em { color: var(--text-2); }
+.chip-sep { width: 1px; height: 16px; background: var(--line-2); margin: 0 4px; }
+.chip.tagchip { background: var(--blue-soft); color: var(--blue); }
+
+select {
+  height: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line-2);
+  background: var(--bg-3); outline: 0;
+}
+.seg { display: inline-flex; background: var(--bg-3); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { height: 26px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; }
+.seg button:hover { color: var(--text); }
+.seg button.active { background: var(--bg-4); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+
+.badge {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase;
+  background: var(--bg-4); color: var(--text-2);
+}
+.badge.image { background: var(--accent-soft); color: var(--accent); }
+.badge.link { background: var(--blue-soft); color: var(--blue); }
+.badge.text { background: rgba(111,211,154,.14); color: var(--green); }

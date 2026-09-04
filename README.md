@@ -40,7 +40,7 @@ Things you only need for a while never have a place to go. So they end up as Sla
 - A master-password vault: scrypt + AES-256-GCM, auto-lock, copied passwords cleared from the clipboard after 30 seconds
 - Duplicates are caught by hash, deletes can be undone for six seconds, old items can be cleaned up automatically
 - English and Korean UI (Settings > General). When a new version is out, a single quiet button appears in the rail
-- Electron 44 + TypeScript (strict). Zero runtime npm dependencies, no bundler
+- Electron 44 + React 19 + TypeScript (strict), bundled with electron-vite. No runtime npm dependencies beyond React and Zustand, which ship inside the bundle
 
 ![Board view](docs/screenshots/en/board.png)
 
@@ -165,23 +165,30 @@ Requires Node.js 22.
 git clone https://github.com/bbjbc/seorap.git
 cd seorap
 npm install
-npm start          # compile, then run in development
+npm start          # build with electron-vite, then run
+npm run dev        # dev server with hot reload for the renderer
 npm run check      # typecheck + lint (any is forbidden)
-npm test           # functional tests (launches Electron)
+npm test           # unit tests (Vitest) + functional tests (launches Electron)
 npm run build      # installer + portable exe into dist/
 npm run icons      # assets/icon.svg → icon.png / icon.ico
 ```
 
-Electron 44 + TypeScript (strict). No framework and no bundler, only `tsc`; ESLint's type-checked rules forbid `any`. The renderer is loaded as a plain `<script>`, so shared types live in a global `Seorap` namespace ([`src/shared/types.d.ts`](src/shared/types.d.ts)), and IPC is a map from channel name to argument and result types, so a main handler and a preload call that disagree fail at compile time.
+Electron 44 + React 19 + TypeScript (strict), built with [electron-vite](https://electron-vite.org); ESLint's type-checked rules forbid `any`. Shared types live in a global `Seorap` namespace ([`src/shared/types.d.ts`](src/shared/types.d.ts)), and IPC is a map from channel name to argument and result types, so a main handler and a preload call that disagree fail at compile time. The renderer keeps its state in small Zustand stores, its side effects in per-feature `actions.ts` modules, and its views in arrow-function components; the main process never changed.
 
 ```
-src/shared/types.d.ts   shared types (items, settings, IPC channels, API)
+src/shared/             types.d.ts (items, settings, IPC channels, API), locales.ts (ko/en strings)
 src/main/               main.ts (window, tray, shortcuts, IPC), store.ts, vault.ts, clipboard.ts, settings.ts
-src/preload.ts          API exposed to the renderer
-src/renderer/           index.html, styles.css, app.ts
-src/toast/              bottom-right toast window
-scripts/                test, icon and screenshot tooling
-out/                    tsc output (not committed)
+src/preload/            index.ts (window.scrap for the main window), toast.ts (toast window)
+src/renderer/           React app
+  app/                  App shell, boot sequence, IPC subscriptions, global shortcuts, drop handling, debug hooks
+  stores/               Zustand stores: items, settings, ui, board, notes, vault
+  features/             board, notes, vault, settings, detail, switcher, prompt, overlays, nudge, update
+  components/           shared presentational pieces (icons, Modal, SearchBox, TagList, SegControl, RichText)
+  lib/                  api, i18n hooks, formatting, DOM handles
+  styles/               global CSS split by area
+  toast/                bottom-right toast window (plain TS)
+scripts/                test, icon and screenshot tooling (bundled alongside main)
+out/                    electron-vite output (not committed)
 ```
 
 To release, bump the version in `package.json` and push a tag with the same number. GitHub Actions builds both executables and attaches them, with checksums, to a Release.

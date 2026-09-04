@@ -1,0 +1,11 @@
+/* 전역 스타일. 원래 한 파일이던 것을 영역별로 나눴다. 순서는 예전 파일 순서와 같다 (캐스케이드 유지). */
+@import './base.css';
+@import './rail.css';
+@import './controls.css';
+@import './board.css';
+@import './empty.css';
+@import './overlays.css';
+@import './modal.css';
+@import './settings.css';
+@import './notes.css';
+@import './vault.css';

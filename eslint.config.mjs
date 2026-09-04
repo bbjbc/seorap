@@ -1,6 +1,7 @@
 // ESLint 설정. 도구 설정 파일이라 JS(ESM)로 둔다.
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
   { ignores: ['out/**', 'dist/**', 'node_modules/**', 'eslint.config.mjs'] },
@@ -44,8 +45,12 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ['src/renderer/**/*.ts'],
+    files: ['src/renderer/**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser } },
+  },
+  {
+    files: ['src/renderer/**/*.tsx'],
+    ...reactHooks.configs.flat['recommended-latest'],
   },
   {
     // vi.mocked(obj.method) 가 Vitest 의 관용구라 unbound-method 와 맞지 않는다.

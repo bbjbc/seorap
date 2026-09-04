@@ -1,0 +1,88 @@
+/* ===== 2단 (메모/금고) ===== */
+.side {
+  width: 290px; flex: none; display: flex; flex-direction: column;
+  border-right: 1px solid var(--line); background: var(--bg-2); min-height: 0;
+}
+.side-head { display: flex; gap: 8px; padding: 10px 10px 8px; align-items: center; }
+.side-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; min-height: 40px; }
+
+/* ===== 메모 안 찾기 ===== */
+.findbar {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  padding: 6px 12px 6px 16px; border-bottom: 1px solid var(--line); background: var(--bg-2);
+}
+.findbar[hidden] { display: none; }
+.findbar > svg { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.findbar input { flex: 1; min-width: 0; height: 28px; border: 0; background: transparent; outline: 0; }
+.findbar input::placeholder { color: var(--muted); }
+.findbar .icon-btn { width: 28px; height: 28px; }
+.findbar .icon-btn svg { width: 15px; height: 15px; }
+.find-count { font-size: 11px; color: var(--muted); white-space: nowrap; min-width: 40px; text-align: right; }
+.find-count.none { color: var(--danger); }
+/* 현재 일치 위치 표시. textarea 는 포커스를 잃으면 선택을 그리지 않으므로 위치를 재서 따로 덧그린다. */
+.find-hl {
+  position: absolute; pointer-events: none; border-radius: 3px;
+  background: rgba(245, 179, 66, 0.35); outline: 1px solid rgba(245, 179, 66, 0.7);
+}
+.find-hl[hidden] { display: none; }
+/* 글자 위치 측정용 거울. textarea 와 같은 글꼴·여백·줄바꿈 규칙이어야 한다. */
+.editor-mirror {
+  position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; overflow: hidden;
+  padding: 22px 28px; line-height: 1.65; font-family: var(--editor-font); font-size: var(--editor-size);
+  white-space: pre-wrap; overflow-wrap: break-word; tab-size: 4; font-feature-settings: "ss05" 1;
+}
+.pane { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; position: relative; } /* .editor-empty(inset:0) 의 기준 */
+.pane-actions { display: flex; gap: 2px; margin-left: auto; }
+.pane-actions .icon-btn:disabled { opacity: .35; cursor: default; }
+.save-state { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.save-state.saving { color: var(--accent); }
+
+.notelist { flex: 1; overflow-y: auto; padding: 6px; }
+.note-item {
+  padding: 10px 12px; border-radius: 10px; cursor: pointer; position: relative;
+  border: 1px solid transparent;
+}
+.note-item:hover { background: var(--bg-3); }
+.note-item.active { background: var(--bg-4); border-color: var(--line); }
+.note-item .n-title { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.note-item .n-title svg { width: 11px; height: 11px; fill: var(--accent); flex: none; }
+.note-item .n-title.untitled { color: var(--muted); font-weight: 500; }
+.note-item .n-sub { display: flex; gap: 8px; margin-top: 3px; font-size: 12px; color: var(--muted); }
+.note-item .n-snip { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-item .n-time { flex: none; font-size: 11px; }
+.note-item .n-tags { margin-top: 4px; display: flex; gap: 6px; font-size: 11px; color: var(--blue); }
+.note-item .n-tags span::before { content: "#"; opacity: .7; }
+.notelist .group { padding: 10px 12px 4px; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+/* 직접 정렬: 끌어서 옮기기 */
+.notelist.manual .note-item { cursor: grab; }
+.note-item.dragging { opacity: .4; }
+.note-item.drop-before::before, .note-item.drop-after::after {
+  content: ""; position: absolute; left: 8px; right: 8px; height: 2px; border-radius: 2px; background: var(--accent);
+}
+.note-item.drop-before::before { top: -2px; }
+.note-item.drop-after::after { bottom: -2px; }
+.notelist .sort-hint { padding: 8px 12px 2px; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.notelist .sort-hint button { border: 0; background: transparent; color: var(--blue); font-size: 11px; padding: 0; cursor: pointer; }
+.notelist .sort-hint button:hover { text-decoration: underline; }
+.notelist .none { padding: 30px 16px; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+.editor-wrap { flex: 1; min-height: 0; position: relative; display: flex; }
+#editor {
+  flex: 1; width: 100%; border: 0; outline: 0; resize: none; background: var(--bg);
+  padding: 22px 28px; line-height: 1.65; color: var(--text);
+  font-family: var(--editor-font); font-size: var(--editor-size);
+  tab-size: 4;
+}
+#editor::placeholder { color: var(--muted); }
+#editor[hidden] { display: none; }
+.editor-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: var(--muted); padding: 40px;
+  pointer-events: none; /* 안내 문구일 뿐, 클릭을 가로채면 안 된다 */
+}
+.editor-empty[hidden] { display: none; }
+.editor-foot {
+  display: flex; align-items: center; gap: 10px; padding: 6px 16px; min-height: 36px;
+  border-top: 1px solid var(--line); font-size: 12px;
+}
+.editor-foot .tag-list.inline { margin-left: auto; }

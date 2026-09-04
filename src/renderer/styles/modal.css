@@ -1,0 +1,60 @@
+/* ===== 모달 ===== */
+.modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 30px; }
+.modal[hidden] { display: none; }
+.modal.top { align-items: flex-start; padding-top: 12vh; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(3px); }
+.modal-card {
+  position: relative; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6); display: flex; flex-direction: column;
+  animation: rise .16s ease-out; max-height: 100%; max-width: 100%;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
+.detail-head { display: flex; align-items: center; gap: 10px; padding: 14px 14px 12px 18px; border-bottom: 1px solid var(--line); }
+.detail-head h2 { margin: 0; font-size: 16px; flex: 1; }
+.detail-title { flex: 1; min-width: 0; border: 0; background: transparent; outline: 0; font-size: 15px; font-weight: 600; padding: 4px 6px; border-radius: 6px; }
+.detail-title:hover, .detail-title:focus { background: var(--bg-3); }
+.detail-foot { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.detail-card { width: min(920px, 100%); height: min(720px, 100%); }
+.detail-body { flex: 1; min-height: 0; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+.detail-body img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.detail-body .link-view, .detail-body .file-view { padding: 40px; text-align: center; max-width: 560px; user-select: text; }
+.detail-body .link-view .l-title { font-size: 18px; font-weight: 600; margin: 12px 0; }
+.detail-body .link-view a { color: var(--blue); word-break: break-all; }
+.detail-body .file-view .f-ext { display: inline-flex; padding: 10px 16px; border-radius: 12px; background: var(--bg-4); font-weight: 700; font-size: 18px; letter-spacing: .06em; }
+.detail-body .file-view .f-name { font-size: 16px; font-weight: 600; margin: 14px 0 6px; word-break: break-all; }
+.detail-tags { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.tag-list { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag-list .tag {
+  display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 7px;
+  background: var(--blue-soft); color: var(--blue); font-size: 12px; cursor: pointer;
+}
+.tag-list .tag::before { content: "#"; opacity: .7; }
+.tag-list .tag b { font-weight: 400; opacity: .7; margin-left: 2px; }
+.tag-list .tag:hover b { opacity: 1; }
+.tag-input { border: 0; background: transparent; outline: 0; min-width: 90px; height: 24px; color: var(--text-2); }
+.tag-input::placeholder { color: var(--muted); }
+
+/* 빠른 전환 */
+.switcher-card { width: min(620px, 100%); overflow: hidden; }
+.switcher-card input { height: 52px; border: 0; background: transparent; outline: 0; font-size: 16px; padding: 0 18px; border-bottom: 1px solid var(--line); }
+.switcher-list { max-height: 50vh; overflow: auto; padding: 6px; }
+.switcher-list:empty { display: none; }
+.sw-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; cursor: pointer; }
+.sw-item.active, .sw-item:hover { background: var(--bg-4); }
+.sw-item .badge { flex: none; }
+.sw-item .sw-text { flex: 1; min-width: 0; }
+.sw-item .sw-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sw-item .sw-sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sw-item .sw-time { font-size: 11px; color: var(--muted); flex: none; }
+.sw-empty { padding: 20px; text-align: center; color: var(--muted); }
+
+/* 프롬프트 */
+.prompt-card { width: min(460px, 100%); padding: 20px 20px 0; }
+.prompt-card h3 { margin: 0 0 6px; font-size: 15px; }
+.prompt-card p.muted { margin: 0 0 12px; font-size: 12px; line-height: 1.5; }
+.prompt-card .detail-foot { margin: 8px -20px 0; }
+#promptFields { display: flex; flex-direction: column; gap: 8px; }
+#promptFields input {
+  height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-2); background: var(--bg-3); outline: 0;
+}
+#promptFields input:focus { border-color: var(--accent); }

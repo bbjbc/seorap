@@ -1,0 +1,85 @@
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: local("Pretendard Variable"), url("../../../assets/fonts/PretendardVariable.woff2") format("woff2-variations");
+}
+
+:root {
+  --bg: #111114;
+  --bg-2: #17171b;
+  --bg-3: #1e1e24;
+  --bg-4: #26262e;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+  --text: #e8e8ec;
+  --text-2: #b4b4bc;
+  --muted: #86868f;
+  --accent: #f5b342;
+  --accent-soft: rgba(245, 179, 66, 0.16);
+  --blue: #7aa2ff;
+  --blue-soft: rgba(122, 162, 255, 0.16);
+  --green: #6fd39a;
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, 0.14);
+  --radius: 12px;
+  --card: 200px;
+  --card-h: 200px;
+  --rail: 68px;
+  --titlebar: 44px;
+  --overlay-w: 140px;
+  --font: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "Cascadia Code", "Cascadia Mono", "D2Coding", Consolas, "Pretendard Variable", monospace;
+  --editor-font: var(--font);
+  --editor-size: 15px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+input, textarea, button, select { font-family: inherit; font-size: inherit; color: inherit; }
+input, textarea { user-select: text; }
+button { cursor: pointer; }
+kbd {
+  display: inline-block; padding: 1px 6px; border-radius: 5px;
+  background: var(--bg-4); border: 1px solid var(--line-2); border-bottom-width: 2px;
+  font-family: var(--font); font-size: 11px; color: var(--text-2);
+}
+body, input, textarea, button, select { font-feature-settings: "ss05" 1; } /* Pretendard: 한글 자간 미세 조정 */
+.muted { color: var(--muted); }
+.hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; min-height: 0; }
+.hint.err { color: var(--danger); }
+.hint:empty { display: none; }
+.spacer { flex: 1; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+.drag { -webkit-app-region: drag; }
+.nodrag, .nodrag * , input, textarea, button, select, a { -webkit-app-region: no-drag; }
+
+/* ===== 레이아웃 ===== */
+.app { display: flex; height: 100vh; }
+.view { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.view[hidden] { display: none; }
+.view.split { flex-direction: row; }
+
+.viewbar {
+  height: var(--titlebar); flex: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 var(--overlay-w) 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.side .viewbar { padding-right: 10px; }
+.pane-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

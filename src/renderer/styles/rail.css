@@ -1,0 +1,28 @@
+/* ===== 레일 ===== */
+.rail {
+  width: var(--rail); flex: none;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 0 10px; gap: 4px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--line);
+}
+.rail-logo { width: 30px; height: 30px; margin: 2px 0 12px; }
+.rail-logo img { width: 100%; height: 100%; display: block; border-radius: 8px; }
+.rail-btn {
+  position: relative;
+  width: 54px; height: 54px; border: 0; border-radius: 12px;
+  background: transparent; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  font-size: 11px; transition: background .12s, color .12s;
+}
+.rail-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.rail-btn:hover { background: var(--bg-3); color: var(--text); }
+.rail-btn.active { background: var(--bg-4); color: var(--text); }
+.rail-btn.active::before {
+  content: ""; position: absolute; left: -7px; top: 15px; width: 3px; height: 24px; border-radius: 3px; background: var(--accent);
+}
+.rail-dot { position: absolute; top: 9px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(111,211,154,0.18); }
+.rail-dot.accent { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.rail-btn.update { color: var(--accent); }
+.rail-btn.update:hover { background: var(--accent-soft); color: var(--accent); }
+.rail-spacer { flex: 1; }

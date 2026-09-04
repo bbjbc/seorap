@@ -1,0 +1,35 @@
+/* ===== 설정 ===== */
+.settings-card { width: min(680px, 100%); height: min(780px, 100%); }
+.settings-body { flex: 1; overflow: auto; padding: 6px 22px 22px; }
+.settings-body section { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.settings-body section:last-child { border-bottom: 0; }
+.settings-body h3 { margin: 0 0 12px; font-size: 13px; font-weight: 700; color: var(--text); display: flex; gap: 10px; align-items: baseline; }
+.settings-body h3 small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.row > label { width: 160px; flex: none; color: var(--text-2); }
+.row.check { align-items: flex-start; cursor: pointer; }
+/* 힌트(small)가 붙어 여러 줄이 되는 행은 위쪽 정렬, 한 줄짜리 행은 가운데 정렬 */
+.row.check:not(:has(small)) { align-items: center; }
+.row.check input[type="checkbox"] { margin: 3px 0 0; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+.row.check:not(:has(small)) input[type="checkbox"] { margin: 0; }
+.row.check span { display: flex; flex-direction: column; gap: 2px; }
+.row.check small { color: var(--muted); line-height: 1.5; }
+.row.btns { gap: 8px; padding-top: 10px; }
+.shortcut {
+  width: 220px; height: 32px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-2);
+  background: var(--bg-3); outline: 0; cursor: pointer; font-family: var(--mono); font-size: 12px;
+}
+.shortcut:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.shortcut.recording { border-color: var(--accent); }
+.inline-num { width: 58px; height: 24px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--bg-3); text-align: center; outline: 0; margin: 0 2px; }
+.path { font-family: var(--mono); font-size: 12px; color: var(--text-2); background: var(--bg-3); padding: 6px 10px; border-radius: 8px; user-select: text; word-break: break-all; flex: 1; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+.stat { background: var(--bg-3); border-radius: 10px; padding: 10px 12px; }
+.stat b { display: block; font-size: 16px; font-weight: 600; }
+.stat span { font-size: 11px; color: var(--muted); }
+.about { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+.mini-check { display: inline-flex; align-items: flex-start; gap: 6px; color: var(--muted); font-size: 12px; cursor: pointer; line-height: 1.4; }
+.mini-check input { accent-color: var(--accent); margin: 1px 0 0; }
+.mini-check.warn { color: var(--text-2); text-align: left; }
+.mini-check.warn b { color: var(--danger); }
+.about-links { display: flex; gap: 8px; padding-top: 4px !important; }

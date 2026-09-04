@@ -1,0 +1,87 @@
+/* ===== 보드: 격자 ===== */
+.scroll { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; outline: 0; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card), 1fr));
+  grid-auto-rows: var(--card-h);
+  gap: 12px;
+  padding: 14px 16px 24px;
+}
+.app[data-card="small"] { --card: 150px; --card-h: 150px; }
+.app[data-card="large"] { --card: 270px; --card-h: 260px; }
+.sentinel { height: 1px; }
+
+.card {
+  position: relative; border-radius: var(--radius); overflow: hidden;
+  background: var(--bg-2); border: 1px solid var(--line);
+  display: flex; flex-direction: column;
+  cursor: pointer;
+  transition: transform .12s, border-color .12s, box-shadow .12s;
+  content-visibility: auto;
+  contain-intrinsic-size: var(--card) var(--card-h);
+}
+.card:hover { transform: translateY(-2px); border-color: var(--line-2); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+/* 복사 직후 카드 위에 잠깐 뜨는 "복사됨". 클릭을 가로채지 않는다. */
+.card .copied {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;
+  background: rgba(17,17,20,.72); color: var(--accent); font-weight: 600; font-size: 14px;
+  animation: fadeout .9s forwards;
+}
+@keyframes fadeout { 0% { opacity: 1; } 60% { opacity: 1; } 100% { opacity: 0; } }
+
+.card-media { flex: 1; min-height: 0; background: var(--bg-3); position: relative; }
+.card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-media.contain img { object-fit: contain; }
+.card-media .noimg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
+
+.card-text { flex: 1; min-height: 0; padding: 12px 12px 6px; overflow: hidden; }
+.card-text .t-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.card-text .t-body {
+  font-size: 12px; line-height: 1.45; color: var(--text-2); white-space: pre-wrap; word-break: break-word;
+  overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7;
+}
+.app[data-card="small"] .card-text .t-body { -webkit-line-clamp: 4; }
+.app[data-card="large"] .card-text .t-body { -webkit-line-clamp: 10; }
+
+.card-link { flex: 1; min-height: 0; padding: 12px; display: flex; flex-direction: column; gap: 6px; background: linear-gradient(180deg, var(--blue-soft), transparent 70%); }
+.card-link .l-host { font-size: 11px; color: var(--blue); font-weight: 600; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-link .l-title { font-weight: 600; font-size: 13px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; word-break: break-word; }
+.card-link .l-url { font-size: 11px; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: break-all; margin-top: auto; }
+
+.card-file { flex: 1; min-height: 0; padding: 12px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px; }
+.card-file .f-ext {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 46px; height: 30px; padding: 0 8px; border-radius: 8px;
+  background: var(--bg-4); color: var(--text-2); font-weight: 700; font-size: 12px; letter-spacing: .04em;
+}
+.card-file .f-name { font-weight: 600; font-size: 13px; line-height: 1.4; word-break: break-all; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+
+.card-meta {
+  flex: none; display: flex; align-items: center; gap: 6px;
+  padding: 7px 10px; font-size: 11px; color: var(--muted);
+  border-top: 1px solid var(--line); background: var(--bg-2);
+  white-space: nowrap; overflow: hidden;
+}
+.card-meta .tag { color: var(--blue); }
+.card-meta .tag::before { content: "#"; opacity: .7; }
+.card-meta .dim { margin-left: auto; }
+.card .pin {
+  position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 7px;
+  background: rgba(17,17,20,.8); color: var(--accent); display: none; align-items: center; justify-content: center;
+}
+.card .pin svg { width: 12px; height: 12px; fill: currentColor; }
+.card.pinned .pin { display: flex; }
+.card-actions {
+  position: absolute; top: 8px; right: 8px; display: flex; gap: 4px;
+  opacity: 0; transition: opacity .12s;
+}
+.card:hover .card-actions { opacity: 1; }
+.card-actions button {
+  width: 26px; height: 26px; border-radius: 7px; border: 0;
+  background: rgba(17,17,20,.82); color: var(--text-2); backdrop-filter: blur(6px);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.card-actions button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.card-actions button:hover { background: var(--bg-4); color: var(--text); }
+.card-actions button.del:hover { color: var(--danger); }

@@ -1,0 +1,14 @@
+/* ===== 빈 상태 ===== */
+.empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px; color: var(--muted); pointer-events: none;
+}
+.empty[hidden] { display: none; }
+.empty h2, .editor-empty h2 { font-size: 16px; font-weight: 600; color: var(--text-2); margin: 18px 0 8px; }
+.empty p, .editor-empty p { margin: 0; line-height: 1.7; font-size: 13px; }
+.empty-art { position: relative; width: 120px; height: 90px; }
+.empty-art.small { transform: scale(.8); }
+.ea { position: absolute; width: 64px; height: 64px; border-radius: 16px; left: 28px; top: 10px; opacity: .9; }
+.ea.a { background: linear-gradient(135deg, #9ab8ff, #5f83f0); transform: rotate(-14deg) translateX(-18px); opacity: .55; }
+.ea.b { background: linear-gradient(135deg, #6fd39a, #39a86b); transform: rotate(4deg) translateY(-2px); opacity: .6; }
+.ea.c { background: linear-gradient(135deg, #ffd06b, #f29a2e); transform: rotate(12deg) translateX(18px); }

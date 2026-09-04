@@ -1,0 +1,63 @@
+/* ===== 금고 ===== */
+.vault-locked { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px; overflow: auto; }
+.vault-locked[hidden] { display: none; }
+.vault-open { flex: 1; min-height: 0; display: flex; }
+.vault-open[hidden] { display: none; }
+.lock-card { width: 380px; max-width: 100%; text-align: center; }
+.lock-icon { width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 6px; background: var(--bg-3); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+.lock-icon svg { width: 28px; height: 28px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lock-card h2 { font-size: 18px; margin: 14px 0 6px; }
+.lock-card p.muted { margin: 0 0 18px; font-size: 13px; line-height: 1.5; }
+.lock-card form { display: flex; flex-direction: column; gap: 10px; }
+.lock-card input[type="password"] {
+  height: 42px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--bg-3); outline: 0; font-size: 14px;
+}
+.lock-card input[type="password"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.lock-card input[hidden], .lock-card .strength[hidden], .lock-card .mini-check[hidden] { display: none; }
+.strength { display: flex; gap: 4px; height: 4px; }
+.strength i { flex: 1; border-radius: 2px; background: var(--bg-4); }
+.strength[data-score="1"] i:nth-child(-n+1) { background: var(--danger); }
+.strength[data-score="2"] i:nth-child(-n+2) { background: var(--accent); }
+.strength[data-score="3"] i:nth-child(-n+3) { background: var(--accent); }
+.strength[data-score="4"] i:nth-child(-n+4) { background: var(--green); }
+.lock-info { margin-top: 22px; text-align: left; color: var(--muted); font-size: 12px; }
+.lock-info summary { cursor: pointer; text-align: center; color: var(--text-2); }
+.lock-info ul { margin: 10px 0 0; padding-left: 18px; line-height: 1.6; }
+.lock-card .hint.err { margin-top: 10px; }
+
+.vault-form { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 22px 28px 0; gap: 14px; overflow: auto; }
+.vault-form[hidden] { display: none; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.grow { flex: 1; min-height: 120px; }
+.field > label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+.field input, .field textarea {
+  height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-2); outline: 0;
+}
+.field input:focus, .field textarea:focus { border-color: var(--line-2); background: var(--bg-3); }
+.field textarea { flex: 1; min-height: 100px; padding: 10px 12px; resize: none; line-height: 1.55; }
+#vName { font-size: 16px; font-weight: 600; height: 42px; }
+#vPass { font-family: var(--mono); letter-spacing: .08em; }
+#vPass.shown { letter-spacing: 0; }
+.with-actions { display: flex; gap: 6px; align-items: center; }
+
+/* 비밀번호 생성 옵션 (길이 · 기호 포함). .field input 규칙을 덮어쓴다. */
+.gen-opts { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+.gen-label, .gen-sym span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.gen-opts input[type="range"] {
+  flex: 1; min-width: 80px; max-width: 200px;
+  height: 4px; padding: 0; border: 0; border-radius: 3px; background: var(--bg-4);
+  appearance: none; cursor: pointer;
+}
+.gen-opts input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+.gen-opts output {
+  min-width: 22px; font-family: var(--mono); font-size: 12px; color: var(--text-2); text-align: right;
+}
+.gen-sym { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.gen-opts input[type="checkbox"] {
+  height: auto; width: 14px; padding: 0; border: 0; border-radius: 0; background: none;
+  accent-color: var(--accent); flex: none; cursor: pointer;
+}
+.with-actions input { flex: 1; min-width: 0; }
+.vault-form .detail-foot { margin: 6px -28px 0; }
