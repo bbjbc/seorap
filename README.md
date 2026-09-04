@@ -40,7 +40,7 @@ Things you only need for a while never have a place to go. So they end up as Sla
 - A master-password vault: scrypt + AES-256-GCM, auto-lock, copied passwords cleared from the clipboard after 30 seconds
 - Duplicates are caught by hash, deletes can be undone for six seconds, old items can be cleaned up automatically
 - English and Korean UI (Settings > General). When a new version is out, a single quiet button appears in the rail
-- Electron 44 + React 19 + TypeScript (strict), bundled with electron-vite. No runtime npm dependencies beyond React and Zustand, which ship inside the bundle
+- Electron 44 + React 19 + TypeScript (strict), bundled with electron-vite. No `node_modules` is shipped: React and Zustand are compiled into the bundle
 
 ![Board view](docs/screenshots/en/board.png)
 

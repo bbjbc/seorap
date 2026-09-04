@@ -40,7 +40,7 @@
 - 금고: 마스터 비밀번호로 잠급니다. scrypt + AES-256-GCM, 자동 잠금, 복사한 비밀번호는 30초 후 클립보드에서 삭제됩니다.
 - 같은 내용은 해시로 걸러 한 번만 저장하고, 삭제는 6초 안에 되돌릴 수 있습니다. 오래된 항목 자동 정리 옵션도 있습니다.
 - 한국어·영어 UI (설정 > 일반). 새 버전이 나오면 왼쪽 레일에 조용히 버튼 하나만 뜹니다.
-- Electron 44 + React 19 + TypeScript(strict), electron-vite로 번들. 런타임 npm 의존성은 번들에 들어가는 React와 Zustand뿐입니다.
+- Electron 44 + React 19 + TypeScript(strict), electron-vite로 번들. `node_modules`를 함께 배포하지 않고, React와 Zustand는 번들 안에 컴파일되어 들어갑니다.
 
 ![보드 화면](docs/screenshots/board.png)
 
