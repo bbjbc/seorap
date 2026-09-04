@@ -195,9 +195,9 @@ out/                    electron-vite output (not committed)
 To release, bump the version in `package.json` and push a tag with the same number. GitHub Actions builds both executables and attaches them, with checksums, to a Release.
 
 ```bash
-npm version 1.1.0 --no-git-tag-version
-git commit -am "release: v1.1.0"
-git tag v1.1.0 && git push origin main v1.1.0
+npm version 0.4.0 --no-git-tag-version
+git commit -am "release: v0.4.0"
+git tag v0.4.0 && git push origin main v0.4.0
 ```
 
 ---

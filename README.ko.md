@@ -195,9 +195,9 @@ out/                    electron-vite 산출물 (커밋하지 않음)
 릴리즈: `package.json` 버전을 올리고 같은 번호의 태그를 푸시하면 GitHub Actions가 빌드해서 Release에 exe 두 개와 체크섬을 올립니다.
 
 ```bash
-npm version 0.2.0 --no-git-tag-version
-git commit -am "chore(release): v0.2.0"
-git tag v0.2.0 && git push origin main v0.2.0
+npm version 0.4.0 --no-git-tag-version
+git commit -am "release: v0.4.0"
+git tag v0.4.0 && git push origin main v0.4.0
 ```
 
 ---
