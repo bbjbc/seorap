@@ -192,7 +192,7 @@ scripts/                test, icon and screenshot tooling (bundled alongside mai
 out/                    electron-vite output (not committed)
 ```
 
-To release, bump the version in `package.json` and push a tag with the same number. GitHub Actions builds both executables and attaches them, with checksums, to a Release.
+To release, bump the version in `package.json` and push a tag with the same number. GitHub Actions builds both executables and attaches them, with checksums, to a Release. `npm version` also rewrites the version printed in the demo recordings under `docs/demo/` and stages them, so nothing is left behind; `npm run check` fails if any of them drift out of sync.
 
 ```bash
 npm version 0.4.0 --no-git-tag-version

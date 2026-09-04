@@ -192,7 +192,7 @@ scripts/                테스트, 아이콘, 캡처 도구 (main 과 함께 번
 out/                    electron-vite 산출물 (커밋하지 않음)
 ```
 
-릴리즈: `package.json` 버전을 올리고 같은 번호의 태그를 푸시하면 GitHub Actions가 빌드해서 Release에 exe 두 개와 체크섬을 올립니다.
+릴리즈: `package.json` 버전을 올리고 같은 번호의 태그를 푸시하면 GitHub Actions가 빌드해서 Release에 exe 두 개와 체크섬을 올립니다. `npm version`은 `docs/demo/`의 데모 녹화에 찍힌 버전도 함께 고쳐서 스테이지하므로 빠뜨릴 일이 없고, 어긋나 있으면 `npm run check`가 실패합니다.
 
 ```bash
 npm version 0.4.0 --no-git-tag-version

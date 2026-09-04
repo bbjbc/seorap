@@ -9,6 +9,7 @@
     "src/main/**/*.ts",
     "src/preload/**/*.ts",
     "scripts/**/*.ts",
+    "scripts/**/*.mts",
     "electron.vite.config.ts"
   ]
 }
