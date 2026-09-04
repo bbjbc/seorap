@@ -6,6 +6,8 @@ import { pathToFileURL } from 'url';
 import { clipboard, ClipboardItem, nativeImage, net, type NativeImage } from 'electron';
 import type { DebugContext } from '../src/main/main';
 import { isNewer, parseRelease } from '../src/main/update';
+import { VaultError } from '../src/main/vault';
+import { t } from '../src/main/i18n';
 
 const ROOT = path.join(__dirname, '..', '..');
 
@@ -215,9 +217,12 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     assert(!raw.includes('p@ss') && !raw.includes('테스트'), 'plaintext must not be on disk');
     vault.lock('test');
     assert(!vault.unlocked);
-    assert.throws(() => vault.list(), /잠겨/);
-    assert.throws(() => vault.unlock('wrong-password-123'), /맞지 않아요/);
-    assert.throws(() => vault.unlock('Correct-Horse-Battery-2026!'), /잠시 후/);
+    // 문구는 현재 언어로 나온다. 한국어를 박아 두면 로케일이 en-US 인 CI 러너에서 깨진다.
+    const isVaultError = (want: SeorapLocaleKey) => (err: unknown) =>
+      err instanceof VaultError && err.message === t(want);
+    assert.throws(() => vault.list(), isVaultError('vault.err_locked'));
+    assert.throws(() => vault.unlock('wrong-password-123'), isVaultError('vault.err_wrong'));
+    assert.throws(() => vault.unlock('Correct-Horse-Battery-2026!'), (err: unknown) => err instanceof VaultError && err.waitMs > 0);
     await sleep(1100);
     vault.unlock('Correct-Horse-Battery-2026!');
     assert(vault.list().some((x) => x.name === '테스트'));
@@ -233,11 +238,8 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     await js(`__seorap.setMode('vault')`);
     await js(`__seorap.refreshVault()`);
     await waitFor(
-      'vault panel rendered',
-      () =>
-        js(
-          "document.getElementById('app').dataset.mode === 'vault' && document.querySelectorAll('#vaultList .note-item, #vaultList .none').length > 0",
-        ),
+      'vault view visible',
+      () => js("document.getElementById('app').dataset.mode === 'vault' && !document.getElementById('viewVault').hidden"),
     );
     // 좌표는 버튼 자기 사각형에서 구한다. 예전에는 (33,140) 을 박아 두어 레일 레이아웃이
     // 바뀌거나 모달이 떠 있으면 엉뚱한 것을 집고 실패했다.
