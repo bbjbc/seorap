@@ -40,7 +40,7 @@
 - 금고: 마스터 비밀번호로 잠급니다. scrypt + AES-256-GCM, 자동 잠금, 복사한 비밀번호는 30초 후 클립보드에서 삭제됩니다.
 - 같은 내용은 해시로 걸러 한 번만 저장하고, 삭제는 6초 안에 되돌릴 수 있습니다. 오래된 항목 자동 정리 옵션도 있습니다.
 - 한국어·영어 UI (설정 > 일반). 새 버전이 나오면 왼쪽 레일에 조용히 버튼 하나만 뜹니다.
-- Electron 44 + TypeScript(strict). 런타임 npm 의존성 없음, 번들러 없음.
+- Electron 44 + React 19 + TypeScript(strict), electron-vite로 번들. 런타임 npm 의존성은 번들에 들어가는 React와 Zustand뿐입니다.
 
 ![보드 화면](docs/screenshots/board.png)
 
@@ -165,23 +165,31 @@ Node.js 22가 필요합니다.
 git clone https://github.com/bbjbc/seorap.git
 cd seorap
 npm install
-npm start          # 컴파일 후 개발 실행
-npm run check      # 타입 검사 + 린트 (any 금지)
-npm test           # 기능 테스트 (Electron 실행)
+npm start          # electron-vite 로 빌드한 뒤 실행
+npm run dev        # 렌더러 핫 리로드 개발 서버
+npm run check      # 타입 검사 + Biome + ESLint (any 금지)
+npm run format     # Biome 로 포맷
+npm test           # 단위 테스트(Vitest) + 기능 테스트(Electron 실행)
 npm run build      # dist/ 에 설치형 + 포터블 exe
 npm run icons      # assets/icon.svg → icon.png / icon.ico
 ```
 
-Electron 44 + TypeScript(strict). 프레임워크와 번들러 없이 `tsc`만 사용하고, ESLint type-checked 규칙으로 `any`를 금지합니다. 렌더러는 `<script>`로 로드되기 때문에 공유 타입은 전역 `Seorap` 네임스페이스([`src/shared/types.d.ts`](src/shared/types.d.ts))에 두었습니다. IPC는 채널 이름 → 인자, 결과 타입 맵으로 정의되어 있어 메인과 preload가 어긋나면 컴파일 에러가 납니다.
+Electron 44 + React 19 + TypeScript(strict), [electron-vite](https://electron-vite.org)로 빌드합니다. 포맷·import 정렬·타입이 필요 없는 린트는 [Biome](https://biomejs.dev)가 맡고, ESLint에는 `any`와 처리하지 않은 프로미스를 막는 타입 인지 규칙과 React Compiler 규칙만 남겼습니다. 공유 타입은 전역 `Seorap` 네임스페이스([`src/shared/types.d.ts`](src/shared/types.d.ts))에 있고, IPC는 채널 이름 → 인자, 결과 타입 맵으로 정의되어 있어 메인과 preload가 어긋나면 컴파일 에러가 납니다. 렌더러는 상태를 작은 Zustand 스토어에, 부수 효과를 기능별 `actions.ts`에, 화면을 화살표 함수 컴포넌트에 둡니다. 메인 프로세스는 바뀌지 않았습니다.
 
 ```
-src/shared/types.d.ts   공유 타입 (항목, 설정, IPC 채널, API)
+src/shared/             types.d.ts(항목, 설정, IPC 채널, API), locales.ts(한/영 문자열)
 src/main/               main.ts(창, 트레이, 단축키, IPC), store.ts, vault.ts, clipboard.ts, settings.ts
-src/preload.ts          렌더러에 노출하는 API
-src/renderer/           index.html, styles.css, app.ts
-src/toast/              우하단 알림 창
-scripts/                테스트, 아이콘, 캡처 도구
-out/                    tsc 산출물 (커밋하지 않음)
+src/preload/            index.ts(메인 창의 window.scrap), toast.ts(알림 창)
+src/renderer/           React 앱
+  app/                  셸, 부팅 순서, IPC 구독, 전역 단축키, 드롭 처리, 디버그 훅
+  stores/               Zustand 스토어: items, settings, ui, board, notes, vault
+  features/             board, notes, vault, settings, detail, switcher, prompt, overlays, nudge, update
+  components/           공용 표현 조각 (아이콘, Modal, SearchBox, TagList, SegControl, RichText)
+  lib/                  api, i18n 훅, 포맷 함수, DOM 핸들
+  styles/               영역별로 나눈 전역 CSS
+  toast/                우하단 알림 창 (일반 TS)
+scripts/                테스트, 아이콘, 캡처 도구 (main 과 함께 번들)
+out/                    electron-vite 산출물 (커밋하지 않음)
 ```
 
 릴리즈: `package.json` 버전을 올리고 같은 번호의 태그를 푸시하면 GitHub Actions가 빌드해서 Release에 exe 두 개와 체크섬을 올립니다.
