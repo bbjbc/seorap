@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": [
+    "src/shared/**/*.d.ts",
+    "src/shared/locales.ts",
+    "src/main/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.mts"
+  ]
+}

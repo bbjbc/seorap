@@ -40,11 +40,16 @@ export default tseslint.config(
     rules: { '@typescript-eslint/no-invalid-void-type': 'off' },
   },
   {
-    files: ['src/main/**/*.ts', 'src/preload.ts', 'src/toast/preload.ts', 'scripts/**/*.ts'],
+    files: ['src/main/**/*.ts', 'src/preload.ts', 'src/toast/preload.ts', 'scripts/**/*.ts', 'tests/**/*.ts', 'vitest.config.mts'],
     languageOptions: { globals: { ...globals.node } },
   },
   {
     files: ['src/renderer/**/*.ts', 'src/toast/toast.ts'],
     languageOptions: { globals: { ...globals.browser } },
+  },
+  {
+    // vi.mocked(obj.method) 가 Vitest 의 관용구라 unbound-method 와 맞지 않는다.
+    files: ['tests/**/*.ts'],
+    rules: { '@typescript-eslint/unbound-method': 'off' },
   },
 );

@@ -21,7 +21,9 @@
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
     "check": "npm run typecheck && npm run lint",
-    "test": "npm run compile && node out/scripts/run-tests.js",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "npm run compile && node out/scripts/run-tests.js",
     "icons": "npm run compile && electron out/scripts/gen-icons.js",
     "build": "npm run compile && electron-builder --win",
     "build:dir": "npm run compile && electron-builder --win --dir",
@@ -34,7 +36,8 @@
     "eslint": "^10.9.1",
     "globals": "^17.12.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.69.0"
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^5.0.0"
   },
   "build": {
     "appId": "dev.boongranii.seorap",
