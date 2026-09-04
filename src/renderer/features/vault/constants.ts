@@ -4,4 +4,6 @@ export const GEN_MAX = 64;
 export const GEN_DEFAULT = 20;
 
 export const clampGenLength = (n: number): number =>
-  Number.isFinite(n) ? Math.min(GEN_MAX, Math.max(GEN_MIN, Math.round(n))) : GEN_DEFAULT;
+  Number.isFinite(n)
+    ? Math.min(GEN_MAX, Math.max(GEN_MIN, Math.round(n)))
+    : GEN_DEFAULT;

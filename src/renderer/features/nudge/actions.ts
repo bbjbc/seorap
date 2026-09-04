@@ -12,7 +12,8 @@ export function evaluateStarNudge(): void {
   if (!s || ui.nudgeShownThisSession) return;
   if (s.starNudge.done || Date.now() < s.starNudge.snoozeUntil) return;
   const enoughItems = useItemsStore.getState().items.length >= 50;
-  const oldEnough = s.installedAt !== null && Date.now() - s.installedAt > 7 * 86400e3;
+  const oldEnough =
+    s.installedAt !== null && Date.now() - s.installedAt > 7 * 86400e3;
   if (!enoughItems && !oldEnough) return;
   if (ui.mode !== 'board' || topModal(ui)) return;
   ui.setNudge(true);
@@ -29,5 +30,5 @@ export function openRepo(): void {
 }
 
 export function openIssues(): void {
-  void api.openExternal(REPO_URL + '/issues/new');
+  void api.openExternal(`${REPO_URL}/issues/new`);
 }

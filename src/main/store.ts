@@ -1,11 +1,23 @@
-import fs from 'fs';
-import fsp from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
-import { nativeImage, type NativeImage } from 'electron';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import fsp from 'node:fs/promises';
+import path from 'node:path';
+import { type NativeImage, nativeImage } from 'electron';
 import { t } from './i18n';
 
-export const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.svg', '.avif', '.tiff', '.tif']);
+export const IMAGE_EXTS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.bmp',
+  '.ico',
+  '.svg',
+  '.avif',
+  '.tiff',
+  '.tif',
+]);
 const THUMB_MAX = 400;
 const TEXT_INLINE_LIMIT = 50000;
 const URL_RE = /^https?:\/\/[^\s]+$/i;
@@ -31,7 +43,12 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
 }
 
-const ITEM_TYPES: readonly Seorap.ItemType[] = ['image', 'text', 'link', 'file'];
+const ITEM_TYPES: readonly Seorap.ItemType[] = [
+  'image',
+  'text',
+  'link',
+  'file',
+];
 
 function isItemType(v: unknown): v is Seorap.ItemType {
   return typeof v === 'string' && (ITEM_TYPES as readonly string[]).includes(v);
@@ -51,7 +68,9 @@ function toItem(raw: unknown): Seorap.Item | null {
   const type = raw['type'];
   if (typeof id !== 'string' || !isItemType(type)) return null;
   const tagsRaw = raw['tags'];
-  const tags = Array.isArray(tagsRaw) ? (tagsRaw as unknown[]).filter((t): t is string => typeof t === 'string') : [];
+  const tags = Array.isArray(tagsRaw)
+    ? (tagsRaw as unknown[]).filter((t): t is string => typeof t === 'string')
+    : [];
   const item: Seorap.Item = {
     id,
     type,
@@ -61,7 +80,10 @@ function toItem(raw: unknown): Seorap.Item | null {
     title: optStr(raw['title']) ?? '',
     source: optStr(raw['source']) ?? 'unknown',
   };
-  const set = <K extends keyof Seorap.Item>(k: K, v: Seorap.Item[K] | undefined): void => {
+  const set = <K extends keyof Seorap.Item>(
+    k: K,
+    v: Seorap.Item[K] | undefined,
+  ): void => {
     if (v !== undefined) item[k] = v;
   };
   set('updatedAt', optNum(raw['updatedAt']));
@@ -152,14 +174,19 @@ export class Store {
     try {
       const parsed: unknown = JSON.parse(raw);
       if (isRecord(parsed) && Array.isArray(parsed['items'])) {
-        return (parsed['items'] as unknown[]).map(toItem).filter((it): it is Seorap.Item => it !== null);
+        return (parsed['items'] as unknown[])
+          .map(toItem)
+          .filter((it): it is Seorap.Item => it !== null);
       }
     } catch {
       /* 아래에서 백업 */
     }
     // 손상된 인덱스는 덮어쓰지 않고 백업해 둔다.
     try {
-      fs.copyFileSync(this.indexPath, `${this.indexPath}.corrupt-${Date.now()}`);
+      fs.copyFileSync(
+        this.indexPath,
+        `${this.indexPath}.corrupt-${Date.now()}`,
+      );
     } catch {
       /* ignore */
     }
@@ -175,7 +202,7 @@ export class Store {
   }
 
   private saveNow(): void {
-    const tmp = this.indexPath + '.tmp';
+    const tmp = `${this.indexPath}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify({ version: 1, items: this.items }));
     fs.renameSync(tmp, this.indexPath);
   }
@@ -242,14 +269,26 @@ export class Store {
     return item;
   }
 
-  private base(type: Seorap.ItemType, id: string, source: string | undefined): Seorap.Item {
-    return { id, type, createdAt: Date.now(), pinned: false, tags: [], title: '', source: source ?? 'manual' };
+  private base(
+    type: Seorap.ItemType,
+    id: string,
+    source: string | undefined,
+  ): Seorap.Item {
+    return {
+      id,
+      type,
+      createdAt: Date.now(),
+      pinned: false,
+      tags: [],
+      title: '',
+      source: source ?? 'manual',
+    };
   }
 
   /** 메모 모드에서 만드는 빈 메모. 첫 타이핑 전까지 본문이 비어 있다. */
   async addNote(): Promise<StoreResult> {
     const id = this.newId();
-    const file = path.posix.join('items', id + '.txt');
+    const file = path.posix.join('items', `${id}.txt`);
     await fsp.writeFile(path.join(this.dir, file), '', 'utf8');
     const item: Seorap.Item = {
       ...this.base('text', id, 'note'),
@@ -263,7 +302,10 @@ export class Store {
     return { duplicate: false, item: this.insert(item) };
   }
 
-  async addText(text: string, extra: AddExtra = {}): Promise<StoreResult | null> {
+  async addText(
+    text: string,
+    extra: AddExtra = {},
+  ): Promise<StoreResult | null> {
     const clean = text.replace(/\r\n/g, '\n');
     if (!clean.trim()) return null;
     const isLink = URL_RE.test(clean.trim());
@@ -272,7 +314,7 @@ export class Store {
     if (dupe) return { duplicate: true, item: dupe };
 
     const id = this.newId();
-    const file = path.posix.join('items', id + '.txt');
+    const file = path.posix.join('items', `${id}.txt`);
     await fsp.writeFile(path.join(this.dir, file), clean, 'utf8');
     const truncated = clean.length > TEXT_INLINE_LIMIT;
     const item: Seorap.Item = {
@@ -290,7 +332,10 @@ export class Store {
     return { duplicate: false, item: this.insert(item) };
   }
 
-  async addImage(img: NativeImage, extra: AddExtra = {}): Promise<StoreResult | null> {
+  async addImage(
+    img: NativeImage,
+    extra: AddExtra = {},
+  ): Promise<StoreResult | null> {
     if (img.isEmpty()) return null;
     const png = img.toPNG();
     const hash = sha1(png);
@@ -298,7 +343,7 @@ export class Store {
     if (dupe) return { duplicate: true, item: dupe };
 
     const id = this.newId();
-    const file = path.posix.join('items', id + '.png');
+    const file = path.posix.join('items', `${id}.png`);
     await fsp.writeFile(path.join(this.dir, file), png);
     const { width, height } = img.getSize();
     const thumb = await this.makeThumb(img, id);
@@ -316,7 +361,10 @@ export class Store {
     return { duplicate: false, item: this.insert(item) };
   }
 
-  async addFile(srcPath: string, extra: AddExtra = {}): Promise<StoreResult | null> {
+  async addFile(
+    srcPath: string,
+    extra: AddExtra = {},
+  ): Promise<StoreResult | null> {
     const st = await fsp.stat(srcPath);
     if (st.isDirectory()) return null;
     const ext = path.extname(srcPath).toLowerCase();
@@ -325,7 +373,8 @@ export class Store {
     const dest = path.join(this.dir, file);
     await fsp.copyFile(srcPath, dest);
 
-    const hash = st.size < 64 * 1024 * 1024 ? sha1(await fsp.readFile(dest)) : undefined;
+    const hash =
+      st.size < 64 * 1024 * 1024 ? sha1(await fsp.readFile(dest)) : undefined;
     const dupe = this.findByHash(hash);
     if (dupe) {
       await fsp.unlink(dest).catch(() => undefined);
@@ -354,9 +403,14 @@ export class Store {
   }
 
   /** 브라우저에서 드래그해 온 blob, URL 로 받아온 바이트 등 */
-  async addBuffer(buf: Buffer, name = '', extra: AddExtra = {}): Promise<StoreResult | null> {
+  async addBuffer(
+    buf: Buffer,
+    name = '',
+    extra: AddExtra = {},
+  ): Promise<StoreResult | null> {
     const img = nativeImage.createFromBuffer(buf);
-    if (!img.isEmpty()) return this.addImage(img, { source: extra.source, title: name });
+    if (!img.isEmpty())
+      return this.addImage(img, { source: extra.source, title: name });
 
     const ext = path.extname(name).toLowerCase() || guessExt(extra.mime);
     const hash = sha1(buf);
@@ -388,7 +442,10 @@ export class Store {
     }
     const alpha = hasAlpha(small);
     const rel = path.posix.join('thumbs', id + (alpha ? '.png' : '.jpg'));
-    await fsp.writeFile(path.join(this.dir, rel), alpha ? small.toPNG() : small.toJPEG(84));
+    await fsp.writeFile(
+      path.join(this.dir, rel),
+      alpha ? small.toPNG() : small.toJPEG(84),
+    );
     return rel;
   }
 
@@ -397,11 +454,15 @@ export class Store {
     const item = this.get(id);
     if (!item) return null;
     if (patch.pinned !== undefined) item.pinned = patch.pinned;
-    if (patch.tags !== undefined) item.tags = patch.tags.filter((t) => typeof t === 'string').slice(0, 50);
+    if (patch.tags !== undefined)
+      item.tags = patch.tags.filter((t) => typeof t === 'string').slice(0, 50);
     if (patch.title !== undefined) item.title = patch.title;
     if (patch.linkTitle !== undefined) item.linkTitle = patch.linkTitle;
     if (patch.note !== undefined) item.note = patch.note;
-    if (typeof patch.text === 'string' && (item.type === 'text' || item.type === 'link')) {
+    if (
+      typeof patch.text === 'string' &&
+      (item.type === 'text' || item.type === 'link')
+    ) {
       const clean = patch.text.replace(/\r\n/g, '\n');
       const p = this.absPath(item);
       if (p) fs.writeFileSync(p, clean, 'utf8');
@@ -445,14 +506,21 @@ export class Store {
 
   async cleanup(days: number): Promise<number> {
     const cutoff = Date.now() - days * 86400000;
-    const ids = this.items.filter((it) => !it.pinned && it.createdAt < cutoff).map((it) => it.id);
+    const ids = this.items
+      .filter((it) => !it.pinned && it.createdAt < cutoff)
+      .map((it) => it.id);
     if (!ids.length) return 0;
     return this.remove(ids);
   }
 
   // ---------- 통계 / 이동 ----------
   stats(): Seorap.Stats {
-    const byType: Record<Seorap.ItemType, number> = { image: 0, text: 0, link: 0, file: 0 };
+    const byType: Record<Seorap.ItemType, number> = {
+      image: 0,
+      text: 0,
+      link: 0,
+      file: 0,
+    };
     let bytes = 0;
     for (const it of this.items) {
       byType[it.type] += 1;
@@ -460,7 +528,8 @@ export class Store {
     }
     let thumbBytes = 0;
     try {
-      for (const f of fs.readdirSync(this.thumbsDir)) thumbBytes += fs.statSync(path.join(this.thumbsDir, f)).size;
+      for (const f of fs.readdirSync(this.thumbsDir))
+        thumbBytes += fs.statSync(path.join(this.thumbsDir, f)).size;
     } catch {
       /* ignore */
     }
@@ -477,13 +546,17 @@ export class Store {
   async moveTo(newDirRaw: string): Promise<void> {
     const newDir = path.resolve(newDirRaw);
     if (newDir === this.dir) return;
-    if (newDir.startsWith(this.dir + path.sep)) throw new Error(t('store.inside_current'));
+    if (newDir.startsWith(this.dir + path.sep))
+      throw new Error(t('store.inside_current'));
     this.flush();
     await fsp.mkdir(newDir, { recursive: true });
     const existing = await fsp.readdir(newDir);
-    if (existing.some((n) => !n.startsWith('.'))) throw new Error(t('store.not_empty'));
+    if (existing.some((n) => !n.startsWith('.')))
+      throw new Error(t('store.not_empty'));
     for (const sub of ['items', 'thumbs']) {
-      await fsp.cp(path.join(this.dir, sub), path.join(newDir, sub), { recursive: true });
+      await fsp.cp(path.join(this.dir, sub), path.join(newDir, sub), {
+        recursive: true,
+      });
     }
     await fsp.copyFile(this.indexPath, path.join(newDir, 'index.json'));
     for (const extra of ['vault.json']) {

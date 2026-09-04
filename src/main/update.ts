@@ -6,10 +6,15 @@ export const RELEASES_URL = 'https://github.com/bbjbc/seorap/releases';
 const LATEST_API = 'https://api.github.com/repos/bbjbc/seorap/releases/latest';
 
 /** "v1.2.3-beta.1" → [1,2,3] 와 prerelease 여부. 형식이 아니면 null. */
-export function parseVersion(v: string): { nums: number[]; pre: boolean } | null {
+export function parseVersion(
+  v: string,
+): { nums: number[]; pre: boolean } | null {
   const m = /^v?(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?/.exec(v.trim());
   if (!m) return null;
-  return { nums: [Number(m[1]), Number(m[2]), Number(m[3])], pre: m[4] !== undefined };
+  return {
+    nums: [Number(m[1]), Number(m[2]), Number(m[3])],
+    pre: m[4] !== undefined,
+  };
 }
 
 /** latest 가 current 보다 새 버전인가. 정식 버전은 같은 숫자의 프리릴리스보다 높다. */
@@ -29,13 +34,23 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 /** GitHub API 응답에서 필요한 것만 꺼낸다. */
-export function parseRelease(raw: unknown): { version: string; url: string; publishedAt: number } | null {
+export function parseRelease(
+  raw: unknown,
+): { version: string; url: string; publishedAt: number } | null {
   if (!isRecord(raw)) return null;
   const tag = raw['tag_name'];
   if (typeof tag !== 'string' || !parseVersion(tag)) return null;
-  const url = typeof raw['html_url'] === 'string' ? raw['html_url'] : RELEASES_URL;
-  const published = typeof raw['published_at'] === 'string' ? Date.parse(raw['published_at']) : NaN;
-  return { version: tag.replace(/^v/, ''), url, publishedAt: Number.isFinite(published) ? published : 0 };
+  const url =
+    typeof raw['html_url'] === 'string' ? raw['html_url'] : RELEASES_URL;
+  const published =
+    typeof raw['published_at'] === 'string'
+      ? Date.parse(raw['published_at'])
+      : NaN;
+  return {
+    version: tag.replace(/^v/, ''),
+    url,
+    publishedAt: Number.isFinite(published) ? published : 0,
+  };
 }
 
 export async function fetchLatest(): Promise<Seorap.UpdateInfo | null> {
@@ -44,7 +59,10 @@ export async function fetchLatest(): Promise<Seorap.UpdateInfo | null> {
   try {
     const res = await net.fetch(LATEST_API, {
       signal: ctrl.signal,
-      headers: { accept: 'application/vnd.github+json', 'user-agent': 'Seorap-update-check' },
+      headers: {
+        accept: 'application/vnd.github+json',
+        'user-agent': 'Seorap-update-check',
+      },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return parseRelease(await res.json());
@@ -54,7 +72,9 @@ export async function fetchLatest(): Promise<Seorap.UpdateInfo | null> {
 }
 
 /** 현재 버전보다 새 릴리스가 있으면 그 정보를, 아니면 null. 네트워크 오류는 그대로 던진다. */
-export async function checkForUpdate(current: string): Promise<Seorap.UpdateInfo | null> {
+export async function checkForUpdate(
+  current: string,
+): Promise<Seorap.UpdateInfo | null> {
   const latest = await fetchLatest();
   return latest && isNewer(latest.version, current) ? latest : null;
 }

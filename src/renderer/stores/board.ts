@@ -65,5 +65,6 @@ export const useBoardStore = create<BoardState>()((set) => ({
     }),
   clearSelection: () => set({ selected: new Set() }),
   growLimit: () => set((s) => ({ renderLimit: s.renderLimit + PAGE })),
-  flashCopy: (id) => set((s) => ({ copyFlash: { id, seq: (s.copyFlash?.seq ?? 0) + 1 } })),
+  flashCopy: (id) =>
+    set((s) => ({ copyFlash: { id, seq: (s.copyFlash?.seq ?? 0) + 1 } })),
 }));

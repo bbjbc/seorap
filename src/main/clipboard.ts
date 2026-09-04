@@ -1,9 +1,21 @@
 // Electron 44+ 의 비동기 클립보드 API(clipboard.read/write, ClipboardItem)를 감싼다.
-import { clipboard, ClipboardItem, nativeImage, type NativeImage } from 'electron';
-import { fileURLToPath, pathToFileURL } from 'url';
-import crypto from 'crypto';
 
-const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/bmp'] as const;
+import crypto from 'node:crypto';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  ClipboardItem,
+  clipboard,
+  type NativeImage,
+  nativeImage,
+} from 'electron';
+
+const IMAGE_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'image/bmp',
+] as const;
 
 export interface ClipboardContent {
   files: string[];
@@ -28,7 +40,14 @@ async function textOf(item: ClipboardItem, type: string): Promise<string> {
 /** 현재 클립보드 내용을 한 번 읽어 정리한다. */
 export async function readClipboard(): Promise<ClipboardContent> {
   const items = await clipboard.read();
-  const out: ClipboardContent = { files: [], image: null, imageBuffer: null, imageType: null, text: '', types: [] };
+  const out: ClipboardContent = {
+    files: [],
+    image: null,
+    imageBuffer: null,
+    imageType: null,
+    text: '',
+    types: [],
+  };
   for (const it of items) {
     out.types.push(...it.types);
     if (it.types.includes('text/uri-list')) {
@@ -71,7 +90,9 @@ export async function writeText(text: string): Promise<void> {
 export async function writeImage(img: NativeImage): Promise<void> {
   // Buffer 는 SharedArrayBuffer 기반일 수 있어 BlobPart 로 바로 못 넘긴다. 복사해서 넘긴다.
   const png = new Uint8Array(img.toPNG());
-  await clipboard.write([new ClipboardItem({ 'image/png': new Blob([png], { type: 'image/png' }) })]);
+  await clipboard.write([
+    new ClipboardItem({ 'image/png': new Blob([png], { type: 'image/png' }) }),
+  ]);
 }
 
 /** file:// URI 목록을 쓰면 Windows 에서는 CF_HDROP 으로 올라가 탐색기에 붙일 수 있다. */
@@ -113,8 +134,12 @@ export async function signature(): Promise<string> {
       const blob = await blobOf(it, t);
       if (blob) {
         const n = blob.size;
-        const head = Buffer.from(await blob.slice(0, Math.min(n, 8192)).arrayBuffer());
-        const tail = Buffer.from(await blob.slice(Math.max(0, n - 8192), n).arrayBuffer());
+        const head = Buffer.from(
+          await blob.slice(0, Math.min(n, 8192)).arrayBuffer(),
+        );
+        const tail = Buffer.from(
+          await blob.slice(Math.max(0, n - 8192), n).arrayBuffer(),
+        );
         return `i:${n}:${shortHash(Buffer.concat([head, tail]))}`;
       }
     }

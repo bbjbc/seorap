@@ -1,6 +1,6 @@
 // 범용 프롬프트/확인 모달. 여는 쪽은 Promise 로 결과를 받고, 그리는 건 PromptModal 이 한다.
 import { t } from '../../lib/i18n';
-import { useUiStore, type PromptOptions } from '../../stores/ui';
+import { type PromptOptions, useUiStore } from '../../stores/ui';
 
 let seq = 0;
 
@@ -20,7 +20,11 @@ export function promptDialog(opts: PromptOptions): Promise<string[] | null> {
   });
 }
 
-export async function confirmDialog(title: string, desc: string, okText: string = t('common.delete')): Promise<boolean> {
+export async function confirmDialog(
+  title: string,
+  desc: string,
+  okText: string = t('common.delete'),
+): Promise<boolean> {
   return (await promptDialog({ title, desc, okText })) !== null;
 }
 

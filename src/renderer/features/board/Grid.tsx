@@ -13,10 +13,24 @@ const TIME_REFRESH_MS = 60000;
 
 export const Grid = ({ active }: { active: boolean }) => {
   const items = useItemsStore((s) => s.items);
-  const filter = useBoardStore(useShallow((s) => ({ query: s.query, type: s.type, pinnedOnly: s.pinnedOnly, tag: s.tag })));
-  const { selected, renderLimit, copyFlash, growLimit, clearSelection } = useBoardStore(
-    useShallow((s) => ({ selected: s.selected, renderLimit: s.renderLimit, copyFlash: s.copyFlash, growLimit: s.growLimit, clearSelection: s.clearSelection })),
+  const filter = useBoardStore(
+    useShallow((s) => ({
+      query: s.query,
+      type: s.type,
+      pinnedOnly: s.pinnedOnly,
+      tag: s.tag,
+    })),
   );
+  const { selected, renderLimit, copyFlash, growLimit, clearSelection } =
+    useBoardStore(
+      useShallow((s) => ({
+        selected: s.selected,
+        renderLimit: s.renderLimit,
+        copyFlash: s.copyFlash,
+        growLimit: s.growLimit,
+        clearSelection: s.clearSelection,
+      })),
+    );
   const list = useMemo(() => boardItems(items, filter), [items, filter]);
   const total = useMemo(() => items.filter(isBoardItem).length, [items]);
   // 상대 시각("3분 전")이 굳지 않게 1분마다 다시 그린다.
@@ -50,15 +64,29 @@ export const Grid = ({ active }: { active: boolean }) => {
       }}
       onClick={(e) => {
         // 카드 바깥(배경)을 누르면 선택 해제
-        if (e.target === e.currentTarget || (e.target instanceof HTMLElement && e.target.id === 'grid')) clearSelection();
+        if (
+          e.target === e.currentTarget ||
+          (e.target instanceof HTMLElement && e.target.id === 'grid')
+        )
+          clearSelection();
       }}
     >
       <div className="grid" id="grid">
         {list.slice(0, renderLimit).map((it) => (
-          <Card key={it.id} item={it} selected={selected.has(it.id)} copySeq={copyFlash?.id === it.id ? copyFlash.seq : 0} />
+          <Card
+            key={it.id}
+            item={it}
+            selected={selected.has(it.id)}
+            copySeq={copyFlash?.id === it.id ? copyFlash.seq : 0}
+          />
         ))}
       </div>
-      <div id="sentinel" className="sentinel" ref={sentinelRef} hidden={!hasMore} />
+      <div
+        id="sentinel"
+        className="sentinel"
+        ref={sentinelRef}
+        hidden={!hasMore}
+      />
       <EmptyBoard visible={list.length === 0} total={total} />
     </div>
   );

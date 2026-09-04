@@ -2,9 +2,6 @@
 // 이벤트 구독·전역 단축키·부팅은 main.tsx 가 한 번 설치한다. 여기서는 문서 수준 속성만 설정에 맞춘다.
 import { useEffect } from 'react';
 import { lookup } from '../../shared/locales';
-import { useLang } from '../lib/i18n';
-import { useSettings } from '../stores/settings';
-import { useMode } from '../stores/ui';
 import { BoardView } from '../features/board/BoardView';
 import { DetailModal } from '../features/detail/DetailModal';
 import { NotesView } from '../features/notes/NotesView';
@@ -17,6 +14,9 @@ import { SettingsModal } from '../features/settings/SettingsModal';
 import { Rail } from '../features/shell/Rail';
 import { SwitcherModal } from '../features/switcher/SwitcherModal';
 import { VaultView } from '../features/vault/VaultView';
+import { useLang } from '../lib/i18n';
+import { useSettings } from '../stores/settings';
+import { useMode } from '../stores/ui';
 
 export const App = () => {
   const mode = useMode();
@@ -38,7 +38,12 @@ export const App = () => {
 
   return (
     <>
-      <div className="app" id="app" data-mode={mode} data-card={settings?.board.cardSize ?? 'medium'}>
+      <div
+        className="app"
+        id="app"
+        data-mode={mode}
+        data-card={settings?.board.cardSize ?? 'medium'}
+      >
         <Rail />
         <BoardView />
         <NotesView />

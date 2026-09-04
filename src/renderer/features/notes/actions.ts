@@ -9,7 +9,8 @@ import { noteItems } from './selectors';
 const AUTOSAVE_MS = 500;
 let saveTimer: number | null = null;
 
-export const noteSortMode = (): Seorap.NoteSort => useSettingsStore.getState().settings?.notes.sort ?? 'recent';
+export const noteSortMode = (): Seorap.NoteSort =>
+  useSettingsStore.getState().settings?.notes.sort ?? 'recent';
 
 /** 지금 목록에 보이는 메모 (그려진 순서) */
 export function visibleNotes(): ReturnType<typeof noteItems> {
@@ -40,7 +41,11 @@ export function openNote(id: string): void {
     void api.updateItem(id, { note: true });
   }
   if (it.truncated) {
-    void api.fullText(id).then((text) => useItemsStore.getState().patch(id, { text, truncated: false }));
+    void api
+      .fullText(id)
+      .then((text) =>
+        useItemsStore.getState().patch(id, { text, truncated: false }),
+      );
   }
   onNoteSwitched();
 }
@@ -87,7 +92,8 @@ export async function saveNoteNow(): Promise<void> {
   const it = findItem(id);
   if (!id || !it) return;
   const saved = await api.updateItem(id, { text: it.text ?? '', note: true });
-  if (saved && useNotesStore.getState().noteId === id) useNotesStore.getState().setSaveState('saved');
+  if (saved && useNotesStore.getState().noteId === id)
+    useNotesStore.getState().setSaveState('saved');
 }
 
 /** 창이 숨겨질 때 등, 기다리지 않고 지금 저장한다. */
@@ -99,7 +105,11 @@ export function flushNoteSave(): void {
 }
 
 /** id 를 target 앞(또는 뒤)으로 옮기고 전체 순서를 저장한다. 최신순이었다면 지금 보이는 순서를 출발점으로 직접 정렬로 전환. */
-export async function moveNote(id: string, target: string | null, after: boolean): Promise<void> {
+export async function moveNote(
+  id: string,
+  target: string | null,
+  after: boolean,
+): Promise<void> {
   const ids = visibleNotes().map((it) => it.id);
   const from = ids.indexOf(id);
   if (from === -1) return;
@@ -109,7 +119,8 @@ export async function moveNote(id: string, target: string | null, after: boolean
   else if (after) to += 1;
   ids.splice(to, 0, id);
   applyOrder(ids);
-  if (noteSortMode() !== 'manual') await saveSettings({ notes: { sort: 'manual' } });
+  if (noteSortMode() !== 'manual')
+    await saveSettings({ notes: { sort: 'manual' } });
   await api.reorderItems(ids);
 }
 
@@ -128,5 +139,9 @@ export function toggleNoteSort(): void {
 function applyOrder(ids: readonly string[]): void {
   const order = new Map(ids.map((x, i) => [x, i] as const));
   const items = useItemsStore.getState();
-  items.setAll(items.items.map((it) => (order.has(it.id) ? { ...it, order: order.get(it.id) } : it)));
+  items.setAll(
+    items.items.map((it) =>
+      order.has(it.id) ? { ...it, order: order.get(it.id) } : it,
+    ),
+  );
 }

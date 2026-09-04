@@ -1,8 +1,9 @@
 // 설정 병합과 파일 저장. 임시 폴더에 실제로 쓰고 읽는다.
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULTS, deepMerge, Settings } from '../../src/main/settings';
 
 let dir: string;
@@ -47,7 +48,10 @@ describe('Settings', () => {
     expect(new Settings(file).data).toEqual(DEFAULTS);
   });
   it('fills in keys a newer version added, keeping what the user set', () => {
-    fs.writeFileSync(file, JSON.stringify({ autoCollect: true, vault: { autoLockMinutes: 1 } }));
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ autoCollect: true, vault: { autoLockMinutes: 1 } }),
+    );
     const s = new Settings(file);
     expect(s.data.autoCollect).toBe(true);
     expect(s.data.vault.autoLockMinutes).toBe(1);
@@ -58,7 +62,7 @@ describe('Settings', () => {
     const after = s.set({ notes: { fontSize: 17 } });
     expect(after.notes.fontSize).toBe(17);
     expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toEqual(after);
-    expect(fs.existsSync(file + '.tmp')).toBe(false);
+    expect(fs.existsSync(`${file}.tmp`)).toBe(false);
   });
   it('get() returns a copy, so callers cannot mutate live settings', () => {
     const s = new Settings(file);

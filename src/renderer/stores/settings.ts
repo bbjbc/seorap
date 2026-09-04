@@ -1,6 +1,6 @@
 // 설정 스토어. 메인이 정본이고 여기는 그 사본이다. 바꾸려면 saveSettings() 로 메인에 보내고 결과를 받아 넣는다.
 import { create } from 'zustand';
-import { resolveLang, type Lang } from '../../shared/locales';
+import { type Lang, resolveLang } from '../../shared/locales';
 import { api } from '../lib/api';
 
 type ShortcutErrors = Partial<Record<Seorap.ShortcutKey, string>>;
@@ -16,7 +16,8 @@ interface SettingsState {
   apply: (settings: Seorap.Settings, shortcutErrors?: ShortcutErrors) => void;
 }
 
-const langOf = (s: Seorap.Settings): Lang => resolveLang(s.language, navigator.language);
+const langOf = (s: Seorap.Settings): Lang =>
+  resolveLang(s.language, navigator.language);
 
 export const useSettingsStore = create<SettingsState>()((set) => ({
   settings: null,
@@ -25,13 +26,25 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
   isPackaged: false,
   shortcutErrors: {},
   load: (b) =>
-    set({ settings: b.settings, lang: langOf(b.settings), version: b.version, isPackaged: b.isPackaged, shortcutErrors: b.shortcutErrors }),
+    set({
+      settings: b.settings,
+      lang: langOf(b.settings),
+      version: b.version,
+      isPackaged: b.isPackaged,
+      shortcutErrors: b.shortcutErrors,
+    }),
   apply: (settings, shortcutErrors) =>
-    set((s) => ({ settings, lang: langOf(settings), shortcutErrors: shortcutErrors ?? s.shortcutErrors })),
+    set((s) => ({
+      settings,
+      lang: langOf(settings),
+      shortcutErrors: shortcutErrors ?? s.shortcutErrors,
+    })),
 }));
 
 /** 설정 일부를 메인에 저장하고 돌아온 전체 설정으로 스토어를 맞춘다. */
-export async function saveSettings(patch: Seorap.SettingsPatch): Promise<Seorap.Settings> {
+export async function saveSettings(
+  patch: Seorap.SettingsPatch,
+): Promise<Seorap.Settings> {
   const r = await api.setSettings(patch);
   useSettingsStore.getState().apply(r.settings, r.shortcutErrors);
   return r.settings;
@@ -44,4 +57,5 @@ export async function reloadSettings(): Promise<Seorap.SettingsBundle> {
   return b;
 }
 
-export const useSettings = (): Seorap.Settings | null => useSettingsStore((s) => s.settings);
+export const useSettings = (): Seorap.Settings | null =>
+  useSettingsStore((s) => s.settings);

@@ -6,7 +6,7 @@
 .settings-body h3 { margin: 0 0 12px; font-size: 13px; font-weight: 700; color: var(--text); display: flex; gap: 10px; align-items: baseline; }
 .settings-body h3 small { font-weight: 400; color: var(--muted); font-size: 12px; }
 .row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
-.row > label { width: 160px; flex: none; color: var(--text-2); }
+.row > label, .row > .row-label { width: 160px; flex: none; color: var(--text-2); }
 .row.check { align-items: flex-start; cursor: pointer; }
 /* 힌트(small)가 붙어 여러 줄이 되는 행은 위쪽 정렬, 한 줄짜리 행은 가운데 정렬 */
 .row.check:not(:has(small)) { align-items: center; }

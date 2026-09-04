@@ -11,7 +11,12 @@ interface ListProps {
 export const TagList = ({ id, tags, onRemove, inline = false }: ListProps) => (
   <div id={id} className={`tag-list${inline ? ' inline' : ''}`}>
     {tags.map((tag) => (
-      <span key={tag} className="tag" data-tag={tag} onClick={() => onRemove(tag)}>
+      <span
+        key={tag}
+        className="tag"
+        data-tag={tag}
+        onClick={() => onRemove(tag)}
+      >
         {tag}
         <b>×</b>
       </span>
@@ -26,7 +31,12 @@ interface InputProps {
   onAdd: (raw: string) => void;
 }
 
-export const TagInput = ({ id, placeholder, disabled = false, onAdd }: InputProps) => {
+export const TagInput = ({
+  id,
+  placeholder,
+  disabled = false,
+  onAdd,
+}: InputProps) => {
   const [value, setValue] = useState('');
   return (
     <input

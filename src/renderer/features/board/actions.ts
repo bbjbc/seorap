@@ -19,7 +19,10 @@ export function visibleBoardItems(): ReturnType<typeof boardItems> {
 export function highlight(id: string): void {
   useBoardStore.getState().selectOnly(id);
   requestAnimationFrame(() => {
-    boardScrollHandle.get()?.querySelector(`.card[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest' });
+    boardScrollHandle
+      .get()
+      ?.querySelector(`.card[data-id="${id}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
   });
 }
 

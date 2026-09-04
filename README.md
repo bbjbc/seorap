@@ -167,13 +167,14 @@ cd seorap
 npm install
 npm start          # build with electron-vite, then run
 npm run dev        # dev server with hot reload for the renderer
-npm run check      # typecheck + lint (any is forbidden)
+npm run check      # typecheck + Biome + ESLint (any is forbidden)
+npm run format     # format with Biome
 npm test           # unit tests (Vitest) + functional tests (launches Electron)
 npm run build      # installer + portable exe into dist/
 npm run icons      # assets/icon.svg → icon.png / icon.ico
 ```
 
-Electron 44 + React 19 + TypeScript (strict), built with [electron-vite](https://electron-vite.org); ESLint's type-checked rules forbid `any`. Shared types live in a global `Seorap` namespace ([`src/shared/types.d.ts`](src/shared/types.d.ts)), and IPC is a map from channel name to argument and result types, so a main handler and a preload call that disagree fail at compile time. The renderer keeps its state in small Zustand stores, its side effects in per-feature `actions.ts` modules, and its views in arrow-function components; the main process never changed.
+Electron 44 + React 19 + TypeScript (strict), built with [electron-vite](https://electron-vite.org). [Biome](https://biomejs.dev) formats, sorts imports and runs the type-free lint rules; ESLint keeps only the type-aware rules that forbid `any` and unhandled promises, plus the React Compiler rules. Shared types live in a global `Seorap` namespace ([`src/shared/types.d.ts`](src/shared/types.d.ts)), and IPC is a map from channel name to argument and result types, so a main handler and a preload call that disagree fail at compile time. The renderer keeps its state in small Zustand stores, its side effects in per-feature `actions.ts` modules, and its views in arrow-function components; the main process never changed.
 
 ```
 src/shared/             types.d.ts (items, settings, IPC channels, API), locales.ts (ko/en strings)

@@ -16,10 +16,18 @@ export const EmptyBoard = ({ visible, total }: Props) => {
   return (
     <div id="empty" className="empty" hidden={!visible}>
       <EmptyArt />
-      <h2 id="emptyTitle">{fresh ? t('board.empty_title') : t('board.no_match_title')}</h2>
+      <h2 id="emptyTitle">
+        {fresh ? t('board.empty_title') : t('board.no_match_title')}
+      </h2>
       <p id="emptyDesc">
         {fresh ? (
-          <RichText text={t('board.empty_desc', { how: quickSave ? t('board.empty_how_key', { key: quickSave }) : t('board.empty_how_tray') })} />
+          <RichText
+            text={t('board.empty_desc', {
+              how: quickSave
+                ? t('board.empty_how_key', { key: quickSave })
+                : t('board.empty_how_tray'),
+            })}
+          />
         ) : (
           t('board.no_match_desc')
         )}

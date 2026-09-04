@@ -6,9 +6,17 @@ import { useUiStore } from '../../../stores/ui';
 import { checkUpdateNow, openUpdate } from '../../update/actions';
 import { ButtonRow, CheckRow, Section } from '../rows';
 
-type CheckState = { kind: 'idle' } | { kind: 'checking' } | { kind: 'latest' } | { kind: 'error'; error: string };
+type CheckState =
+  | { kind: 'idle' }
+  | { kind: 'checking' }
+  | { kind: 'latest' }
+  | { kind: 'error'; error: string };
 
-export const UpdatesSection = ({ settings: s }: { settings: Seorap.Settings }) => {
+export const UpdatesSection = ({
+  settings: s,
+}: {
+  settings: Seorap.Settings;
+}) => {
   const t = useT();
   const lang = useLang();
   const update = useUiStore((u) => u.update);
@@ -23,7 +31,9 @@ export const UpdatesSection = ({ settings: s }: { settings: Seorap.Settings }) =
         : check.kind === 'error'
           ? t('settings.update_failed', { e: check.error })
           : s.updates.lastCheckedAt
-            ? t('settings.update_last', { t: fmtTime(s.updates.lastCheckedAt, lang) })
+            ? t('settings.update_last', {
+                t: fmtTime(s.updates.lastCheckedAt, lang),
+              })
             : '';
 
   const run = async (): Promise<void> => {
@@ -36,12 +46,30 @@ export const UpdatesSection = ({ settings: s }: { settings: Seorap.Settings }) =
 
   return (
     <Section title={t('settings.updates')}>
-      <CheckRow id="optUpdateCheck" checked={s.updates.check} onChange={(c) => void saveSettings({ updates: { check: c } })} label={t('settings.update_check')} hint={t('settings.update_check_hint')} />
+      <CheckRow
+        id="optUpdateCheck"
+        checked={s.updates.check}
+        onChange={(c) => void saveSettings({ updates: { check: c } })}
+        label={t('settings.update_check')}
+        hint={t('settings.update_check_hint')}
+      />
       <ButtonRow>
-        <button type="button" className="btn ghost small" id="btnCheckUpdate" disabled={check.kind === 'checking'} onClick={() => void run()}>
+        <button
+          type="button"
+          className="btn ghost small"
+          id="btnCheckUpdate"
+          disabled={check.kind === 'checking'}
+          onClick={() => void run()}
+        >
           {t('settings.update_now')}
         </button>
-        <button type="button" className="btn primary small" id="btnGetUpdate" hidden={!update} onClick={openUpdate}>
+        <button
+          type="button"
+          className="btn primary small"
+          id="btnGetUpdate"
+          hidden={!update}
+          onClick={openUpdate}
+        >
           {update ? t('settings.update_get_v', { v: update.version }) : ''}
         </button>
         <span className="muted" id="updateStatus">

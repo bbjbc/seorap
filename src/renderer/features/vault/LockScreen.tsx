@@ -41,7 +41,7 @@ export const LockScreen = ({ visible, active }: Props) => {
     if (!visible || !active || !pwEl) return;
     const id = window.setTimeout(() => pwEl.focus(), FOCUS_DELAY_MS);
     return () => clearTimeout(id);
-  }, [visible, active, pwEl, status]);
+  }, [visible, active, pwEl]);
 
   const onPwChange = (v: string): void => {
     setPw(v);
@@ -50,7 +50,9 @@ export const LockScreen = ({ visible, active }: Props) => {
       setScore(0);
       return;
     }
-    void passwordStrength(v).then((s) => setScore(s.ok ? s.score : Math.max(1, s.score)));
+    void passwordStrength(v).then((s) =>
+      setScore(s.ok ? s.score : Math.max(1, s.score)),
+    );
   };
 
   const onSubmit = async (): Promise<void> => {
@@ -71,7 +73,9 @@ export const LockScreen = ({ visible, active }: Props) => {
         <div className="lock-icon">
           <IconVault />
         </div>
-        <h2 id="lockTitle">{setup ? t('vault.setup_title') : t('vault.locked_title')}</h2>
+        <h2 id="lockTitle">
+          {setup ? t('vault.setup_title') : t('vault.locked_title')}
+        </h2>
         <p className="muted" id="lockDesc">
           {setup ? t('vault.setup_desc') : t('vault.locked_desc')}
         </p>
@@ -83,21 +87,52 @@ export const LockScreen = ({ visible, active }: Props) => {
             void onSubmit();
           }}
         >
-          <input type="password" id="lockPw" ref={setPwEl} value={pw} placeholder={t('vault.master_ph')} autoComplete="new-password" onChange={(e) => onPwChange(e.target.value)} />
-          <input type="password" id="lockPw2" value={pw2} placeholder={t('vault.master_again_ph')} autoComplete="new-password" hidden={!setup} onChange={(e) => setPw2(e.target.value)} />
-          <div className="strength" id="strength" hidden={!setup} data-score={String(score)}>
+          <input
+            type="password"
+            id="lockPw"
+            ref={setPwEl}
+            value={pw}
+            placeholder={t('vault.master_ph')}
+            autoComplete="new-password"
+            onChange={(e) => onPwChange(e.target.value)}
+          />
+          <input
+            type="password"
+            id="lockPw2"
+            value={pw2}
+            placeholder={t('vault.master_again_ph')}
+            autoComplete="new-password"
+            hidden={!setup}
+            onChange={(e) => setPw2(e.target.value)}
+          />
+          <div
+            className="strength"
+            id="strength"
+            hidden={!setup}
+            data-score={String(score)}
+          >
             <i />
             <i />
             <i />
             <i />
           </div>
           <label className="mini-check warn" id="lockAck" hidden={!setup}>
-            <input type="checkbox" id="lockAckBox" checked={ack} onChange={(e) => setAck(e.target.checked)} />
+            <input
+              type="checkbox"
+              id="lockAckBox"
+              checked={ack}
+              onChange={(e) => setAck(e.target.checked)}
+            />
             <span>
               <RichText text={t('vault.ack')} />
             </span>
           </label>
-          <button className="btn primary wide" id="lockBtn" type="submit" disabled={busy}>
+          <button
+            className="btn primary wide"
+            id="lockBtn"
+            type="submit"
+            disabled={busy}
+          >
             {setup ? t('vault.setup_title') : t('vault.unlock')}
           </button>
         </form>

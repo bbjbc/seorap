@@ -24,7 +24,12 @@ interface NotesState {
   setFind: (patch: Partial<FindState>) => void;
 }
 
-const FIND_CLOSED: FindState = { open: false, query: '', matches: [], index: -1 };
+const FIND_CLOSED: FindState = {
+  open: false,
+  query: '',
+  matches: [],
+  index: -1,
+};
 
 export const useNotesStore = create<NotesState>()((set) => ({
   query: '',

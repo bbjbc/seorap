@@ -17,11 +17,18 @@ export const RichText = ({ text }: Props) => {
   for (const part of text.split(TOKEN_RE)) {
     if (!part) continue;
     if (/^<br\s*\/?>$/.test(part)) push(<br key={key++} />);
-    else if (part === '<b>' || part === '<kbd>') stack.push({ tag: part === '<b>' ? 'b' : 'kbd', children: [] });
+    else if (part === '<b>' || part === '<kbd>')
+      stack.push({ tag: part === '<b>' ? 'b' : 'kbd', children: [] });
     else if (part === '</b>' || part === '</kbd>') {
       const top = stack.pop();
       if (!top) continue;
-      push(top.tag === 'b' ? <b key={key++}>{top.children}</b> : <kbd key={key++}>{top.children}</kbd>);
+      push(
+        top.tag === 'b' ? (
+          <b key={key++}>{top.children}</b>
+        ) : (
+          <kbd key={key++}>{top.children}</kbd>
+        ),
+      );
     } else push(part);
   }
   // 닫히지 않은 태그가 있으면 내용만 살린다.

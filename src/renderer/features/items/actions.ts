@@ -1,12 +1,12 @@
 // 항목 하나에 대한 공통 동작: 고정, 태그, 복사, 삭제(실행 취소 포함), 열기. 보드·메모·상세 모달이 함께 쓴다.
 import { api } from '../../lib/api';
 import { t } from '../../lib/i18n';
-import { findItem, useItemsStore, type Item } from '../../stores/items';
 import { useBoardStore } from '../../stores/board';
+import { findItem, type Item, useItemsStore } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
 import { useUiStore } from '../../stores/ui';
-import { flash } from '../overlays/actions';
 import { openNote } from '../notes/actions';
+import { flash } from '../overlays/actions';
 import { setMode } from '../shell/actions';
 
 export async function togglePin(ids: readonly string[]): Promise<void> {

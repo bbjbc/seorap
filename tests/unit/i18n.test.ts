@@ -1,6 +1,6 @@
 // 언어 해석과 문자열 조회. 사전은 src/shared/locales.ts 를 그대로 쓴다.
-import { describe, it, expect, beforeEach } from 'vitest';
-import { setLanguage, currentLanguage, t } from '../../src/main/i18n';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { currentLanguage, setLanguage, t } from '../../src/main/i18n';
 import { LOCALES, type LocaleKey } from '../../src/shared/locales';
 
 beforeEach(() => {

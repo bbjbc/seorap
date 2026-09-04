@@ -26,14 +26,31 @@ export const VaultOpen = ({ visible, active }: Props) => {
     <div className="vault-open split" id="vaultOpen" hidden={!visible}>
       <aside className="side">
         <div className="side-head">
-          <SearchBox id="vaultSearch" value={query} placeholder={t('vault.search_ph')} onChange={setQuery} inputRef={vaultSearchHandle.attach} />
-          <button type="button" className="icon-btn" id="btnNewSecret" title={t('vault.new_title')} onClick={() => void newEntry()}>
+          <SearchBox
+            id="vaultSearch"
+            value={query}
+            placeholder={t('vault.search_ph')}
+            onChange={setQuery}
+            inputRef={vaultSearchHandle.attach}
+          />
+          <button
+            type="button"
+            className="icon-btn"
+            id="btnNewSecret"
+            title={t('vault.new_title')}
+            onClick={() => void newEntry()}
+          >
             <IconPlus />
           </button>
         </div>
         <VaultList query={query} />
         <footer className="side-foot">
-          <button type="button" className="btn ghost small" id="btnLock" onClick={lockNow}>
+          <button
+            type="button"
+            className="btn ghost small"
+            id="btnLock"
+            onClick={lockNow}
+          >
             {t('vault.lock_now')}
           </button>
           <span className="muted" id="lockCountdown">

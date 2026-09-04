@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const DEFAULTS: Seorap.Settings = {
   language: 'system',
@@ -56,7 +56,10 @@ function mergeInto(target: Plain, src: Plain): void {
   }
 }
 
-export function deepMerge<T extends object>(target: T, src: Seorap.DeepPartial<T>): T {
+export function deepMerge<T extends object>(
+  target: T,
+  src: Seorap.DeepPartial<T>,
+): T {
   // 구조적으로 안전한 복제 후 병합. T 의 형태는 DEFAULTS 가 보증한다.
   const out = structuredClone(target) as unknown as Plain;
   mergeInto(out, src);
@@ -82,7 +85,7 @@ export class Settings {
 
   save(): void {
     fs.mkdirSync(path.dirname(this.file), { recursive: true });
-    const tmp = this.file + '.tmp';
+    const tmp = `${this.file}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(this.data, null, 2));
     fs.renameSync(tmp, this.file);
   }

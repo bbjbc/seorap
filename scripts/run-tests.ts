@@ -1,15 +1,16 @@
 // `npm test`: 격리된 임시 폴더에서 Electron 을 띄워 dev-functional 을 실행한다.
-import { spawnSync } from 'child_process';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const root = path.join(__dirname, '..', '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'seorap-test-'));
 // electron 패키지의 기본 export 는 실행 파일 경로 문자열이다.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const electronPath: unknown = require('electron');
-if (typeof electronPath !== 'string') throw new Error('electron binary path not found');
+if (typeof electronPath !== 'string')
+  throw new Error('electron binary path not found');
 
 const result = spawnSync(electronPath, ['.'], {
   cwd: root,

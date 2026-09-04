@@ -23,7 +23,12 @@ export const AboutSection = () => {
         >
           {t('settings.star')}
         </button>
-        <button type="button" className="btn ghost small" id="btnIssue" onClick={openIssues}>
+        <button
+          type="button"
+          className="btn ghost small"
+          id="btnIssue"
+          onClick={openIssues}
+        >
           {t('settings.issue')}
         </button>
       </section>

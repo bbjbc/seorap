@@ -1,13 +1,24 @@
 // 새 버전 확인: 버전 비교·릴리스 파싱은 순수 함수, 네트워크는 electron.net 만 흉내 낸다.
-import { describe, it, expect, vi } from 'vitest';
+
 import { net } from 'electron';
-import { parseVersion, isNewer, parseRelease, fetchLatest, checkForUpdate, RELEASES_URL } from '../../src/main/update';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  checkForUpdate,
+  fetchLatest,
+  isNewer,
+  parseRelease,
+  parseVersion,
+  RELEASES_URL,
+} from '../../src/main/update';
 
 vi.mock('electron', () => ({ net: { fetch: vi.fn() } }));
 
 const fetchMock = vi.mocked(net.fetch);
 const jsonResponse = (body: unknown, status = 200): Response =>
-  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
 
 describe('parseVersion', () => {
   it('reads major.minor.patch with an optional v prefix', () => {
@@ -45,11 +56,23 @@ describe('isNewer', () => {
 
 describe('parseRelease', () => {
   it('extracts version, url and publish time', () => {
-    const r = parseRelease({ tag_name: 'v0.2.0', html_url: 'https://x/releases/tag/v0.2.0', published_at: '2026-09-04T00:00:00Z' });
-    expect(r).toEqual({ version: '0.2.0', url: 'https://x/releases/tag/v0.2.0', publishedAt: Date.parse('2026-09-04T00:00:00Z') });
+    const r = parseRelease({
+      tag_name: 'v0.2.0',
+      html_url: 'https://x/releases/tag/v0.2.0',
+      published_at: '2026-09-04T00:00:00Z',
+    });
+    expect(r).toEqual({
+      version: '0.2.0',
+      url: 'https://x/releases/tag/v0.2.0',
+      publishedAt: Date.parse('2026-09-04T00:00:00Z'),
+    });
   });
   it('falls back to the releases page and 0 when fields are missing', () => {
-    expect(parseRelease({ tag_name: '1.0.0' })).toEqual({ version: '1.0.0', url: RELEASES_URL, publishedAt: 0 });
+    expect(parseRelease({ tag_name: '1.0.0' })).toEqual({
+      version: '1.0.0',
+      url: RELEASES_URL,
+      publishedAt: 0,
+    });
   });
   it('returns null for non-version tags and non-objects', () => {
     expect(parseRelease({ tag_name: 'nightly' })).toBeNull();
@@ -64,11 +87,17 @@ describe('fetchLatest / checkForUpdate', () => {
     const r = await fetchLatest();
     expect(r?.version).toBe('9.9.9');
     const [url, init] = fetchMock.mock.calls[0] ?? [];
-    expect(url).toBe('https://api.github.com/repos/bbjbc/seorap/releases/latest');
-    expect((init?.headers as Record<string, string>)['accept']).toBe('application/vnd.github+json');
+    expect(url).toBe(
+      'https://api.github.com/repos/bbjbc/seorap/releases/latest',
+    );
+    expect(
+      (init?.headers as Record<string, string> | undefined)?.['accept'],
+    ).toBe('application/vnd.github+json');
   });
   it('throws on a non-2xx response instead of pretending there is no update', async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'rate limited' }, 403));
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ message: 'rate limited' }, 403),
+    );
     await expect(fetchLatest()).rejects.toThrow('HTTP 403');
   });
   it('reports the release only when it is newer than the running version', async () => {

@@ -1,11 +1,25 @@
-import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron';
+import {
+  contextBridge,
+  type IpcRendererEvent,
+  ipcRenderer,
+  webUtils,
+} from 'electron';
 
-function invoke<C extends Seorap.IpcChannel>(channel: C, ...args: Seorap.Ipc[C]['args']): Promise<Seorap.Ipc[C]['result']> {
-  return ipcRenderer.invoke(channel, ...args) as Promise<Seorap.Ipc[C]['result']>;
+function invoke<C extends Seorap.IpcChannel>(
+  channel: C,
+  ...args: Seorap.Ipc[C]['args']
+): Promise<Seorap.Ipc[C]['result']> {
+  return ipcRenderer.invoke(channel, ...args) as Promise<
+    Seorap.Ipc[C]['result']
+  >;
 }
 
-function on<E extends keyof Seorap.Events>(channel: E, cb: (payload: Seorap.Events[E]) => void): Seorap.Unsubscribe {
-  const handler = (_e: IpcRendererEvent, payload: unknown): void => cb(payload as Seorap.Events[E]);
+function on<E extends keyof Seorap.Events>(
+  channel: E,
+  cb: (payload: Seorap.Events[E]) => void,
+): Seorap.Unsubscribe {
+  const handler = (_e: IpcRendererEvent, payload: unknown): void =>
+    cb(payload as Seorap.Events[E]);
   ipcRenderer.on(channel, handler);
   return () => ipcRenderer.removeListener(channel, handler);
 }
@@ -47,7 +61,8 @@ const api: Seorap.Api = {
     update: (id, patch) => invoke('vault:update', id, patch),
     remove: (id) => invoke('vault:remove', id),
     copy: (id, field) => invoke('vault:copy', id, field),
-    changePassword: (oldPw, newPw) => invoke('vault:changePassword', oldPw, newPw),
+    changePassword: (oldPw, newPw) =>
+      invoke('vault:changePassword', oldPw, newPw),
     generate: (len, symbols) => invoke('vault:generate', len, symbols),
     strength: (pw) => invoke('vault:strength', pw),
     export: (pw) => invoke('vault:export', pw),

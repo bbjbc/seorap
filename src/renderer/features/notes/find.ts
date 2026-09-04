@@ -17,7 +17,8 @@ export function computeMatches(text: string, query: string): number[] {
   const out: number[] = [];
   if (!q) return out;
   const hay = text.toLowerCase();
-  for (let i = hay.indexOf(q); i !== -1; i = hay.indexOf(q, i + q.length)) out.push(i);
+  for (let i = hay.indexOf(q); i !== -1; i = hay.indexOf(q, i + q.length))
+    out.push(i);
   return out;
 }
 
@@ -29,7 +30,14 @@ export function openFind(): void {
   const sel = ta ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : '';
   if (sel && !sel.includes('\n') && sel.length <= 100) query = sel;
   // 찾기 막대가 그려진 다음에 포커스를 줘야 하므로 동기로 반영한다.
-  flushSync(() => notes.setFind({ open: true, query, index: -1, matches: computeMatches(editorText(), query) }));
+  flushSync(() =>
+    notes.setFind({
+      open: true,
+      query,
+      index: -1,
+      matches: computeMatches(editorText(), query),
+    }),
+  );
   const input = findInputHandle.get();
   input?.focus();
   input?.select();
@@ -61,7 +69,14 @@ export function findStep(dir: 1 | -1): void {
   if (index < 0 || index >= matches.length) {
     const from = editorHandle.get()?.selectionStart ?? 0;
     const first = matches.findIndex((m) => m >= from);
-    next = dir === 1 ? (first === -1 ? 0 : first) : first <= 0 ? matches.length - 1 : first - 1;
+    next =
+      dir === 1
+        ? first === -1
+          ? 0
+          : first
+        : first <= 0
+          ? matches.length - 1
+          : first - 1;
   } else next = (index + dir + matches.length) % matches.length;
   revealMatch(matches, next, query.length);
 }
@@ -85,14 +100,18 @@ function scrollEditorToSelection(ta: HTMLTextAreaElement, pos: number): void {
   const line = ta.value.slice(0, pos).split('\n').length - 1;
   const y = line * lineHeight;
   const view = ta.clientHeight;
-  if (y < ta.scrollTop + lineHeight || y > ta.scrollTop + view - lineHeight * 2) ta.scrollTop = Math.max(0, y - view / 2);
+  if (y < ta.scrollTop + lineHeight || y > ta.scrollTop + view - lineHeight * 2)
+    ta.scrollTop = Math.max(0, y - view / 2);
 }
 
 /** 편집기 내용이 바뀌면 일치 목록을 다시 세고 현재 위치는 잃는다. */
 export function onEditorTextChanged(): void {
   const notes = useNotesStore.getState();
   if (!notes.find.open) return;
-  notes.setFind({ index: -1, matches: computeMatches(editorText(), notes.find.query) });
+  notes.setFind({
+    index: -1,
+    matches: computeMatches(editorText(), notes.find.query),
+  });
 }
 
 /** 다른 메모로 넘어가면 같은 검색어로 다시 센다. */
@@ -113,5 +132,11 @@ export function findInNote(query: string): FindInNoteResult {
   findStep(1);
   const f = useNotesStore.getState().find;
   const ta = editorHandle.get();
-  return { open: f.open, count: f.matches.length, index: f.index, selStart: ta?.selectionStart ?? 0, selEnd: ta?.selectionEnd ?? 0 };
+  return {
+    open: f.open,
+    count: f.matches.length,
+    index: f.index,
+    selStart: ta?.selectionStart ?? 0,
+    selEnd: ta?.selectionEnd ?? 0,
+  };
 }

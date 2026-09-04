@@ -54,7 +54,8 @@ const SEORAP_KO = {
   'board.search_ph': '검색 (Ctrl+F)',
   'board.pinned_only': '고정한 항목만',
   'board.empty_title': '아직 아무것도 없어요',
-  'board.empty_desc': '이미지·파일·글을 이 창으로 끌어다 놓거나, <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙이세요.<br>다른 앱에서 작업 중일 때는 {how} 바로 저장할 수 있어요.',
+  'board.empty_desc':
+    '이미지·파일·글을 이 창으로 끌어다 놓거나, <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙이세요.<br>다른 앱에서 작업 중일 때는 {how} 바로 저장할 수 있어요.',
   'board.empty_how_key': '<kbd>{key}</kbd>로',
   'board.empty_how_tray': '트레이 메뉴에서',
   'board.no_match_title': '조건에 맞는 항목이 없어요',
@@ -108,7 +109,8 @@ const SEORAP_KO = {
   'notes.copy_all': '전체 복사',
   'notes.editor_ph': '여기에 적으면 자동으로 저장돼요',
   'notes.empty_title': '메모장처럼, 저장 버튼 없이',
-  'notes.empty_desc': '왼쪽에서 메모를 고르거나 <kbd>Ctrl</kbd>+<kbd>N</kbd>으로 새 메모를 시작하세요.<br><kbd>Ctrl</kbd>+<kbd>K</kbd>로 어떤 메모든 바로 찾아 열 수 있어요.',
+  'notes.empty_desc':
+    '왼쪽에서 메모를 고르거나 <kbd>Ctrl</kbd>+<kbd>N</kbd>으로 새 메모를 시작하세요.<br><kbd>Ctrl</kbd>+<kbd>K</kbd>로 어떤 메모든 바로 찾아 열 수 있어요.',
   'notes.tag_ph': '+ 태그',
   'notes.saved_at': '저장됨 · {t}',
   'notes.saving': '저장 중…',
@@ -140,19 +142,24 @@ const SEORAP_KO = {
   'vault.locked_title': '금고가 잠겨 있어요',
   'vault.setup_title': '금고 만들기',
   'vault.locked_desc': '마스터 비밀번호를 입력하세요.',
-  'vault.setup_desc': '마스터 비밀번호 하나로 모든 항목을 암호화해요. 이 비밀번호는 어디에도 저장되지 않으니 꼭 기억하세요.',
+  'vault.setup_desc':
+    '마스터 비밀번호 하나로 모든 항목을 암호화해요. 이 비밀번호는 어디에도 저장되지 않으니 꼭 기억하세요.',
   'vault.master_ph': '마스터 비밀번호',
   'vault.master_again_ph': '한 번 더 입력',
-  'vault.ack': '마스터 비밀번호를 잊으면 <b>복구할 방법이 없다</b>는 걸 이해했어요.',
+  'vault.ack':
+    '마스터 비밀번호를 잊으면 <b>복구할 방법이 없다</b>는 걸 이해했어요.',
   'vault.unlock': '열기',
   'vault.mismatch': '두 비밀번호가 달라요.',
   'vault.ack_required': '복구 불가 안내를 확인해 주세요.',
   'vault.how_summary': '어떻게 보호되나요?',
-  'vault.how_1': '마스터 비밀번호에서 scrypt로 키를 만들고, 항목마다 AES-256-GCM으로 암호화해요.',
-  'vault.how_2': '비밀번호와 키는 디스크에 저장하지 않아요. 잠기면 메모리에서도 지워져요.',
+  'vault.how_1':
+    '마스터 비밀번호에서 scrypt로 키를 만들고, 항목마다 AES-256-GCM으로 암호화해요.',
+  'vault.how_2':
+    '비밀번호와 키는 디스크에 저장하지 않아요. 잠기면 메모리에서도 지워져요.',
   'vault.how_3': '일정 시간 미사용, 창 숨김, PC 잠금·절전 시 자동으로 잠겨요.',
   'vault.how_4': '복사한 비밀번호는 일정 시간 뒤 클립보드에서 지워져요.',
-  'vault.how_5': '이 PC에 이미 악성코드가 있다면 어떤 앱도 안전하지 않아요. 핵심 계정은 전용 관리자를 함께 쓰세요.',
+  'vault.how_5':
+    '이 PC에 이미 악성코드가 있다면 어떤 앱도 안전하지 않아요. 핵심 계정은 전용 관리자를 함께 쓰세요.',
   'vault.search_ph': '이름, 아이디, 주소 검색',
   'vault.new_title': '새 항목',
   'vault.lock_now': '지금 잠그기',
@@ -171,14 +178,16 @@ const SEORAP_KO = {
   'vault.f_notes_ph': '복구 코드, 보안 질문 답 등',
   'vault.meta': '만든 날 {c} · 수정 {u}',
   'vault.empty_title': '비밀번호, API 키, 인증서 비번',
-  'vault.empty_desc': '왼쪽 <b>+</b> 로 항목을 추가하세요. 내용은 이 PC에서만, 암호화된 채로 보관돼요.',
+  'vault.empty_desc':
+    '왼쪽 <b>+</b> 로 항목을 추가하세요. 내용은 이 PC에서만, 암호화된 채로 보관돼요.',
   'vault.delete_title': "'{name}' 삭제",
   'vault.delete_desc': '금고 항목은 실행 취소가 없어요. 정말 삭제할까요?',
   'vault.autolock_off': '자동 잠금 꺼짐',
   'vault.locks_in': '{t} 후 잠김',
 
   // 스타 배너
-  'nudge.text': '서랍이 쓸 만하다면 GitHub에 스타 하나 부탁해요. 다음에 무엇을 만들지 정하는 데 참고합니다.',
+  'nudge.text':
+    '서랍이 쓸 만하다면 GitHub에 스타 하나 부탁해요. 다음에 무엇을 만들지 정하는 데 참고합니다.',
   'nudge.star': '스타 주기',
   'nudge.later': '다음에',
   'nudge.never': '다시 보지 않기',
@@ -189,7 +198,8 @@ const SEORAP_KO = {
   'settings.language': '언어 / Language',
   'settings.language_system': '시스템 설정 따르기',
   'settings.shortcuts': '단축키',
-  'settings.shortcuts_hint': '다른 앱에서도 동작해요. 칸을 클릭한 뒤 키 조합을 누르세요.',
+  'settings.shortcuts_hint':
+    '다른 앱에서도 동작해요. 칸을 클릭한 뒤 키 조합을 누르세요.',
   'settings.sc_toggle': '창 열기/닫기',
   'settings.sc_quick': '클립보드 바로 저장',
   'settings.sc_note': '새 메모',
@@ -197,7 +207,8 @@ const SEORAP_KO = {
   'settings.sc_record': '키 조합을 누르세요… (Esc 취소)',
   'settings.collect': '수집',
   'settings.auto_collect': '클립보드 자동 수집',
-  'settings.auto_collect_hint': '복사하는 모든 이미지·글을 자동으로 저장해요. 비밀번호처럼 민감한 내용도 함께 저장될 수 있어 기본은 꺼져 있어요.',
+  'settings.auto_collect_hint':
+    '복사하는 모든 이미지·글을 자동으로 저장해요. 비밀번호처럼 민감한 내용도 함께 저장될 수 있어 기본은 꺼져 있어요.',
   'settings.toast': '저장 알림 표시',
   'settings.toast_hint': '화면 우하단에 작은 알림을 띄워요.',
   'settings.autostart': 'Windows 시작 시 자동 실행',
@@ -230,7 +241,8 @@ const SEORAP_KO = {
   'settings.after_2m': '2분 후',
   'settings.lock_on_hide': '창을 숨기면 바로 잠금',
   'settings.content_protection': '금고가 열려 있을 때 화면 캡처 차단',
-  'settings.content_protection_hint': 'Windows 캡처·화면 공유에서 이 창이 검게 보여요.',
+  'settings.content_protection_hint':
+    'Windows 캡처·화면 공유에서 이 창이 검게 보여요.',
   'settings.change_master': '마스터 비밀번호 변경…',
   'settings.export_vault': '평문으로 내보내기…',
   'settings.storage': '저장 공간',
@@ -240,17 +252,20 @@ const SEORAP_KO = {
   'settings.stat_types': '이미지 · 글 {t} · 링크 {l} · 파일 {f}',
   'settings.cleanup': '오래된 항목 자동 정리',
   'settings.cleanup_hint_a': '고정하지 않은 항목이',
-  'settings.cleanup_hint_b': '일 지나면 자동으로 지워요. 고정한 항목과 금고는 건드리지 않아요.',
+  'settings.cleanup_hint_b':
+    '일 지나면 자동으로 지워요. 고정한 항목과 금고는 건드리지 않아요.',
   'settings.cleanup_now': '{days}일 지난 항목 지금 정리',
   'settings.cleanup_preview': '지금 실행하면 {n}개가 지워져요',
   'settings.cleanup_confirm_title': '{n}개 항목 삭제',
-  'settings.cleanup_confirm_desc': '{days}일보다 오래된, 고정하지 않은 항목 {n}개를 지워요. 이 작업은 되돌릴 수 없어요.',
+  'settings.cleanup_confirm_desc':
+    '{days}일보다 오래된, 고정하지 않은 항목 {n}개를 지워요. 이 작업은 되돌릴 수 없어요.',
   'settings.data_dir': '저장 폴더',
   'settings.open_dir': '폴더 열기',
   'settings.move_dir': '폴더 옮기기…',
   'settings.updates': '업데이트',
   'settings.update_check': '새 버전 자동 확인',
-  'settings.update_check_hint': '6시간마다 GitHub Releases 에서 최신 버전 번호만 조회해요. 내려받기와 설치는 직접 하세요.',
+  'settings.update_check_hint':
+    '6시간마다 GitHub Releases 에서 최신 버전 번호만 조회해요. 내려받기와 설치는 직접 하세요.',
   'settings.update_now': '지금 확인',
   'settings.update_get': '새 버전 받기',
   'settings.update_get_v': 'v{v} 받기',
@@ -259,7 +274,8 @@ const SEORAP_KO = {
   'settings.update_latest': '최신 버전이에요',
   'settings.update_failed': '확인하지 못했어요 ({e})',
   'settings.update_last': '마지막 확인 {t}',
-  'settings.about_keys': 'Ctrl+1/2/3 모드 전환 · Ctrl+K 빠른 찾기 · Esc 창 숨기기',
+  'settings.about_keys':
+    'Ctrl+1/2/3 모드 전환 · Ctrl+K 빠른 찾기 · Esc 창 숨기기',
   'settings.star': '⭐ GitHub에서 스타 주기',
   'settings.issue': '버그 신고 · 제안',
   'settings.master_title': '마스터 비밀번호 변경',
@@ -272,7 +288,8 @@ const SEORAP_KO = {
   'settings.master_mismatch': '새 비밀번호가 서로 달라요.',
   'settings.weak_password': '비밀번호가 약해요.',
   'settings.export_title': '평문으로 내보내기',
-  'settings.export_desc': '암호화되지 않은 JSON 파일이 만들어져요. 백업 후에는 안전한 곳에 두거나 바로 지우세요.',
+  'settings.export_desc':
+    '암호화되지 않은 JSON 파일이 만들어져요. 백업 후에는 안전한 곳에 두거나 바로 지우세요.',
   'settings.export_confirm_ph': '마스터 비밀번호 확인',
   'settings.export_ok': '내보내기',
 
@@ -287,7 +304,8 @@ const SEORAP_KO = {
   'tray.settings': '설정…',
   'tray.open_dir': '저장 폴더 열기',
   'tray.quit': '종료',
-  'main.shortcut_failed': "'{acc}' 단축키를 등록할 수 없어요. 다른 프로그램이 사용 중일 수 있어요.",
+  'main.shortcut_failed':
+    "'{acc}' 단축키를 등록할 수 없어요. 다른 프로그램이 사용 중일 수 있어요.",
   'toast.saved': '저장됨 · {what}',
   'toast.save_failed': '저장 실패: {e}',
   'toast.image_wh': '이미지 {w}×{h}',
@@ -315,7 +333,8 @@ const SEORAP_KO = {
   'store.not_empty': '비어 있는 폴더를 선택해 주세요.',
   'vault.err_corrupt': '항목 형식이 손상됐어요.',
   'vault.err_enter_pw': '비밀번호를 입력하세요.',
-  'vault.err_weak_rule': '마스터 비밀번호는 16자 이상, 또는 대문자·소문자·숫자·기호 중 3종류 이상을 섞어 10자 이상이어야 해요.',
+  'vault.err_weak_rule':
+    '마스터 비밀번호는 16자 이상, 또는 대문자·소문자·숫자·기호 중 3종류 이상을 섞어 10자 이상이어야 해요.',
   'vault.err_locked': '금고가 잠겨 있어요.',
   'vault.err_missing': '금고가 아직 없어요.',
   'vault.err_exists': '금고가 이미 있어요.',
@@ -375,7 +394,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'board.search_ph': 'Search (Ctrl+F)',
   'board.pinned_only': 'Pinned only',
   'board.empty_title': 'Nothing here yet',
-  'board.empty_desc': 'Drop images, files or text onto this window, or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>.<br>While working in another app, save {how}.',
+  'board.empty_desc':
+    'Drop images, files or text onto this window, or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>.<br>While working in another app, save {how}.',
   'board.empty_how_key': 'with <kbd>{key}</kbd>',
   'board.empty_how_tray': 'from the tray menu',
   'board.no_match_title': 'No items match',
@@ -427,7 +447,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'notes.copy_all': 'Copy all',
   'notes.editor_ph': 'Type here. It saves itself.',
   'notes.empty_title': 'A notepad with no save button',
-  'notes.empty_desc': 'Pick a note on the left or press <kbd>Ctrl</kbd>+<kbd>N</kbd> for a new one.<br><kbd>Ctrl</kbd>+<kbd>K</kbd> finds and opens any note.',
+  'notes.empty_desc':
+    'Pick a note on the left or press <kbd>Ctrl</kbd>+<kbd>N</kbd> for a new one.<br><kbd>Ctrl</kbd>+<kbd>K</kbd> finds and opens any note.',
   'notes.tag_ph': '+ tag',
   'notes.saved_at': 'Saved · {t}',
   'notes.saving': 'Saving…',
@@ -455,19 +476,26 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'vault.locked_title': 'The vault is locked',
   'vault.setup_title': 'Create a vault',
   'vault.locked_desc': 'Enter your master password.',
-  'vault.setup_desc': 'One master password encrypts everything. It is never stored anywhere, so remember it.',
+  'vault.setup_desc':
+    'One master password encrypts everything. It is never stored anywhere, so remember it.',
   'vault.master_ph': 'Master password',
   'vault.master_again_ph': 'Type it again',
-  'vault.ack': 'I understand that a forgotten master password <b>cannot be recovered</b>.',
+  'vault.ack':
+    'I understand that a forgotten master password <b>cannot be recovered</b>.',
   'vault.unlock': 'Unlock',
   'vault.mismatch': 'The passwords do not match.',
   'vault.ack_required': 'Please confirm the recovery notice.',
   'vault.how_summary': 'How is it protected?',
-  'vault.how_1': 'A key is derived from the master password with scrypt; each entry is encrypted with AES-256-GCM.',
-  'vault.how_2': 'Neither the password nor the key is written to disk. Locking wipes them from memory.',
-  'vault.how_3': 'It locks automatically after inactivity, when the window hides, and on PC lock or sleep.',
-  'vault.how_4': 'Copied passwords are cleared from the clipboard after a short while.',
-  'vault.how_5': 'If this PC is already compromised, no app is safe. Keep critical accounts in a dedicated password manager too.',
+  'vault.how_1':
+    'A key is derived from the master password with scrypt; each entry is encrypted with AES-256-GCM.',
+  'vault.how_2':
+    'Neither the password nor the key is written to disk. Locking wipes them from memory.',
+  'vault.how_3':
+    'It locks automatically after inactivity, when the window hides, and on PC lock or sleep.',
+  'vault.how_4':
+    'Copied passwords are cleared from the clipboard after a short while.',
+  'vault.how_5':
+    'If this PC is already compromised, no app is safe. Keep critical accounts in a dedicated password manager too.',
   'vault.search_ph': 'Search name, username, URL',
   'vault.new_title': 'New entry',
   'vault.lock_now': 'Lock now',
@@ -486,13 +514,15 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'vault.f_notes_ph': 'Recovery codes, security answers…',
   'vault.meta': 'Created {c} · edited {u}',
   'vault.empty_title': 'Passwords, API keys, certificate passphrases',
-  'vault.empty_desc': 'Add an entry with <b>+</b> on the left. Everything stays on this PC, encrypted.',
+  'vault.empty_desc':
+    'Add an entry with <b>+</b> on the left. Everything stays on this PC, encrypted.',
   'vault.delete_title': "Delete '{name}'",
   'vault.delete_desc': 'Vault entries cannot be undone. Delete it?',
   'vault.autolock_off': 'Auto-lock off',
   'vault.locks_in': 'Locks in {t}',
 
-  'nudge.text': 'If Seorap earns its place, a GitHub star helps decide what gets built next.',
+  'nudge.text':
+    'If Seorap earns its place, a GitHub star helps decide what gets built next.',
   'nudge.star': 'Star it',
   'nudge.later': 'Later',
   'nudge.never': "Don't show again",
@@ -502,7 +532,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'settings.language': 'Language / 언어',
   'settings.language_system': 'Follow system',
   'settings.shortcuts': 'Shortcuts',
-  'settings.shortcuts_hint': 'They work from any app. Click a field, then press the key combination.',
+  'settings.shortcuts_hint':
+    'They work from any app. Click a field, then press the key combination.',
   'settings.sc_toggle': 'Show / hide window',
   'settings.sc_quick': 'Save clipboard',
   'settings.sc_note': 'New note',
@@ -510,7 +541,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'settings.sc_record': 'Press a key combination… (Esc to cancel)',
   'settings.collect': 'Capture',
   'settings.auto_collect': 'Collect the clipboard automatically',
-  'settings.auto_collect_hint': 'Saves every image and text you copy. Sensitive things like passwords get saved too, so this is off by default.',
+  'settings.auto_collect_hint':
+    'Saves every image and text you copy. Sensitive things like passwords get saved too, so this is off by default.',
   'settings.toast': 'Show a toast when saving',
   'settings.toast_hint': 'A small notification in the bottom-right corner.',
   'settings.autostart': 'Start with Windows',
@@ -543,7 +575,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'settings.after_2m': 'after 2 min',
   'settings.lock_on_hide': 'Lock when the window hides',
   'settings.content_protection': 'Block screen capture while the vault is open',
-  'settings.content_protection_hint': 'The window shows up black in Windows capture and screen sharing.',
+  'settings.content_protection_hint':
+    'The window shows up black in Windows capture and screen sharing.',
   'settings.change_master': 'Change master password…',
   'settings.export_vault': 'Export as plain text…',
   'settings.storage': 'Storage',
@@ -553,17 +586,20 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'settings.stat_types': 'images · {t} text · {l} links · {f} files',
   'settings.cleanup': 'Clean up old items automatically',
   'settings.cleanup_hint_a': 'Unpinned items older than',
-  'settings.cleanup_hint_b': 'days are removed. Pinned items and the vault are never touched.',
+  'settings.cleanup_hint_b':
+    'days are removed. Pinned items and the vault are never touched.',
   'settings.cleanup_now': 'Remove items older than {days} days now',
   'settings.cleanup_preview': '{n} items would be removed now',
   'settings.cleanup_confirm_title': 'Delete {n} items',
-  'settings.cleanup_confirm_desc': 'Removes {n} unpinned items older than {days} days. This cannot be undone.',
+  'settings.cleanup_confirm_desc':
+    'Removes {n} unpinned items older than {days} days. This cannot be undone.',
   'settings.data_dir': 'Data folder',
   'settings.open_dir': 'Open folder',
   'settings.move_dir': 'Move folder…',
   'settings.updates': 'Updates',
   'settings.update_check': 'Check for new versions automatically',
-  'settings.update_check_hint': 'Every 6 hours it asks GitHub Releases for the latest version number only. Downloading and installing is up to you.',
+  'settings.update_check_hint':
+    'Every 6 hours it asks GitHub Releases for the latest version number only. Downloading and installing is up to you.',
   'settings.update_now': 'Check now',
   'settings.update_get': 'Get the new version',
   'settings.update_get_v': 'Get v{v}',
@@ -572,7 +608,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'settings.update_latest': 'You are up to date',
   'settings.update_failed': 'Could not check ({e})',
   'settings.update_last': 'Last checked {t}',
-  'settings.about_keys': 'Ctrl+1/2/3 switch mode · Ctrl+K quick find · Esc hide window',
+  'settings.about_keys':
+    'Ctrl+1/2/3 switch mode · Ctrl+K quick find · Esc hide window',
   'settings.star': '⭐ Star on GitHub',
   'settings.issue': 'Report a bug · Suggest',
   'settings.master_title': 'Change master password',
@@ -585,7 +622,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'settings.master_mismatch': 'The new passwords do not match.',
   'settings.weak_password': 'The password is too weak.',
   'settings.export_title': 'Export as plain text',
-  'settings.export_desc': 'Creates an unencrypted JSON file. Keep it somewhere safe or delete it right after backing up.',
+  'settings.export_desc':
+    'Creates an unencrypted JSON file. Keep it somewhere safe or delete it right after backing up.',
   'settings.export_confirm_ph': 'Confirm master password',
   'settings.export_ok': 'Export',
 
@@ -599,7 +637,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'tray.settings': 'Settings…',
   'tray.open_dir': 'Open data folder',
   'tray.quit': 'Quit',
-  'main.shortcut_failed': "Could not register the shortcut '{acc}'. Another program may be using it.",
+  'main.shortcut_failed':
+    "Could not register the shortcut '{acc}'. Another program may be using it.",
   'toast.saved': 'Saved · {what}',
   'toast.save_failed': 'Save failed: {e}',
   'toast.image_wh': 'image {w}×{h}',
@@ -607,7 +646,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'toast.link': 'link',
   'toast.file': 'file',
   'toast.text': 'text {t}',
-  'toast.password_copied': 'Password copied · cleared from the clipboard in {sec} s',
+  'toast.password_copied':
+    'Password copied · cleared from the clipboard in {sec} s',
   'menu.copy': 'Copy',
   'menu.open_in_notes': 'Open in notes',
   'menu.send_to_notes': 'Send to notes',
@@ -627,7 +667,8 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'store.not_empty': 'Please choose an empty folder.',
   'vault.err_corrupt': 'The entry format is corrupted.',
   'vault.err_enter_pw': 'Enter a password.',
-  'vault.err_weak_rule': 'The master password needs 16+ characters, or 10+ mixing at least 3 of: uppercase, lowercase, digits, symbols.',
+  'vault.err_weak_rule':
+    'The master password needs 16+ characters, or 10+ mixing at least 3 of: uppercase, lowercase, digits, symbols.',
   'vault.err_locked': 'The vault is locked.',
   'vault.err_missing': 'There is no vault yet.',
   'vault.err_exists': 'A vault already exists.',
@@ -637,21 +678,36 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'vault.err_wrong_current': 'The current master password is wrong.',
 };
 
-export const LOCALES: Record<Lang, Record<LocaleKey, string>> = { ko: SEORAP_KO, en: SEORAP_EN };
+export const LOCALES: Record<Lang, Record<LocaleKey, string>> = {
+  ko: SEORAP_KO,
+  en: SEORAP_EN,
+};
 
 /** 'system' 은 OS 언어를 따른다. 한국어가 아니면 영어. */
-export function resolveLang(setting: string | undefined, systemLocale: string): Lang {
+export function resolveLang(
+  setting: string | undefined,
+  systemLocale: string,
+): Lang {
   if (setting === 'ko' || setting === 'en') return setting;
   return systemLocale.toLowerCase().startsWith('ko') ? 'ko' : 'en';
 }
 
 /** {name} 자리표시자를 채운다. 없는 키는 키 이름을 그대로 보여 줘서 눈에 띄게 한다. */
-export function format(template: string, vars?: Record<string, string | number>): string {
+export function format(
+  template: string,
+  vars?: Record<string, string | number>,
+): string {
   if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (m: string, k: string) => (k in vars ? String(vars[k]) : m));
+  return template.replace(/\{(\w+)\}/g, (m: string, k: string) =>
+    k in vars ? String(vars[k]) : m,
+  );
 }
 
 /** 사전에서 문자열을 꺼낸다. 없는 키는 한국어 → 키 이름 순으로 대체한다. */
-export function lookup(lang: Lang, key: LocaleKey, vars?: Record<string, string | number>): string {
+export function lookup(
+  lang: Lang,
+  key: LocaleKey,
+  vars?: Record<string, string | number>,
+): string {
   return format(LOCALES[lang][key] ?? LOCALES.ko[key] ?? key, vars);
 }

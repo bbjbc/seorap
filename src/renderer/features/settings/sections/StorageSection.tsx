@@ -9,7 +9,8 @@ import { cleanupNow, moveDataDir, staleCount } from '../actions';
 import { ButtonRow, CheckRow, Row, Section } from '../rows';
 
 const DEFAULT_DAYS = 30;
-const clampDays = (n: number): number => Math.max(1, Math.min(3650, n || DEFAULT_DAYS));
+const clampDays = (n: number): number =>
+  Math.max(1, Math.min(3650, n || DEFAULT_DAYS));
 
 interface Props {
   settings: Seorap.Settings;
@@ -43,10 +44,26 @@ export const StorageSection = ({ settings: s, stats, onStatsStale }: Props) => {
       <div className="stats" id="stats">
         {stats && (
           <>
-            <Stat value={stats.count.toLocaleString()} label={t('settings.stat_items', { n: stats.pinned })} />
-            <Stat value={fmtSize(stats.bytes)} label={t('settings.stat_bytes')} />
-            <Stat value={fmtSize(stats.thumbBytes)} label={t('settings.stat_thumbs')} />
-            <Stat value={String(stats.byType.image)} label={t('settings.stat_types', { t: stats.byType.text, l: stats.byType.link, f: stats.byType.file })} />
+            <Stat
+              value={stats.count.toLocaleString()}
+              label={t('settings.stat_items', { n: stats.pinned })}
+            />
+            <Stat
+              value={fmtSize(stats.bytes)}
+              label={t('settings.stat_bytes')}
+            />
+            <Stat
+              value={fmtSize(stats.thumbBytes)}
+              label={t('settings.stat_thumbs')}
+            />
+            <Stat
+              value={String(stats.byType.image)}
+              label={t('settings.stat_types', {
+                t: stats.byType.text,
+                l: stats.byType.link,
+                f: stats.byType.file,
+              })}
+            />
           </>
         )}
       </div>
@@ -90,7 +107,9 @@ export const StorageSection = ({ settings: s, stats, onStatsStale }: Props) => {
           {t('settings.cleanup_now', { days: effectiveDays })}
         </button>
         <span className="muted" id="cleanupPreview">
-          {days > 0 ? t('settings.cleanup_preview', { n: staleCount(items, days) }) : ''}
+          {days > 0
+            ? t('settings.cleanup_preview', { n: staleCount(items, days) })
+            : ''}
         </span>
       </ButtonRow>
       <Row label={t('settings.data_dir')}>
@@ -99,7 +118,12 @@ export const StorageSection = ({ settings: s, stats, onStatsStale }: Props) => {
         </code>
       </Row>
       <ButtonRow>
-        <button type="button" className="btn ghost small" id="btnOpenDir" onClick={() => void api.openDataDir()}>
+        <button
+          type="button"
+          className="btn ghost small"
+          id="btnOpenDir"
+          onClick={() => void api.openDataDir()}
+        >
           {t('settings.open_dir')}
         </button>
         <button

@@ -1,4 +1,4 @@
-import { useRef, type RefCallback } from 'react';
+import { type RefCallback, useRef } from 'react';
 import { IconSearch } from './icons';
 
 interface Props {
@@ -12,7 +12,14 @@ interface Props {
   clearable?: boolean;
 }
 
-export const SearchBox = ({ id, value, placeholder, onChange, inputRef, clearable = false }: Props) => {
+export const SearchBox = ({
+  id,
+  value,
+  placeholder,
+  onChange,
+  inputRef,
+  clearable = false,
+}: Props) => {
   const local = useRef<HTMLInputElement | null>(null);
   return (
     <div className="search-wrap nodrag">
@@ -32,6 +39,7 @@ export const SearchBox = ({ id, value, placeholder, onChange, inputRef, clearabl
       />
       {clearable && (
         <button
+          type="button"
           id={`${id}Clear`}
           className="xbtn"
           hidden={!value}

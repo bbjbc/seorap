@@ -3,7 +3,9 @@
 
 declare namespace Seorap {
   // ---------- 유틸 ----------
-  type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+  type DeepPartial<T> = {
+    [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+  };
 
   // ---------- 항목 ----------
   type ItemType = 'image' | 'text' | 'link' | 'file';
@@ -73,7 +75,14 @@ declare namespace Seorap {
     | { type: 'remove'; ids: string[] }
     | { type: 'reload' };
 
-  type UiActionName = 'settings' | 'newNote' | 'openNote' | 'detail' | 'tags' | 'rename' | 'delete';
+  type UiActionName =
+    | 'settings'
+    | 'newNote'
+    | 'openNote'
+    | 'detail'
+    | 'tags'
+    | 'rename'
+    | 'delete';
 
   interface UiAction {
     action: UiActionName;
@@ -100,8 +109,20 @@ declare namespace Seorap {
     autoStart: boolean;
     toast: boolean;
     board: { cardSize: CardSize; clickAction: ClickAction };
-    notes: { mono: boolean; fontSize: number; showClipboardText: boolean; sort: NoteSort };
-    vault: { autoLockMinutes: number; clipboardClearSeconds: number; contentProtection: boolean; lockOnHide: boolean; genLength: number; genSymbols: boolean };
+    notes: {
+      mono: boolean;
+      fontSize: number;
+      showClipboardText: boolean;
+      sort: NoteSort;
+    };
+    vault: {
+      autoLockMinutes: number;
+      clipboardClearSeconds: number;
+      contentProtection: boolean;
+      lockOnHide: boolean;
+      genLength: number;
+      genSymbols: boolean;
+    };
     cleanup: { enabled: boolean; days: number };
     /** 새 버전 자동 확인 (GitHub Releases 조회, 6시간마다). 끄면 설정에서 수동 확인만. */
     updates: { check: boolean; lastCheckedAt: number };
@@ -110,7 +131,12 @@ declare namespace Seorap {
     /** GitHub 스타 요청 배너 상태 */
     starNudge: { done: boolean; snoozeUntil: number };
     dataDir: string | null;
-    windowBounds: { x: number; y: number; width: number; height: number } | null;
+    windowBounds: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    } | null;
     lastMode: Mode;
   }
 
@@ -187,7 +213,9 @@ declare namespace Seorap {
     updatedAt: number;
   }
 
-  type VaultResult<T> = { ok: true; result: T } | { ok: false; error: string; waitMs?: number };
+  type VaultResult<T> =
+    | { ok: true; result: T }
+    | { ok: false; error: string; waitMs?: number };
 
   interface Strength {
     ok: boolean;
@@ -204,12 +232,18 @@ declare namespace Seorap {
     'items:list': { args: []; result: ClientItem[] };
     'items:fullText': { args: [id: string]; result: string };
     'items:addNote': { args: []; result: AddResult | null };
-    'items:addText': { args: [text: string, opts?: { note?: boolean }]; result: AddResult | null };
+    'items:addText': {
+      args: [text: string, opts?: { note?: boolean }];
+      result: AddResult | null;
+    };
     'items:addFiles': { args: [paths: string[]]; result: AddOutcome[] };
     'items:addBuffers': { args: [blobs: DroppedBlob[]]; result: AddOutcome[] };
     'items:addUrl': { args: [url: string]; result: AddResult | null };
     'items:captureClipboard': { args: []; result: AddResult | null };
-    'items:update': { args: [id: string, patch: ItemPatch]; result: ClientItem | null };
+    'items:update': {
+      args: [id: string, patch: ItemPatch];
+      result: ClientItem | null;
+    };
     'items:delete': { args: [ids: string[]]; result: number };
     'items:reorder': { args: [ids: string[]]; result: void };
     'items:copy': { args: [id: string]; result: boolean };
@@ -218,23 +252,47 @@ declare namespace Seorap {
     'items:contextMenu': { args: [ids: string[]]; result: void };
 
     'vault:status': { args: []; result: VaultStatus };
-    'vault:setup': { args: [password: string]; result: VaultResult<VaultStatus> };
-    'vault:unlock': { args: [password: string]; result: VaultResult<VaultStatus> };
+    'vault:setup': {
+      args: [password: string];
+      result: VaultResult<VaultStatus>;
+    };
+    'vault:unlock': {
+      args: [password: string];
+      result: VaultResult<VaultStatus>;
+    };
     'vault:lock': { args: []; result: VaultStatus };
     'vault:touch': { args: []; result: VaultStatus };
     'vault:list': { args: []; result: VaultResult<VaultEntryPublic[]> };
     'vault:secret': { args: [id: string]; result: VaultResult<string> };
-    'vault:add': { args: [fields: VaultFields]; result: VaultResult<VaultEntryPublic> };
-    'vault:update': { args: [id: string, patch: VaultFields]; result: VaultResult<VaultEntryPublic | null> };
+    'vault:add': {
+      args: [fields: VaultFields];
+      result: VaultResult<VaultEntryPublic>;
+    };
+    'vault:update': {
+      args: [id: string, patch: VaultFields];
+      result: VaultResult<VaultEntryPublic | null>;
+    };
     'vault:remove': { args: [id: string]; result: VaultResult<number> };
-    'vault:copy': { args: [id: string, field: 'password' | 'username']; result: VaultResult<boolean> };
-    'vault:changePassword': { args: [oldPw: string, newPw: string]; result: VaultResult<VaultStatus> };
-    'vault:generate': { args: [length: number, symbols: boolean]; result: string };
+    'vault:copy': {
+      args: [id: string, field: 'password' | 'username'];
+      result: VaultResult<boolean>;
+    };
+    'vault:changePassword': {
+      args: [oldPw: string, newPw: string];
+      result: VaultResult<VaultStatus>;
+    };
+    'vault:generate': {
+      args: [length: number, symbols: boolean];
+      result: string;
+    };
     'vault:strength': { args: [password: string]; result: Strength };
     'vault:export': { args: [password: string]; result: VaultResult<string> };
 
     'settings:get': { args: []; result: SettingsBundle };
-    'settings:set': { args: [patch: SettingsPatch]; result: SettingsApplyResult };
+    'settings:set': {
+      args: [patch: SettingsPatch];
+      result: SettingsApplyResult;
+    };
     'settings:stats': { args: []; result: Stats };
     'settings:openDataDir': { args: []; result: void };
     'settings:runCleanup': { args: [days?: number]; result: number };
@@ -272,10 +330,19 @@ declare namespace Seorap {
     list(): Promise<VaultResult<VaultEntryPublic[]>>;
     secret(id: string): Promise<VaultResult<string>>;
     add(fields: VaultFields): Promise<VaultResult<VaultEntryPublic>>;
-    update(id: string, patch: VaultFields): Promise<VaultResult<VaultEntryPublic | null>>;
+    update(
+      id: string,
+      patch: VaultFields,
+    ): Promise<VaultResult<VaultEntryPublic | null>>;
     remove(id: string): Promise<VaultResult<number>>;
-    copy(id: string, field: 'password' | 'username'): Promise<VaultResult<boolean>>;
-    changePassword(oldPw: string, newPw: string): Promise<VaultResult<VaultStatus>>;
+    copy(
+      id: string,
+      field: 'password' | 'username',
+    ): Promise<VaultResult<boolean>>;
+    changePassword(
+      oldPw: string,
+      newPw: string,
+    ): Promise<VaultResult<VaultStatus>>;
     generate(length: number, symbols: boolean): Promise<string>;
     strength(password: string): Promise<Strength>;
     export(password: string): Promise<VaultResult<string>>;
@@ -354,9 +421,24 @@ declare namespace Seorap {
     noteId(): string | null;
     typeIntoEditor(text: string): void;
     starNudgeVisible(): boolean;
-    starNudgeState(): { visible: boolean; shownThisSession: boolean; mode: Mode; modal: string | null; items: number; installedAt: number | null; done: boolean | null; snoozeUntil: number | null };
+    starNudgeState(): {
+      visible: boolean;
+      shownThisSession: boolean;
+      mode: Mode;
+      modal: string | null;
+      items: number;
+      installedAt: number | null;
+      done: boolean | null;
+      snoozeUntil: number | null;
+    };
     evaluateStarNudge(): void;
-    findInNote(q: string): { open: boolean; count: number; index: number; selStart: number; selEnd: number };
+    findInNote(q: string): {
+      open: boolean;
+      count: number;
+      index: number;
+      selStart: number;
+      selEnd: number;
+    };
     closeFind(): void;
     noteListIds(): string[];
     moveNote(id: string, beforeId: string | null): Promise<void>;

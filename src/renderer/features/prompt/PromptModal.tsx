@@ -3,12 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../../components/Modal';
 import { useT } from '../../lib/i18n';
-import { useUiStore, type PromptRequest } from '../../stores/ui';
+import { type PromptRequest, useUiStore } from '../../stores/ui';
 
 export const PromptModal = () => {
   const prompt = useUiStore((s) => s.prompt);
   return (
-    <Modal id="prompt" open={prompt !== null} onClose={() => prompt?.resolve(null)} cardClassName="prompt-card">
+    <Modal
+      id="prompt"
+      open={prompt !== null}
+      onClose={() => prompt?.resolve(null)}
+      cardClassName="prompt-card"
+    >
       {prompt && <PromptBody key={prompt.seq} prompt={prompt} />}
     </Modal>
   );
@@ -17,7 +22,9 @@ export const PromptModal = () => {
 const PromptBody = ({ prompt }: { prompt: PromptRequest }) => {
   const t = useT();
   const fields = prompt.opts.fields ?? [];
-  const [values, setValues] = useState<string[]>(() => fields.map((f) => f.value ?? ''));
+  const [values, setValues] = useState<string[]>(() =>
+    fields.map((f) => f.value ?? ''),
+  );
   const [err, setErr] = useState('');
   const firstRef = useRef<HTMLInputElement | null>(null);
 
@@ -46,6 +53,7 @@ const PromptBody = ({ prompt }: { prompt: PromptRequest }) => {
       <div id="promptFields" hidden={!fields.length}>
         {fields.map((f, i) => (
           <input
+            // biome-ignore lint/suspicious/noArrayIndexKey: 필드 목록은 요청 안에서 고정이고, PromptBody 자체가 요청마다 다시 마운트된다.
             key={i}
             id={`pf${i}`}
             ref={i === 0 ? firstRef : undefined}
@@ -54,7 +62,9 @@ const PromptBody = ({ prompt }: { prompt: PromptRequest }) => {
             placeholder={f.placeholder ?? ''}
             autoComplete="off"
             spellCheck={false}
-            onChange={(e) => setValues((v) => v.map((x, j) => (j === i ? e.target.value : x)))}
+            onChange={(e) =>
+              setValues((v) => v.map((x, j) => (j === i ? e.target.value : x)))
+            }
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -69,10 +79,19 @@ const PromptBody = ({ prompt }: { prompt: PromptRequest }) => {
       </p>
       <div className="detail-foot">
         <div className="spacer" />
-        <button type="button" className="btn ghost" onClick={() => prompt.resolve(null)}>
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={() => prompt.resolve(null)}
+        >
           {t('common.cancel')}
         </button>
-        <button type="button" className="btn primary" id="promptOk" onClick={() => void submit()}>
+        <button
+          type="button"
+          className="btn primary"
+          id="promptOk"
+          onClick={() => void submit()}
+        >
           {prompt.opts.okText ?? t('common.ok')}
         </button>
       </div>

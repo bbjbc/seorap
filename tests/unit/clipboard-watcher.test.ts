@@ -1,11 +1,21 @@
 // 클립보드 감시기. electron.clipboard 를 흉내 내고 가짜 타이머로 tick 을 돌린다.
 // 여기서 고정하는 동작: 변경 감지, 앱 자신의 쓰기 무시, 그리고 무시 창이 사용자 복사를 삼키는 방식.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { clipboard, type ClipboardItem } from 'electron';
-import { ClipboardWatcher, SELF_WRITE_IGNORE_MS } from '../../src/main/clipboard';
+
+import { type ClipboardItem, clipboard } from 'electron';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  ClipboardWatcher,
+  SELF_WRITE_IGNORE_MS,
+} from '../../src/main/clipboard';
 
 vi.mock('electron', () => ({
-  clipboard: { read: vi.fn(), readText: vi.fn(), write: vi.fn(), writeText: vi.fn(), clear: vi.fn() },
+  clipboard: {
+    read: vi.fn(),
+    readText: vi.fn(),
+    write: vi.fn(),
+    writeText: vi.fn(),
+    clear: vi.fn(),
+  },
   ClipboardItem: vi.fn(),
   nativeImage: { createFromBuffer: vi.fn(), createEmpty: vi.fn() },
 }));
@@ -22,7 +32,12 @@ beforeEach(() => {
   vi.mocked(clipboard.read).mockImplementation(() =>
     Promise.resolve(
       onClipboard
-        ? ([{ types: ['text/plain'], getType: () => Promise.resolve(new Blob([onClipboard])) }] as unknown as ClipboardItem[])
+        ? ([
+            {
+              types: ['text/plain'],
+              getType: () => Promise.resolve(new Blob([onClipboard])),
+            },
+          ] as unknown as ClipboardItem[])
         : ([] as ClipboardItem[]),
     ),
   );
@@ -69,7 +84,7 @@ describe('ClipboardWatcher', () => {
     w.stop();
   });
 
-  it('does not collect the app\'s own write after ignore()', async () => {
+  it("does not collect the app's own write after ignore()", async () => {
     const onChange = vi.fn();
     const w = new ClipboardWatcher(onChange, INTERVAL);
     await w.start();

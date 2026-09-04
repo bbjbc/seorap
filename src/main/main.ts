@@ -1,28 +1,28 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   app,
   BrowserWindow,
-  Tray,
-  Menu,
-  nativeImage,
+  dialog,
   globalShortcut,
   ipcMain,
-  shell,
-  dialog,
-  protocol,
-  net,
-  screen,
-  powerMonitor,
+  Menu,
   type MenuItemConstructorOptions,
+  nativeImage,
+  net,
+  powerMonitor,
+  protocol,
+  screen,
+  shell,
+  Tray,
 } from 'electron';
-import path from 'path';
-import fs from 'fs';
-import { pathToFileURL } from 'url';
-import { Store, type ChangeEvent } from './store';
-import { Settings } from './settings';
-import { Vault, VaultError, checkStrength, generatePassword } from './vault';
 import * as cb from './clipboard';
+import { setLanguage, t } from './i18n';
+import { Settings } from './settings';
+import { type ChangeEvent, Store } from './store';
 import { checkForUpdate } from './update';
-import { t, setLanguage } from './i18n';
+import { checkStrength, generatePassword, Vault, VaultError } from './vault';
 
 // out/main 기준. 개발 중에는 저장소의 assets/, 패키지에서는 app.asar 안의 assets/ (electron-builder files 참고).
 const ASSETS = path.join(__dirname, '..', '..', 'assets');
@@ -74,7 +74,15 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'scrap', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
+  {
+    scheme: 'scrap',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+    },
+  },
 ]);
 
 // 이름이 Scrapbox 였던 시절의 설정·데이터 폴더가 있으면 한 번만 옮겨온다.
@@ -82,7 +90,11 @@ function migrateLegacyUserData(): void {
   if (userDataOverride) return;
   const oldDir = path.join(app.getPath('appData'), 'scrapbox');
   const newDir = app.getPath('userData');
-  if (!fs.existsSync(path.join(oldDir, 'settings.json')) || fs.existsSync(path.join(newDir, 'settings.json'))) return;
+  if (
+    !fs.existsSync(path.join(oldDir, 'settings.json')) ||
+    fs.existsSync(path.join(newDir, 'settings.json'))
+  )
+    return;
   try {
     fs.mkdirSync(newDir, { recursive: true });
     for (const name of ['settings.json', 'data']) {
@@ -99,7 +111,10 @@ void app.whenReady().then(() => {
   settings = new Settings(path.join(app.getPath('userData'), 'settings.json'));
   setLanguage(settings.data.language, app.getLocale());
   if (!settings.data.installedAt) settings.set({ installedAt: Date.now() });
-  const dataDir = process.env['SEORAP_DATA_DIR'] ?? settings.data.dataDir ?? path.join(app.getPath('userData'), 'data');
+  const dataDir =
+    process.env['SEORAP_DATA_DIR'] ??
+    settings.data.dataDir ??
+    path.join(app.getPath('userData'), 'data');
   store = new Store(dataDir);
   store.onChange(broadcastChange);
   vault = new Vault(path.join(store.dir, 'vault.json'));
@@ -132,12 +147,17 @@ void app.whenReady().then(() => {
   const debugScript = process.env['SEORAP_DEBUG_SCRIPT'];
   if (debugScript) {
     mainWin.webContents.on('console-message', (e) => {
-      console.log(`[renderer:${e.level}] ${e.message} (${path.basename(e.sourceId)}:${e.lineNumber})`);
+      console.log(
+        `[renderer:${e.level}] ${e.message} (${path.basename(e.sourceId)}:${e.lineNumber})`,
+      );
     });
     mainWin.webContents.once('did-finish-load', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const mod: unknown = require(debugScript);
-      const fn = isRecord(mod) && typeof mod['default'] === 'function' ? mod['default'] : mod;
+      const fn =
+        isRecord(mod) && typeof mod['default'] === 'function'
+          ? mod['default']
+          : mod;
       if (typeof fn !== 'function') {
         console.error('debug script must export a function');
         app.exit(1);
@@ -146,7 +166,14 @@ void app.whenReady().then(() => {
       const run = fn as DebugScript;
       const toast = toastWin;
       if (!toast) return;
-      run({ app, win: mainWin, store, vault, showToast, toastWin: toast }).catch((err: unknown) => {
+      run({
+        app,
+        win: mainWin,
+        store,
+        vault,
+        showToast,
+        toastWin: toast,
+      }).catch((err: unknown) => {
         console.error(err);
         app.exit(1);
       });
@@ -218,7 +245,8 @@ function loadRenderer(w: BrowserWindow, page: string): Promise<void> {
 }
 
 function saveBounds(): void {
-  if (!win || win.isDestroyed() || win.isMinimized() || !win.isVisible()) return;
+  if (!win || win.isDestroyed() || win.isMinimized() || !win.isVisible())
+    return;
   settings.set({ windowBounds: win.getBounds() });
 }
 
@@ -236,7 +264,10 @@ function toggleWindow(): void {
   else showWindow();
 }
 
-function send<E extends keyof Seorap.Events>(channel: E, payload: Seorap.Events[E]): void {
+function send<E extends keyof Seorap.Events>(
+  channel: E,
+  payload: Seorap.Events[E],
+): void {
   if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
 }
 
@@ -258,7 +289,10 @@ function createToast(): BrowserWindow {
     movable: false,
     show: false,
     hasShadow: false,
-    webPreferences: { preload: path.join(__dirname, '..', 'preload', 'toast.js'), contextIsolation: true },
+    webPreferences: {
+      preload: path.join(__dirname, '..', 'preload', 'toast.js'),
+      contextIsolation: true,
+    },
   });
   t.setAlwaysOnTop(true, 'screen-saver');
   t.setIgnoreMouseEvents(true);
@@ -272,7 +306,10 @@ function showToast(payload: Seorap.ToastPayload): void {
   if (!settings.data.toast && payload.kind !== 'warn') return;
   const wa = screen.getPrimaryDisplay().workArea;
   const [w, h] = t.getSize();
-  t.setPosition(wa.x + wa.width - (w ?? 340) - 16, wa.y + wa.height - (h ?? 84) - 16);
+  t.setPosition(
+    wa.x + wa.width - (w ?? 340) - 16,
+    wa.y + wa.height - (h ?? 84) - 16,
+  );
   t.webContents.send('toast', payload);
   t.showInactive();
   if (toastTimer) clearTimeout(toastTimer);
@@ -287,7 +324,9 @@ function showToast(payload: Seorap.ToastPayload): void {
 // ---------- 트레이 ----------
 function createTray(): void {
   const iconPath = fs.existsSync(ICON_ICO) ? ICON_ICO : ICON_PNG;
-  const img = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty();
+  const img = fs.existsSync(iconPath)
+    ? nativeImage.createFromPath(iconPath)
+    : nativeImage.createEmpty();
   tray = new Tray(img);
   tray.setToolTip(t('app.name'));
   tray.on('click', () => toggleWindow());
@@ -299,8 +338,18 @@ function refreshTrayMenu(): void {
   const s = settings.data;
   const items: MenuItemConstructorOptions[] = [
     { label: t('tray.open'), click: () => showWindow() },
-    { label: t('tray.quick_save', { key: s.shortcuts.quickSave || t('tray.no_shortcut') }), click: () => void quickSave('shortcut') },
-    { label: t('tray.new_note', { key: s.shortcuts.newNote || t('tray.no_shortcut') }), click: () => newNoteFromShortcut() },
+    {
+      label: t('tray.quick_save', {
+        key: s.shortcuts.quickSave || t('tray.no_shortcut'),
+      }),
+      click: () => void quickSave('shortcut'),
+    },
+    {
+      label: t('tray.new_note', {
+        key: s.shortcuts.newNote || t('tray.no_shortcut'),
+      }),
+      click: () => newNoteFromShortcut(),
+    },
     { type: 'separator' },
     {
       label: t('tray.auto_collect'),
@@ -308,10 +357,19 @@ function refreshTrayMenu(): void {
       checked: s.autoCollect,
       click: (mi) => applySettings({ autoCollect: mi.checked }),
     },
-    { label: t('tray.lock_vault'), enabled: vault.unlocked, click: () => vault.lock('manual') },
+    {
+      label: t('tray.lock_vault'),
+      enabled: vault.unlocked,
+      click: () => vault.lock('manual'),
+    },
     { type: 'separator' },
     ...(latestUpdate
-      ? [{ label: t('tray.update', { v: latestUpdate.version }), click: () => void shell.openExternal(latestUpdate?.url ?? '') } as MenuItemConstructorOptions]
+      ? [
+          {
+            label: t('tray.update', { v: latestUpdate.version }),
+            click: () => void shell.openExternal(latestUpdate?.url ?? ''),
+          } as MenuItemConstructorOptions,
+        ]
       : []),
     {
       label: t('tray.settings'),
@@ -357,13 +415,20 @@ function newNoteFromShortcut(): void {
 
 function applyAutoStart(): void {
   if (!app.isPackaged) return; // 개발 모드에서는 electron.exe 가 등록되므로 건너뛴다
-  app.setLoginItemSettings({ openAtLogin: settings.data.autoStart, path: process.execPath, args: ['--hidden'] });
+  app.setLoginItemSettings({
+    openAtLogin: settings.data.autoStart,
+    path: process.execPath,
+    args: ['--hidden'],
+  });
 }
 
-function applySettings(patch: Seorap.SettingsPatch): Seorap.SettingsApplyResult {
+function applySettings(
+  patch: Seorap.SettingsPatch,
+): Seorap.SettingsApplyResult {
   const before = settings.get();
   const after = settings.set(patch);
-  if (JSON.stringify(before.shortcuts) !== JSON.stringify(after.shortcuts)) registerShortcuts();
+  if (JSON.stringify(before.shortcuts) !== JSON.stringify(after.shortcuts))
+    registerShortcuts();
   if (before.autoCollect !== after.autoCollect) {
     if (after.autoCollect) void watcher.start();
     else watcher.stop();
@@ -412,23 +477,38 @@ async function quickSave(source: string): Promise<Seorap.Item | null> {
   try {
     const res = await captureClipboard(source);
     if (!res) {
-      if (source !== 'auto') showToast({ kind: 'warn', text: t('flash.clipboard_empty') });
+      if (source !== 'auto')
+        showToast({ kind: 'warn', text: t('flash.clipboard_empty') });
       return null;
     }
     if (res.duplicate) {
-      if (source !== 'auto') showToast({ kind: 'info', text: t('flash.already_saved'), thumb: thumbDataUrl(res.item) });
+      if (source !== 'auto')
+        showToast({
+          kind: 'info',
+          text: t('flash.already_saved'),
+          thumb: thumbDataUrl(res.item),
+        });
       return res.item;
     }
-    showToast({ kind: 'ok', text: t('toast.saved', { what: describe(res.item) }), thumb: thumbDataUrl(res.item) });
+    showToast({
+      kind: 'ok',
+      text: t('toast.saved', { what: describe(res.item) }),
+      thumb: thumbDataUrl(res.item),
+    });
     return res.item;
   } catch (err) {
     console.error(err);
-    showToast({ kind: 'warn', text: t('toast.save_failed', { e: errMsg(err) }) });
+    showToast({
+      kind: 'warn',
+      text: t('toast.save_failed', { e: errMsg(err) }),
+    });
     return null;
   }
 }
 
-async function captureClipboard(source: string): Promise<{ duplicate: boolean; item: Seorap.Item } | null> {
+async function captureClipboard(
+  source: string,
+): Promise<{ duplicate: boolean; item: Seorap.Item } | null> {
   const c = await cb.readClipboard();
   const files = c.files.filter((p) => {
     try {
@@ -445,7 +525,8 @@ async function captureClipboard(source: string): Promise<{ duplicate: boolean; i
   if (c.image) return store.addImage(c.image, { source });
   if (c.text.trim()) {
     const res = await store.addText(c.text, { source });
-    if (res?.item.type === 'link' && !res.duplicate) void fetchLinkTitle(res.item);
+    if (res?.item.type === 'link' && !res.duplicate)
+      void fetchLinkTitle(res.item);
     return res;
   }
   return null;
@@ -454,13 +535,17 @@ async function captureClipboard(source: string): Promise<{ duplicate: boolean; i
 function describe(item: Seorap.Item): string {
   switch (item.type) {
     case 'image':
-      return item.width ? t('toast.image_wh', { w: item.width, h: item.height ?? '?' }) : t('toast.image');
+      return item.width
+        ? t('toast.image_wh', { w: item.width, h: item.height ?? '?' })
+        : t('toast.image');
     case 'link':
       return t('toast.link');
     case 'file':
       return item.title || t('toast.file');
     case 'text':
-      return t('toast.text', { t: (item.text ?? '').trim().slice(0, 24).replace(/\n/g, ' ') });
+      return t('toast.text', {
+        t: (item.text ?? '').trim().slice(0, 24).replace(/\n/g, ' '),
+      });
   }
 }
 
@@ -482,15 +567,22 @@ async function fetchLinkTitle(item: Seorap.Item): Promise<void> {
     const t = setTimeout(() => ctrl.abort(), 7000);
     const res = await net.fetch(item.url, {
       signal: ctrl.signal,
-      headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Seorap/1.0', accept: 'text/html,*/*' },
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Seorap/1.0',
+        accept: 'text/html,*/*',
+      },
     });
     clearTimeout(t);
     const ct = res.headers.get('content-type') ?? '';
     if (!ct.includes('text/html')) return;
     const html = (await res.text()).slice(0, 300000);
     const og =
-      /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(html) ??
-      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i.exec(html);
+      /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(
+        html,
+      ) ??
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i.exec(
+        html,
+      );
     const t2 = /<title[^>]*>([^<]+)<\/title>/i.exec(html);
     const title = decodeEntities(og?.[1] ?? t2?.[1] ?? '').trim();
     if (title) store.update(item.id, { linkTitle: title.slice(0, 200) });
@@ -499,15 +591,29 @@ async function fetchLinkTitle(item: Seorap.Item): Promise<void> {
   }
 }
 
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp: ' ' };
+const ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  '#39': "'",
+  apos: "'",
+  nbsp: ' ',
+};
 
 function decodeEntities(s: string): string {
-  return s.replace(/&(#x?[0-9a-f]+|amp|lt|gt|quot|#39|apos|nbsp);/gi, (m: string, e: string) => {
-    const named = ENTITIES[e.toLowerCase()];
-    if (named) return named;
-    const n = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
-    return Number.isFinite(n) ? String.fromCodePoint(n) : m;
-  });
+  return s.replace(
+    /&(#x?[0-9a-f]+|amp|lt|gt|quot|#39|apos|nbsp);/gi,
+    (m: string, e: string) => {
+      const named = ENTITIES[e.toLowerCase()];
+      if (named) return named;
+      const n =
+        e[1] === 'x' || e[1] === 'X'
+          ? parseInt(e.slice(2), 16)
+          : parseInt(e.slice(1), 10);
+      return Number.isFinite(n) ? String.fromCodePoint(n) : m;
+    },
+  );
 }
 
 // ---------- 항목 → 클립보드 ----------
@@ -542,7 +648,8 @@ function resetAutoLock(): void {
   if (autoLockTimer) clearTimeout(autoLockTimer);
   autoLockTimer = null;
   const min = settings.data.vault.autoLockMinutes;
-  if (vault.unlocked && min > 0) autoLockTimer = setTimeout(() => vault.lock('timeout'), min * 60 * 1000);
+  if (vault.unlocked && min > 0)
+    autoLockTimer = setTimeout(() => vault.lock('timeout'), min * 60 * 1000);
 }
 
 function onVaultLocked(reason: string): void {
@@ -555,7 +662,9 @@ function onVaultLocked(reason: string): void {
 
 function applyContentProtection(): void {
   if (!win || win.isDestroyed()) return;
-  win.setContentProtection(vault.unlocked && settings.data.vault.contentProtection);
+  win.setContentProtection(
+    vault.unlocked && settings.data.vault.contentProtection,
+  );
 }
 
 function vaultCall<T>(fn: () => T): Seorap.VaultResult<T> {
@@ -564,14 +673,22 @@ function vaultCall<T>(fn: () => T): Seorap.VaultResult<T> {
     resetAutoLock();
     return { ok: true, result };
   } catch (err) {
-    return { ok: false, error: errMsg(err), waitMs: err instanceof VaultError ? err.waitMs : 0 };
+    return {
+      ok: false,
+      error: errMsg(err),
+      waitMs: err instanceof VaultError ? err.waitMs : 0,
+    };
   }
 }
 
-async function copySecret(id: string, field: 'password' | 'username'): Promise<boolean> {
+async function copySecret(
+  id: string,
+  field: 'password' | 'username',
+): Promise<boolean> {
   const entry = vault.list().find((e) => e.id === id);
   if (!entry) return false;
-  const value = field === 'password' ? (vault.getSecret(id) ?? '') : entry.username;
+  const value =
+    field === 'password' ? (vault.getSecret(id) ?? '') : entry.username;
   if (!value) return false;
   const sec = Math.max(5, settings.data.vault.clipboardClearSeconds || 30);
   // 무시 창은 짧게. 비밀번호 자체는 첫 tick 에서 기준점이 되어 이후에도 수집되지 않으니,
@@ -584,7 +701,8 @@ async function copySecret(id: string, field: 'password' | 'username'): Promise<b
       if ((await cb.readText()) === value) cb.clear();
     })();
   }, sec * 1000);
-  if (field === 'password') showToast({ kind: 'info', text: t('toast.password_copied', { sec }) });
+  if (field === 'password')
+    showToast({ kind: 'info', text: t('toast.password_copied', { sec }) });
   return true;
 }
 
@@ -594,7 +712,11 @@ function registerProtocol(): void {
     const u = new URL(req.url);
     const rel = decodeURIComponent(u.hostname + u.pathname);
     const abs = path.resolve(store.dir, rel);
-    if (!abs.startsWith(store.dir + path.sep) || !fs.existsSync(abs) || path.basename(abs) === 'vault.json') {
+    if (
+      !abs.startsWith(store.dir + path.sep) ||
+      !fs.existsSync(abs) ||
+      path.basename(abs) === 'vault.json'
+    ) {
       return new Response('not found', { status: 404 });
     }
     return net.fetch(pathToFileURL(abs).toString());
@@ -604,12 +726,14 @@ function registerProtocol(): void {
 function serialize(item: Seorap.Item): Seorap.ClientItem {
   return {
     ...item,
-    thumbUrl: item.thumb ? 'scrap://' + item.thumb : null,
-    fileUrl: item.file ? 'scrap://' + item.file : null,
+    thumbUrl: item.thumb ? `scrap://${item.thumb}` : null,
+    fileUrl: item.file ? `scrap://${item.file}` : null,
   };
 }
 
-function wrap(res: { duplicate: boolean; item: Seorap.Item } | null): Seorap.AddResult | null {
+function wrap(
+  res: { duplicate: boolean; item: Seorap.Item } | null,
+): Seorap.AddResult | null {
   return res ? { duplicate: res.duplicate, item: serialize(res.item) } : null;
 }
 
@@ -637,7 +761,9 @@ async function runCleanup(force = false, days?: number): Promise<number> {
 
 // ---------- 컨텍스트 메뉴 ----------
 function showContextMenu(ids: string[]): void {
-  const items = ids.map((id) => store.get(id)).filter((i): i is Seorap.Item => i !== null);
+  const items = ids
+    .map((id) => store.get(id))
+    .filter((i): i is Seorap.Item => i !== null);
   if (!items.length || !win) return;
   const one = items.length === 1 ? items[0] : undefined;
   const sendAction = (action: Seorap.UiActionName): void => sendUi(action, ids);
@@ -646,11 +772,22 @@ function showContextMenu(ids: string[]): void {
   if (one) {
     tpl.push({
       label: t('menu.copy'),
-      click: () => void copyItem(one.id).then(() => send('ui:flash', { text: t('flash.copied') })),
+      click: () =>
+        void copyItem(one.id).then(() =>
+          send('ui:flash', { text: t('flash.copied') }),
+        ),
     });
-    if (one.type === 'text') tpl.push({ label: one.note ? t('menu.open_in_notes') : t('menu.send_to_notes'), click: () => sendAction('openNote') });
-    else tpl.push({ label: t('menu.detail'), click: () => sendAction('detail') });
-    tpl.push({ label: one.type === 'link' ? t('menu.open_browser') : t('menu.open_app'), click: () => openItem(one.id) });
+    if (one.type === 'text')
+      tpl.push({
+        label: one.note ? t('menu.open_in_notes') : t('menu.send_to_notes'),
+        click: () => sendAction('openNote'),
+      });
+    else
+      tpl.push({ label: t('menu.detail'), click: () => sendAction('detail') });
+    tpl.push({
+      label: one.type === 'link' ? t('menu.open_browser') : t('menu.open_app'),
+      click: () => openItem(one.id),
+    });
     tpl.push({
       label: t('menu.show_in_folder'),
       click: () => {
@@ -662,12 +799,21 @@ function showContextMenu(ids: string[]): void {
   }
   tpl.push({
     label: allPinned ? t('common.unpin') : t('common.pin'),
-    click: () => items.forEach((i) => store.update(i.id, { pinned: !allPinned })),
+    click: () => {
+      for (const i of items) store.update(i.id, { pinned: !allPinned });
+    },
   });
   tpl.push({ label: t('menu.tags'), click: () => sendAction('tags') });
-  if (one && (one.type === 'image' || one.type === 'file')) tpl.push({ label: t('menu.rename'), click: () => sendAction('rename') });
+  if (one && (one.type === 'image' || one.type === 'file'))
+    tpl.push({ label: t('menu.rename'), click: () => sendAction('rename') });
   tpl.push({ type: 'separator' });
-  tpl.push({ label: items.length > 1 ? t('menu.delete_n', { n: items.length }) : t('common.delete'), click: () => sendAction('delete') });
+  tpl.push({
+    label:
+      items.length > 1
+        ? t('menu.delete_n', { n: items.length })
+        : t('common.delete'),
+    click: () => sendAction('delete'),
+  });
   Menu.buildFromTemplate(tpl).popup({ window: win });
 }
 
@@ -684,17 +830,25 @@ function openItem(id: string): void {
 // ---------- IPC (타입 계약: src/shared/types.d.ts 의 Seorap.Ipc) ----------
 function handle<C extends Seorap.IpcChannel>(
   channel: C,
-  fn: (...args: Seorap.Ipc[C]['args']) => Seorap.Ipc[C]['result'] | Promise<Seorap.Ipc[C]['result']>,
+  fn: (
+    ...args: Seorap.Ipc[C]['args']
+  ) => Seorap.Ipc[C]['result'] | Promise<Seorap.Ipc[C]['result']>,
 ): void {
-  ipcMain.handle(channel, (_e, ...args: unknown[]) => fn(...(args as Seorap.Ipc[C]['args'])));
+  ipcMain.handle(channel, (_e, ...args: unknown[]) =>
+    fn(...(args as Seorap.Ipc[C]['args'])),
+  );
 }
 
 handle('items:list', () => store.list().map(serialize));
 handle('items:fullText', (id) => store.readFullText(store.get(id)));
 handle('items:addNote', async () => wrap(await store.addNote()));
 handle('items:addText', async (text, opts) => {
-  const res = await store.addText(text, { source: 'manual', note: opts?.note !== false });
-  if (res?.item.type === 'link' && !res.duplicate) void fetchLinkTitle(res.item);
+  const res = await store.addText(text, {
+    source: 'manual',
+    note: opts?.note !== false,
+  });
+  if (res?.item.type === 'link' && !res.duplicate)
+    void fetchLinkTitle(res.item);
   return wrap(res);
 });
 handle('items:addFiles', async (paths) => {
@@ -713,7 +867,12 @@ handle('items:addBuffers', async (blobs) => {
   const out: Seorap.AddOutcome[] = [];
   for (const b of blobs) {
     try {
-      const r = wrap(await store.addBuffer(Buffer.from(b.data), b.name, { mime: b.mime, source: 'drop' }));
+      const r = wrap(
+        await store.addBuffer(Buffer.from(b.data), b.name, {
+          mime: b.mime,
+          source: 'drop',
+        }),
+      );
       if (r) out.push(r);
     } catch (err) {
       out.push({ error: errMsg(err) });
@@ -725,7 +884,10 @@ handle('items:addUrl', async (url) => {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 15000);
-    const res = await net.fetch(url, { signal: ctrl.signal, headers: { 'user-agent': 'Mozilla/5.0 Seorap/1.0' } });
+    const res = await net.fetch(url, {
+      signal: ctrl.signal,
+      headers: { 'user-agent': 'Mozilla/5.0 Seorap/1.0' },
+    });
     clearTimeout(t);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const mime = res.headers.get('content-type') ?? '';
@@ -750,7 +912,9 @@ handle('items:addUrl', async (url) => {
     return out;
   }
 });
-handle('items:captureClipboard', async () => wrap(await captureClipboard('paste')));
+handle('items:captureClipboard', async () =>
+  wrap(await captureClipboard('paste')),
+);
 handle('items:update', (id, patch) => {
   const it = store.update(id, patch);
   return it ? serialize(it) : null;
@@ -766,16 +930,26 @@ handle('items:showInFolder', (id) => {
 handle('items:contextMenu', (ids) => showContextMenu(ids));
 
 ipcMain.on('items:startDrag', (e, raw: unknown) => {
-  const ids = Array.isArray(raw) ? (raw as unknown[]).filter((x): x is string => typeof x === 'string') : [];
-  const items = ids.map((id) => store.get(id)).filter((i): i is Seorap.Item => i !== null);
-  const files = items.map((i) => store.absPath(i)).filter((p): p is string => p !== null);
+  const ids = Array.isArray(raw)
+    ? (raw as unknown[]).filter((x): x is string => typeof x === 'string')
+    : [];
+  const items = ids
+    .map((id) => store.get(id))
+    .filter((i): i is Seorap.Item => i !== null);
+  const files = items
+    .map((i) => store.absPath(i))
+    .filter((p): p is string => p !== null);
   const first = files[0];
   if (!first) return;
   let icon = nativeImage.createEmpty();
   const t = store.absThumb(items[0] ?? null);
-  if (t && fs.existsSync(t)) icon = nativeImage.createFromPath(t).resize({ width: 96 });
-  if (icon.isEmpty() && fs.existsSync(ICON_PNG)) icon = nativeImage.createFromPath(ICON_PNG).resize({ width: 64 });
-  e.sender.startDrag(files.length === 1 ? { file: first, icon } : { file: first, files, icon });
+  if (t && fs.existsSync(t))
+    icon = nativeImage.createFromPath(t).resize({ width: 96 });
+  if (icon.isEmpty() && fs.existsSync(ICON_PNG))
+    icon = nativeImage.createFromPath(ICON_PNG).resize({ width: 64 });
+  e.sender.startDrag(
+    files.length === 1 ? { file: first, icon } : { file: first, files, icon },
+  );
 });
 
 // 금고
@@ -815,7 +989,9 @@ handle('vault:copy', async (id, field) => {
     return { ok: false, error: errMsg(err) };
   }
 });
-handle('vault:changePassword', (oldPw, newPw) => vaultCall(() => vault.changePassword(oldPw, newPw)));
+handle('vault:changePassword', (oldPw, newPw) =>
+  vaultCall(() => vault.changePassword(oldPw, newPw)),
+);
 handle('vault:generate', (len, symbols) => generatePassword(len, symbols));
 handle('vault:strength', (pw) => checkStrength(pw));
 handle('vault:export', async (pw) => {
@@ -824,10 +1000,14 @@ handle('vault:export', async (pw) => {
   if (!win) return { ok: false, error: t('main.no_window') };
   const save = await dialog.showSaveDialog(win, {
     title: t('dialog.export_title'),
-    defaultPath: path.join(app.getPath('documents'), 'seorap-vault-export.json'),
+    defaultPath: path.join(
+      app.getPath('documents'),
+      'seorap-vault-export.json',
+    ),
     filters: [{ name: 'JSON', extensions: ['json'] }],
   });
-  if (save.canceled || !save.filePath) return { ok: false, error: t('main.canceled') };
+  if (save.canceled || !save.filePath)
+    return { ok: false, error: t('main.canceled') };
   fs.writeFileSync(save.filePath, JSON.stringify(r.result, null, 2), 'utf8');
   return { ok: true, result: save.filePath };
 });

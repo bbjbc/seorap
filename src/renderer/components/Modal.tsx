@@ -11,7 +11,14 @@ interface Props {
   children: ReactNode;
 }
 
-export const Modal = ({ id, open, onClose, top = false, cardClassName, children }: Props) => (
+export const Modal = ({
+  id,
+  open,
+  onClose,
+  top = false,
+  cardClassName,
+  children,
+}: Props) => (
   <div id={id} className={`modal${top ? ' top' : ''}`} hidden={!open}>
     <div className="modal-backdrop" onClick={onClose} />
     <div className={`modal-card ${cardClassName}`}>{children}</div>

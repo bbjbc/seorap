@@ -1,7 +1,9 @@
 // 금고 뷰 상태. 비밀번호(secret)는 선택한 항목의 것만, 폼 초안(draft) 안에 잠시 들고 있다.
 import { create } from 'zustand';
 
-export type VaultDraft = Required<Pick<Seorap.VaultFields, 'name' | 'url' | 'username' | 'password' | 'notes'>>;
+export type VaultDraft = Required<
+  Pick<Seorap.VaultFields, 'name' | 'url' | 'username' | 'password' | 'notes'>
+>;
 
 interface VaultState {
   status: Seorap.VaultStatus | null;
@@ -26,7 +28,13 @@ interface VaultState {
   clearForLock: () => void;
 }
 
-export const EMPTY_DRAFT: VaultDraft = { name: '', url: '', username: '', password: '', notes: '' };
+export const EMPTY_DRAFT: VaultDraft = {
+  name: '',
+  url: '',
+  username: '',
+  password: '',
+  notes: '',
+};
 
 export const useVaultStore = create<VaultState>()((set) => ({
   status: null,
@@ -39,14 +47,24 @@ export const useVaultStore = create<VaultState>()((set) => ({
 
   setStatus: (status) => set({ status }),
   setEntries: (entries) => set({ entries }),
-  replaceEntry: (e) => set((s) => ({ entries: s.entries.map((x) => (x.id === e.id ? e : x)) })),
+  replaceEntry: (e) =>
+    set((s) => ({ entries: s.entries.map((x) => (x.id === e.id ? e : x)) })),
   setId: (id) => set({ id }),
   setDraft: (draft) => set({ draft, passVisible: false }),
-  patchDraft: (p) => set((s) => (s.draft ? { draft: { ...s.draft, ...p } } : s)),
+  patchDraft: (p) =>
+    set((s) => (s.draft ? { draft: { ...s.draft, ...p } } : s)),
   setPassVisible: (passVisible) => set({ passVisible }),
   setSaveState: (saveState) => set({ saveState }),
   touch: () => set({ lastTouch: Date.now() }),
-  clearForLock: () => set({ entries: [], id: null, draft: null, passVisible: false, saveState: 'idle' }),
+  clearForLock: () =>
+    set({
+      entries: [],
+      id: null,
+      draft: null,
+      passVisible: false,
+      saveState: 'idle',
+    }),
 }));
 
-export const useVaultUnlocked = (): boolean => useVaultStore((s) => s.status?.unlocked ?? false);
+export const useVaultUnlocked = (): boolean =>
+  useVaultStore((s) => s.status?.unlocked ?? false);

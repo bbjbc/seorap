@@ -1,11 +1,11 @@
 // 설정 모달의 버튼 동작. 값 하나 바꾸는 건 컴포넌트가 saveSettings() 로 직접 한다.
 import { api } from '../../lib/api';
 import { t } from '../../lib/i18n';
-import { useItemsStore, type Item } from '../../stores/items';
+import { type Item, useItemsStore } from '../../stores/items';
 import { reloadSettings } from '../../stores/settings';
 import { useUiStore } from '../../stores/ui';
 import { flash } from '../overlays/actions';
-import { promptDialog, confirmDialog } from '../prompt/actions';
+import { confirmDialog, promptDialog } from '../prompt/actions';
 
 export async function openSettings(): Promise<void> {
   await reloadSettings();
@@ -19,7 +19,9 @@ export function closeSettings(): void {
 /** days 일보다 오래된, 고정하지 않은 항목 수 */
 export function staleCount(items: readonly Item[], days: number): number {
   const cutoff = Date.now() - days * 86400e3;
-  return days > 0 ? items.filter((i) => !i.pinned && i.createdAt < cutoff).length : 0;
+  return days > 0
+    ? items.filter((i) => !i.pinned && i.createdAt < cutoff).length
+    : 0;
 }
 
 /** 확인 뒤 정리를 실행한다. 실제로 지웠으면 true (통계를 다시 읽을 때). */
@@ -29,7 +31,10 @@ export async function cleanupNow(days: number): Promise<boolean> {
     flash(t('flash.no_stale', { days }));
     return false;
   }
-  const ok = await confirmDialog(t('settings.cleanup_confirm_title', { n }), t('settings.cleanup_confirm_desc', { n, days }));
+  const ok = await confirmDialog(
+    t('settings.cleanup_confirm_title', { n }),
+    t('settings.cleanup_confirm_desc', { n, days }),
+  );
   if (!ok) return false;
   const removed = await api.runCleanup(days);
   flash(t('flash.cleaned', { n: removed }));
@@ -37,7 +42,10 @@ export async function cleanupNow(days: number): Promise<boolean> {
 }
 
 /** 저장 폴더를 옮긴다. 오류 문구를 돌려주고, 옮겼으면 null. */
-export async function moveDataDir(): Promise<{ moved: boolean; error: string | null }> {
+export async function moveDataDir(): Promise<{
+  moved: boolean;
+  error: string | null;
+}> {
   const r = await api.pickDataDir();
   if (r.ok) flash(t('flash.dir_moved'));
   return { moved: r.ok, error: r.error ?? null };
@@ -83,7 +91,9 @@ export async function exportVault(): Promise<void> {
   const r = await promptDialog({
     title: t('settings.export_title'),
     desc: t('settings.export_desc'),
-    fields: [{ type: 'password', placeholder: t('settings.export_confirm_ph') }],
+    fields: [
+      { type: 'password', placeholder: t('settings.export_confirm_ph') },
+    ],
     okText: t('settings.export_ok'),
     validate: async ([pw]) => {
       const res = await api.vault.export(pw ?? '');

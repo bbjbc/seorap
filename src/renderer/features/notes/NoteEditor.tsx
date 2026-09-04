@@ -10,7 +10,13 @@ import { t as tr, useLang, useT } from '../../lib/i18n';
 import { useItemsStore } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
 import { saveSettings, useSettings } from '../../stores/settings';
-import { addTag, copyItem, removeTag, softDelete, togglePin } from '../items/actions';
+import {
+  addTag,
+  copyItem,
+  removeTag,
+  softDelete,
+  togglePin,
+} from '../items/actions';
 import { flash } from '../overlays/actions';
 import { editNoteText } from './actions';
 import { FindBar } from './FindBar';
@@ -21,8 +27,12 @@ export const NoteEditor = () => {
   const t = useT();
   const lang = useLang();
   const settings = useSettings();
-  const { noteId, saveState } = useNotesStore(useShallow((s) => ({ noteId: s.noteId, saveState: s.saveState })));
-  const item = useItemsStore((s) => (noteId ? s.items.find((i) => i.id === noteId) : undefined));
+  const { noteId, saveState } = useNotesStore(
+    useShallow((s) => ({ noteId: s.noteId, saveState: s.saveState })),
+  );
+  const item = useItemsStore((s) =>
+    noteId ? s.items.find((i) => i.id === noteId) : undefined,
+  );
   const text = item?.text ?? '';
   const has = item !== undefined;
   const mono = settings?.notes.mono ?? false;
@@ -34,7 +44,13 @@ export const NoteEditor = () => {
   }, [noteId]);
 
   const saveLabel =
-    saveState === 'saving' ? t('notes.saving') : saveState === 'saved' ? t('notes.saved_now') : item?.updatedAt ? t('notes.saved_at', { t: fmtTime(item.updatedAt, lang) }) : '';
+    saveState === 'saving'
+      ? t('notes.saving')
+      : saveState === 'saved'
+        ? t('notes.saved_now')
+        : item?.updatedAt
+          ? t('notes.saved_at', { t: fmtTime(item.updatedAt, lang) })
+          : '';
 
   return (
     <div className="pane">
@@ -42,20 +58,51 @@ export const NoteEditor = () => {
         <div className="pane-title" id="noteTitle">
           {has ? firstLineOf(text) || t('common.new_note') : t('common.notes')}
         </div>
-        <span className={`save-state${saveState === 'saving' ? ' saving' : ''}`} id="saveState">
+        <span
+          className={`save-state${saveState === 'saving' ? ' saving' : ''}`}
+          id="saveState"
+        >
           {has ? saveLabel : ''}
         </span>
         <div className="pane-actions nodrag">
-          <button type="button" className={`icon-btn${item?.pinned ? ' active' : ''}`} id="btnNotePin" title={t('common.pin')} disabled={!has} onClick={() => noteId && void togglePin([noteId])}>
+          <button
+            type="button"
+            className={`icon-btn${item?.pinned ? ' active' : ''}`}
+            id="btnNotePin"
+            title={t('common.pin')}
+            disabled={!has}
+            onClick={() => noteId && void togglePin([noteId])}
+          >
             <IconPin />
           </button>
-          <button type="button" className={`icon-btn${mono ? ' active' : ''}`} id="btnNoteMono" title={t('notes.mono_title')} disabled={!has} onClick={() => void saveSettings({ notes: { mono: !mono } })}>
+          <button
+            type="button"
+            className={`icon-btn${mono ? ' active' : ''}`}
+            id="btnNoteMono"
+            title={t('notes.mono_title')}
+            disabled={!has}
+            onClick={() => void saveSettings({ notes: { mono: !mono } })}
+          >
             <IconMono />
           </button>
-          <button type="button" className="icon-btn" id="btnNoteCopy" title={t('notes.copy_all')} disabled={!has} onClick={() => noteId && void copyNote(noteId)}>
+          <button
+            type="button"
+            className="icon-btn"
+            id="btnNoteCopy"
+            title={t('notes.copy_all')}
+            disabled={!has}
+            onClick={() => noteId && void copyNote(noteId)}
+          >
             <IconCopy />
           </button>
-          <button type="button" className="icon-btn danger" id="btnNoteDelete" title={t('common.delete')} disabled={!has} onClick={() => noteId && softDelete([noteId])}>
+          <button
+            type="button"
+            className="icon-btn danger"
+            id="btnNoteDelete"
+            title={t('common.delete')}
+            disabled={!has}
+            onClick={() => noteId && softDelete([noteId])}
+          >
             <IconTrash />
           </button>
         </div>
@@ -92,10 +139,25 @@ export const NoteEditor = () => {
       </div>
       <footer className="editor-foot">
         <span className="muted" id="editorStats">
-          {has && text ? t('notes.stats', { chars: text.length.toLocaleString(), lines: text.split('\n').length }) : ''}
+          {has && text
+            ? t('notes.stats', {
+                chars: text.length.toLocaleString(),
+                lines: text.split('\n').length,
+              })
+            : ''}
         </span>
-        <TagList id="noteTagList" inline tags={item?.tags ?? []} onRemove={(tag) => void removeTag(noteId, tag)} />
-        <TagInput id="noteTagInput" placeholder={t('notes.tag_ph')} disabled={!has} onAdd={(raw) => void addTag(noteId, raw)} />
+        <TagList
+          id="noteTagList"
+          inline
+          tags={item?.tags ?? []}
+          onRemove={(tag) => void removeTag(noteId, tag)}
+        />
+        <TagInput
+          id="noteTagInput"
+          placeholder={t('notes.tag_ph')}
+          disabled={!has}
+          onAdd={(raw) => void addTag(noteId, raw)}
+        />
       </footer>
     </div>
   );

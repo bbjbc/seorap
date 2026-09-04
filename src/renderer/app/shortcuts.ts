@@ -1,10 +1,10 @@
 // 전역 키보드·붙이기·창 생명주기 처리. 모달이 열려 있으면 Esc 만 받는다.
-import { api } from '../lib/api';
-import { blurActive, isTyping } from '../lib/dom';
-import { useBoardStore } from '../stores/board';
-import { useNotesStore } from '../stores/notes';
-import { topModal, useUiStore } from '../stores/ui';
-import { boardSearchHandle, copyCard, selectAllVisible } from '../features/board/actions';
+
+import {
+  boardSearchHandle,
+  copyCard,
+  selectAllVisible,
+} from '../features/board/actions';
 import { commitDelete, openAny, softDelete } from '../features/items/actions';
 import { flushNoteSave, leaveNote, newNote } from '../features/notes/actions';
 import { closeFind, findStep, openFind } from '../features/notes/find';
@@ -13,6 +13,11 @@ import { cancelPrompt } from '../features/prompt/actions';
 import { openSettings } from '../features/settings/actions';
 import { grabClipboard, setMode } from '../features/shell/actions';
 import { flushVaultSave, vaultSearchHandle } from '../features/vault/actions';
+import { api } from '../lib/api';
+import { blurActive, isTyping } from '../lib/dom';
+import { useBoardStore } from '../stores/board';
+import { useNotesStore } from '../stores/notes';
+import { topModal, useUiStore } from '../stores/ui';
 
 function closeTopModal(): void {
   const ui = useUiStore.getState();
@@ -83,7 +88,11 @@ function onKeyDown(e: KeyboardEvent): void {
     } else vaultSearchHandle.get()?.focus();
     return;
   }
-  if ((e.key === 'F3' || (mod && e.key === 'g')) && ui.mode === 'notes' && notes.find.open) {
+  if (
+    (e.key === 'F3' || (mod && e.key === 'g')) &&
+    ui.mode === 'notes' &&
+    notes.find.open
+  ) {
     e.preventDefault();
     findStep(e.shiftKey ? -1 : 1);
     return;
@@ -124,7 +133,8 @@ function onKeyDown(e: KeyboardEvent): void {
 }
 
 function onPaste(e: ClipboardEvent): void {
-  if (isTyping() || topModal() || useUiStore.getState().mode !== 'board') return;
+  if (isTyping() || topModal() || useUiStore.getState().mode !== 'board')
+    return;
   e.preventDefault();
   void grabClipboard();
 }

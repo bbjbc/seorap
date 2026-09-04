@@ -3,7 +3,16 @@ import { useState } from 'react';
 import { useT } from '../../lib/i18n';
 
 const MODIFIER_KEYS = new Set(['Control', 'Alt', 'Shift', 'Meta', 'OS']);
-const SPECIAL_KEYS = new Set(['Space', 'Tab', 'Enter', 'Home', 'End', 'PageUp', 'PageDown', 'Insert']);
+const SPECIAL_KEYS = new Set([
+  'Space',
+  'Tab',
+  'Enter',
+  'Home',
+  'End',
+  'PageUp',
+  'PageDown',
+  'Insert',
+]);
 
 /** 눌린 키 조합을 Electron accelerator 문자열로. 저장할 수 없는 조합이면 null. */
 export function acceleratorOf(e: React.KeyboardEvent): string | null {
@@ -13,7 +22,8 @@ export function acceleratorOf(e: React.KeyboardEvent): string | null {
   if (e.altKey) mods.push('Alt');
   if (e.shiftKey) mods.push('Shift');
   if (e.metaKey) mods.push('Super');
-  const k = e.key === ' ' ? 'Space' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
+  const k =
+    e.key === ' ' ? 'Space' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
   const isFn = /^F\d{1,2}$/.test(k);
   if (!(isFn || SPECIAL_KEYS.has(k) || k.length === 1)) return null;
   if (!mods.length && !isFn) return null;

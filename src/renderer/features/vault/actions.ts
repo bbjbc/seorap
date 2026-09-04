@@ -47,7 +47,13 @@ export async function selectSecret(id: string): Promise<void> {
     return;
   }
   const s = await api.vault.secret(x.id);
-  useVaultStore.getState().setDraft({ name: x.name, url: x.url, username: x.username, notes: x.notes, password: s.ok ? s.result : '' });
+  useVaultStore.getState().setDraft({
+    name: x.name,
+    url: x.url,
+    username: x.username,
+    notes: x.notes,
+    password: s.ok ? s.result : '',
+  });
   useVaultStore.getState().setSaveState('idle');
   touchVault();
 }
@@ -77,7 +83,13 @@ export async function flushVaultSave(): Promise<void> {
   const id = vault.id;
   const d = vault.draft;
   if (!id || !d) return;
-  const r = await api.vault.update(id, { name: d.name, url: d.url.trim(), username: d.username, password: d.password, notes: d.notes });
+  const r = await api.vault.update(id, {
+    name: d.name,
+    url: d.url.trim(),
+    username: d.username,
+    password: d.password,
+    notes: d.notes,
+  });
   const after = useVaultStore.getState();
   if (r.ok) {
     if (r.result) after.replaceEntry(r.result);
@@ -108,7 +120,10 @@ export async function deleteSelected(): Promise<void> {
   const vault = useVaultStore.getState();
   const x = vault.entries.find((y) => y.id === vault.id);
   if (!x) return;
-  const ok = await confirmDialog(t('vault.delete_title', { name: x.name || t('common.untitled') }), t('vault.delete_desc'));
+  const ok = await confirmDialog(
+    t('vault.delete_title', { name: x.name || t('common.untitled') }),
+    t('vault.delete_desc'),
+  );
   if (!ok) return;
   cancelVaultSave();
   await api.vault.remove(x.id);
@@ -117,7 +132,9 @@ export async function deleteSelected(): Promise<void> {
   await loadVaultList();
 }
 
-export async function copySelected(field: 'password' | 'username'): Promise<void> {
+export async function copySelected(
+  field: 'password' | 'username',
+): Promise<void> {
   await flushVaultSave();
   const id = useVaultStore.getState().id;
   if (!id) return;
@@ -137,7 +154,10 @@ export function openDraftUrl(): void {
 /** 설정의 생성 옵션 (길이 · 기호) */
 export function genOptions(): { length: number; symbols: boolean } {
   const v = useSettingsStore.getState().settings?.vault;
-  return { length: clampGenLength(v?.genLength ?? NaN), symbols: v?.genSymbols ?? true };
+  return {
+    length: clampGenLength(v?.genLength ?? NaN),
+    symbols: v?.genSymbols ?? true,
+  };
 }
 
 export async function generateIntoDraft(): Promise<void> {
@@ -166,7 +186,11 @@ export function touchVault(): void {
 }
 
 /** 잠금 화면 제출. 금고가 없으면 만들고, 있으면 연다. 실패하면 사용자에게 보일 문구를 돌려준다. */
-export async function submitLock(pw: string, pw2: string, acknowledged: boolean): Promise<string | null> {
+export async function submitLock(
+  pw: string,
+  pw2: string,
+  acknowledged: boolean,
+): Promise<string | null> {
   const vault = useVaultStore.getState();
   try {
     let r: Seorap.VaultResult<Seorap.VaultStatus>;
@@ -201,4 +225,5 @@ export function onVaultLocked(reason: string): void {
 }
 
 /** 새 비밀번호의 강도 (설정 화면에서 잠금 화면 만들 때) */
-export const passwordStrength = (pw: string): Promise<Seorap.Strength> => api.vault.strength(pw);
+export const passwordStrength = (pw: string): Promise<Seorap.Strength> =>
+  api.vault.strength(pw);

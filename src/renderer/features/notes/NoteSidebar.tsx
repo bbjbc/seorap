@@ -24,17 +24,31 @@ export const NoteSidebar = ({ active }: { active: boolean }) => {
   return (
     <aside className="side">
       <header className="viewbar drag">
-        <SearchBox id="noteSearch" value={text} placeholder={t('notes.search_ph')} onChange={setText} inputRef={noteSearchHandle.attach} />
+        <SearchBox
+          id="noteSearch"
+          value={text}
+          placeholder={t('notes.search_ph')}
+          onChange={setText}
+          inputRef={noteSearchHandle.attach}
+        />
         <button
           type="button"
           className={`icon-btn nodrag${manual ? ' active' : ''}`}
           id="btnNoteSort"
-          title={manual ? t('notes.sort_manual_title') : t('notes.sort_recent_title')}
+          title={
+            manual ? t('notes.sort_manual_title') : t('notes.sort_recent_title')
+          }
           onClick={toggleNoteSort}
         >
           <IconSort />
         </button>
-        <button type="button" className="icon-btn nodrag" id="btnNewNote" title={t('notes.new_title')} onClick={() => void newNote()}>
+        <button
+          type="button"
+          className="icon-btn nodrag"
+          id="btnNewNote"
+          title={t('notes.new_title')}
+          onClick={() => void newNote()}
+        >
           <IconPlus />
         </button>
       </header>
@@ -45,7 +59,11 @@ export const NoteSidebar = ({ active }: { active: boolean }) => {
             type="checkbox"
             id="optShowClipText"
             checked={settings?.notes.showClipboardText ?? false}
-            onChange={(e) => void saveSettings({ notes: { showClipboardText: e.target.checked } })}
+            onChange={(e) =>
+              void saveSettings({
+                notes: { showClipboardText: e.target.checked },
+              })
+            }
           />
           <span>{t('notes.show_clip')}</span>
         </label>

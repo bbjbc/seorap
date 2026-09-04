@@ -3,7 +3,11 @@ import { useT } from '../../../lib/i18n';
 import { saveSettings } from '../../../stores/settings';
 import { Row, Section } from '../rows';
 
-export const BoardSection = ({ settings: s }: { settings: Seorap.Settings }) => {
+export const BoardSection = ({
+  settings: s,
+}: {
+  settings: Seorap.Settings;
+}) => {
   const t = useT();
   return (
     <Section title={t('settings.board')}>

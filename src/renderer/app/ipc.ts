@@ -1,20 +1,21 @@
 // 메인 → 렌더러 이벤트 구독. 한 번만 설치하고, 스토어와 액션으로 흘려보낸다.
-import { api } from '../lib/api';
-import { useBoardStore } from '../stores/board';
-import { findItem, useItemsStore } from '../stores/items';
-import { useNotesStore } from '../stores/notes';
-import { useSettingsStore } from '../stores/settings';
-import { useUiStore } from '../stores/ui';
+
 import { openDetail, softDelete } from '../features/items/actions';
-import { evaluateStarNudge } from '../features/nudge/actions';
 import { newNote, openNote } from '../features/notes/actions';
 import { editorHandle } from '../features/notes/handles';
+import { evaluateStarNudge } from '../features/nudge/actions';
 import { flash } from '../features/overlays/actions';
 import { promptRename, promptTags } from '../features/prompt/item-prompts';
 import { openSettings } from '../features/settings/actions';
 import { setMode } from '../features/shell/actions';
 import { showUpdate } from '../features/update/actions';
 import { onVaultLocked, refreshVault } from '../features/vault/actions';
+import { api } from '../lib/api';
+import { useBoardStore } from '../stores/board';
+import { findItem, useItemsStore } from '../stores/items';
+import { useNotesStore } from '../stores/notes';
+import { useSettingsStore } from '../stores/settings';
+import { useUiStore } from '../stores/ui';
 
 export async function loadAllItems(): Promise<void> {
   useItemsStore.getState().setAll(await api.listItems());
@@ -35,8 +36,14 @@ function onItemsChanged(evt: Seorap.ItemsChangedEvent): void {
       const prev = findItem(evt.item.id);
       if (!prev) return;
       // 편집 중인 메모의 본문은 메인이 보낸 것으로 덮지 않는다. 타이핑 중 저장 응답이 돌아오며 글자가 되돌아가는 것을 막는다.
-      const keepText = useNotesStore.getState().noteId === evt.item.id && document.activeElement === editorHandle.get();
-      items.replace(keepText ? { ...evt.item, text: prev.text, truncated: prev.truncated } : evt.item);
+      const keepText =
+        useNotesStore.getState().noteId === evt.item.id &&
+        document.activeElement === editorHandle.get();
+      items.replace(
+        keepText
+          ? { ...evt.item, text: prev.text, truncated: prev.truncated }
+          : evt.item,
+      );
       return;
     }
     case 'remove': {
@@ -83,7 +90,8 @@ function onUiAction(msg: Seorap.UiAction): void {
 
 function onWindowShown(): void {
   const { mode } = useUiStore.getState();
-  if (mode === 'notes' && useNotesStore.getState().noteId) editorHandle.get()?.focus();
+  if (mode === 'notes' && useNotesStore.getState().noteId)
+    editorHandle.get()?.focus();
   if (mode === 'vault') void refreshVault();
 }
 
@@ -97,5 +105,7 @@ export function subscribeIpc(): () => void {
     api.vault.onLocked(({ reason }) => onVaultLocked(reason)),
     api.onUpdateAvailable(showUpdate),
   ];
-  return () => offs.forEach((off) => off());
+  return () => {
+    for (const off of offs) off();
+  };
 }

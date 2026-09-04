@@ -12,12 +12,16 @@ export interface NoteFilter {
   sort: Seorap.NoteSort;
 }
 
-const recent = (a: Item, b: Item): number => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt);
+const recent = (a: Item, b: Item): number =>
+  (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt);
 
 export function noteItems(items: readonly Item[], f: NoteFilter): Item[] {
   const q = f.query.trim().toLowerCase();
   const list = items.filter(
-    (it) => it.type === 'text' && (f.showClipboardText || it.note || it.id === f.noteId) && (!q || (it.text ?? '').toLowerCase().includes(q)),
+    (it) =>
+      it.type === 'text' &&
+      (f.showClipboardText || it.note || it.id === f.noteId) &&
+      (!q || (it.text ?? '').toLowerCase().includes(q)),
   );
   if (f.sort === 'manual') {
     // 순서가 없는(새) 메모는 맨 위에 최신순으로, 나머지는 사용자가 정한 순서대로.
@@ -27,19 +31,28 @@ export function noteItems(items: readonly Item[], f: NoteFilter): Item[] {
       if (b.order === undefined) return 1;
       return a.order - b.order;
     });
-  } else list.sort((a, b) => Number(b.pinned) - Number(a.pinned) || recent(a, b));
+  } else
+    list.sort((a, b) => Number(b.pinned) - Number(a.pinned) || recent(a, b));
   return list;
 }
 
-export type NoteRow = { kind: 'group'; label: string } | { kind: 'note'; item: Item };
+export type NoteRow =
+  | { kind: 'group'; label: string }
+  | { kind: 'note'; item: Item };
 
 /** 최신순일 때만 날짜 그룹 헤더를 끼워 넣는다. 직접 정렬에서는 헤더가 없다. */
-export function noteRows(list: readonly Item[], manual: boolean, lang: Lang): NoteRow[] {
+export function noteRows(
+  list: readonly Item[],
+  manual: boolean,
+  lang: Lang,
+): NoteRow[] {
   const rows: NoteRow[] = [];
   let lastGroup: string | null = null;
   for (const it of list) {
     if (!manual) {
-      const g = it.pinned ? lookup(lang, 'notes.group_pinned') : groupOf(it.updatedAt ?? it.createdAt, lang);
+      const g = it.pinned
+        ? lookup(lang, 'notes.group_pinned')
+        : groupOf(it.updatedAt ?? it.createdAt, lang);
       if (g !== lastGroup) {
         rows.push({ kind: 'group', label: g });
         lastGroup = g;

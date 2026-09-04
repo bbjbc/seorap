@@ -16,7 +16,14 @@ interface Props {
   onDragStart: (id: string) => void;
 }
 
-export const NoteListItem = ({ item: it, active, draggable, dragging, dropMark, onDragStart }: Props) => {
+export const NoteListItem = ({
+  item: it,
+  active,
+  draggable,
+  dragging,
+  dropMark,
+  onDragStart,
+}: Props) => {
   const t = useT();
   const lang = useLang();
   const ref = useRef<HTMLDivElement | null>(null);
@@ -28,7 +35,14 @@ export const NoteListItem = ({ item: it, active, draggable, dragging, dropMark, 
   const txt = (it.text ?? '').trim();
   const first = firstLineOf(txt);
   const snip = txt.slice(first.length).trim().replace(/\s+/g, ' ').slice(0, 80);
-  const cls = ['note-item', active && 'active', dragging && 'dragging', dropMark && `drop-${dropMark}`].filter(Boolean).join(' ');
+  const cls = [
+    'note-item',
+    active && 'active',
+    dragging && 'dragging',
+    dropMark && `drop-${dropMark}`,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
@@ -56,8 +70,12 @@ export const NoteListItem = ({ item: it, active, draggable, dragging, dropMark, 
         <span>{first || t('common.new_note')}</span>
       </div>
       <div className="n-sub">
-        <span className="n-snip">{snip || (first ? '' : t('notes.no_content'))}</span>
-        <span className="n-time">{fmtTime(it.updatedAt ?? it.createdAt, lang)}</span>
+        <span className="n-snip">
+          {snip || (first ? '' : t('notes.no_content'))}
+        </span>
+        <span className="n-time">
+          {fmtTime(it.updatedAt ?? it.createdAt, lang)}
+        </span>
       </div>
       {it.tags.length > 0 && (
         <div className="n-tags">

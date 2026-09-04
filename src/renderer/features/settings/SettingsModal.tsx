@@ -1,5 +1,5 @@
 // 설정 모달. 값 하나를 바꾸면 곧바로 메인에 저장되고, 돌아온 설정으로 다시 그려진다.
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { IconClose } from '../../components/icons';
 import { Modal } from '../../components/Modal';
 import { api } from '../../lib/api';
@@ -22,17 +22,30 @@ export const SettingsModal = () => {
   const open = useUiStore((s) => s.settingsOpen);
   const settings = useSettingsStore((s) => s.settings);
   const [stats, setStats] = useState<Seorap.Stats | null>(null);
-  const refreshStats = (): void => void api.getStats().then(setStats);
+  const refreshStats = useCallback(
+    (): void => void api.getStats().then(setStats),
+    [],
+  );
 
   useEffect(() => {
     if (open) refreshStats();
-  }, [open]);
+  }, [open, refreshStats]);
 
   return (
-    <Modal id="settings" open={open} onClose={closeSettings} cardClassName="settings-card">
+    <Modal
+      id="settings"
+      open={open}
+      onClose={closeSettings}
+      cardClassName="settings-card"
+    >
       <div className="detail-head">
         <h2>{t('settings.title')}</h2>
-        <button type="button" className="icon-btn" title={t('common.close')} onClick={closeSettings}>
+        <button
+          type="button"
+          className="icon-btn"
+          title={t('common.close')}
+          onClick={closeSettings}
+        >
           <IconClose />
         </button>
       </div>
@@ -44,7 +57,11 @@ export const SettingsModal = () => {
           <BoardSection settings={settings} />
           <NotesSection settings={settings} />
           <VaultSection settings={settings} />
-          <StorageSection settings={settings} stats={stats} onStatsStale={refreshStats} />
+          <StorageSection
+            settings={settings}
+            stats={stats}
+            onStatsStale={refreshStats}
+          />
           <UpdatesSection settings={settings} />
           <AboutSection />
         </div>

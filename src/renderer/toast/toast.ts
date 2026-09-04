@@ -5,7 +5,7 @@ const thumb = document.getElementById('thumb');
 
 if (el && text && thumb instanceof HTMLImageElement) {
   window.toast.onShow((p) => {
-    el.className = 'toast ' + (p.kind ?? 'ok');
+    el.className = `toast ${p.kind ?? 'ok'}`;
     text.textContent = p.text;
     if (p.thumb) {
       thumb.src = p.thumb;

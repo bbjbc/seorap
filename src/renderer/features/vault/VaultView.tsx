@@ -14,7 +14,13 @@ export const VaultView = () => {
     if (unlocked) touchVault();
   };
   return (
-    <section className="view" id="viewVault" hidden={mode !== 'vault'} onPointerDown={touch} onKeyDown={touch}>
+    <section
+      className="view"
+      id="viewVault"
+      hidden={mode !== 'vault'}
+      onPointerDown={touch}
+      onKeyDown={touch}
+    >
       <header className="viewbar drag">
         <div className="pane-title">{t('vault.title')}</div>
       </header>

@@ -11,10 +11,21 @@ interface Props<V extends string> {
   onChange: (value: V) => void;
 }
 
-export const SegControl = <V extends string>({ id, value, options, onChange }: Props<V>) => (
+export const SegControl = <V extends string>({
+  id,
+  value,
+  options,
+  onChange,
+}: Props<V>) => (
   <div className="seg" id={id}>
     {options.map((o) => (
-      <button key={o.value} type="button" data-v={o.value} className={o.value === value ? 'active' : ''} onClick={() => onChange(o.value)}>
+      <button
+        key={o.value}
+        type="button"
+        data-v={o.value}
+        className={o.value === value ? 'active' : ''}
+        onClick={() => onChange(o.value)}
+      >
         {o.label}
       </button>
     ))}

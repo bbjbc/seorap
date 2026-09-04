@@ -28,14 +28,25 @@ export const GenOptions = () => {
         step={1}
         value={len}
         onChange={(e) => setLen(Number(e.target.value))}
-        onPointerUp={() => void saveSettings({ vault: { genLength: clampGenLength(len) } })}
-        onKeyUp={() => void saveSettings({ vault: { genLength: clampGenLength(len) } })}
+        onPointerUp={() =>
+          void saveSettings({ vault: { genLength: clampGenLength(len) } })
+        }
+        onKeyUp={() =>
+          void saveSettings({ vault: { genLength: clampGenLength(len) } })
+        }
       />
       <output id="vGenLenOut" htmlFor="vGenLen">
         {len}
       </output>
       <label className="gen-sym">
-        <input type="checkbox" id="vGenSymbols" checked={vault?.genSymbols ?? true} onChange={(e) => void saveSettings({ vault: { genSymbols: e.target.checked } })} />
+        <input
+          type="checkbox"
+          id="vGenSymbols"
+          checked={vault?.genSymbols ?? true}
+          onChange={(e) =>
+            void saveSettings({ vault: { genSymbols: e.target.checked } })
+          }
+        />
         <span>{t('vault.gen_symbols')}</span>
       </label>
     </div>

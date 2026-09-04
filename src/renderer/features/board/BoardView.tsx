@@ -22,7 +22,14 @@ export const BoardView = () => {
   return (
     <section className="view" id="viewBoard" hidden={mode !== 'board'}>
       <header className="viewbar drag">
-        <SearchBox id="search" value={text} placeholder={t('board.search_ph')} onChange={setText} inputRef={boardSearchHandle.attach} clearable />
+        <SearchBox
+          id="search"
+          value={text}
+          placeholder={t('board.search_ph')}
+          onChange={setText}
+          inputRef={boardSearchHandle.attach}
+          clearable
+        />
         <TypeChips />
       </header>
       <Grid active={mode === 'board'} />

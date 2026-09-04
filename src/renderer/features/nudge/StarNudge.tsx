@@ -22,10 +22,21 @@ export const StarNudge = () => {
       >
         {t('nudge.star')}
       </button>
-      <button type="button" className="btn ghost small" id="nudgeLater" onClick={() => closeNudge({ snoozeUntil: Date.now() + SNOOZE_MS })}>
+      <button
+        type="button"
+        className="btn ghost small"
+        id="nudgeLater"
+        onClick={() => closeNudge({ snoozeUntil: Date.now() + SNOOZE_MS })}
+      >
         {t('nudge.later')}
       </button>
-      <button type="button" className="xbtn" id="nudgeNever" title={t('nudge.never')} onClick={() => closeNudge({ done: true })}>
+      <button
+        type="button"
+        className="xbtn"
+        id="nudgeNever"
+        title={t('nudge.never')}
+        onClick={() => closeNudge({ done: true })}
+      >
         ×
       </button>
     </div>

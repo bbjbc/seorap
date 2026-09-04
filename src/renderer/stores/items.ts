@@ -21,15 +21,23 @@ export const useItemsStore = create<ItemsState>()((set) => ({
   items: [],
   setAll: (items) => set({ items }),
   add: (item) =>
-    set((s) => (s.items.some((i) => i.id === item.id) ? s : { items: [item, ...s.items] })),
-  replace: (item) => set((s) => ({ items: s.items.map((i) => (i.id === item.id ? item : i)) })),
-  patch: (id, patch) => set((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
+    set((s) =>
+      s.items.some((i) => i.id === item.id) ? s : { items: [item, ...s.items] },
+    ),
+  replace: (item) =>
+    set((s) => ({ items: s.items.map((i) => (i.id === item.id ? item : i)) })),
+  patch: (id, patch) =>
+    set((s) => ({
+      items: s.items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+    })),
   remove: (ids) => {
     const gone = new Set(ids);
     set((s) => ({ items: s.items.filter((i) => !gone.has(i.id)) }));
   },
   restore: (back) =>
-    set((s) => ({ items: [...back, ...s.items].sort((a, b) => b.createdAt - a.createdAt) })),
+    set((s) => ({
+      items: [...back, ...s.items].sort((a, b) => b.createdAt - a.createdAt),
+    })),
 }));
 
 export const findItem = (id: string | null | undefined): Item | undefined =>

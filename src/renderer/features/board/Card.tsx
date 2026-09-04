@@ -42,7 +42,8 @@ export const Card = ({ item: it, selected, copySeq }: Props) => {
       return;
     }
     board.selectOnly(it.id);
-    const action = useSettingsStore.getState().settings?.board.clickAction ?? 'copy';
+    const action =
+      useSettingsStore.getState().settings?.board.clickAction ?? 'copy';
     if (action === 'copy') void copyCard(it.id);
     else openAny(it.id);
   };
@@ -64,14 +65,19 @@ export const Card = ({ item: it, selected, copySeq }: Props) => {
     fn();
   };
 
-  const dim = it.type === 'image' && it.width ? `${it.width}×${it.height ?? '?'}` : fmtSize(it.size);
+  const dim =
+    it.type === 'image' && it.width
+      ? `${it.width}×${it.height ?? '?'}`
+      : fmtSize(it.size);
 
   return (
     <div
       className={`card type-${it.type}${it.pinned ? ' pinned' : ''}${selected ? ' selected' : ''}`}
       data-id={it.id}
       draggable
-      title={it.type === 'text' ? t('board.card_tip_text') : t('board.card_tip')}
+      title={
+        it.type === 'text' ? t('board.card_tip_text') : t('board.card_tip')
+      }
       onClick={onClick}
       onDoubleClick={() => openAny(it.id)}
       onContextMenu={onContextMenu}
@@ -81,7 +87,14 @@ export const Card = ({ item: it, selected, copySeq }: Props) => {
       <div className="card-meta">
         <span>{fmtTime(it.createdAt, lang)}</span>
         {it.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="tag" data-tag={tag} onClick={(e) => stop(e, () => useBoardStore.getState().toggleTag(tag))}>
+          <span
+            key={tag}
+            className="tag"
+            data-tag={tag}
+            onClick={(e) =>
+              stop(e, () => useBoardStore.getState().toggleTag(tag))
+            }
+          >
             {tag}
           </span>
         ))}
@@ -91,13 +104,28 @@ export const Card = ({ item: it, selected, copySeq }: Props) => {
         <IconPin />
       </span>
       <div className="card-actions">
-        <button type="button" className="act-pin" title={it.pinned ? t('common.unpin') : t('common.pin')} onClick={(e) => stop(e, () => void togglePin([it.id]))}>
+        <button
+          type="button"
+          className="act-pin"
+          title={it.pinned ? t('common.unpin') : t('common.pin')}
+          onClick={(e) => stop(e, () => void togglePin([it.id]))}
+        >
           <IconPin />
         </button>
-        <button type="button" className="act-copy" title={t('common.copy')} onClick={(e) => stop(e, () => void copyCard(it.id))}>
+        <button
+          type="button"
+          className="act-copy"
+          title={t('common.copy')}
+          onClick={(e) => stop(e, () => void copyCard(it.id))}
+        >
           <IconCopy />
         </button>
-        <button type="button" className="del" title={t('common.delete')} onClick={(e) => stop(e, () => softDelete([it.id]))}>
+        <button
+          type="button"
+          className="del"
+          title={t('common.delete')}
+          onClick={(e) => stop(e, () => softDelete([it.id]))}
+        >
           <IconClose />
         </button>
       </div>
@@ -117,7 +145,11 @@ const CardBody = ({ item: it }: { item: Item }) => {
       const src = it.thumbUrl ?? it.fileUrl;
       return (
         <div className={`card-media${it.thumbUrl ? '' : ' contain'}`}>
-          {src ? <img src={src} decoding="async" alt="" /> : <div className="noimg">{t('board.no_preview')}</div>}
+          {src ? (
+            <img src={src} decoding="async" alt="" />
+          ) : (
+            <div className="noimg">{t('board.no_preview')}</div>
+          )}
         </div>
       );
     }

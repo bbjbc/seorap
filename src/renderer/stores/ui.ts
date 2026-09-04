@@ -85,12 +85,18 @@ export const useUiStore = create<UiState>()((set) => ({
   openDetail: (id) => set({ detailId: id }),
   closeDetail: () => set({ detailId: null }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
-  setSwitcherOpen: (switcherOpen) => set(switcherOpen ? { switcherOpen, switcherQuery: '' } : { switcherOpen }),
+  setSwitcherOpen: (switcherOpen) =>
+    set(switcherOpen ? { switcherOpen, switcherQuery: '' } : { switcherOpen }),
   setSwitcherQuery: (switcherQuery) => set({ switcherQuery }),
   setPrompt: (prompt) => set({ prompt }),
-  showFlash: (text) => set((s) => ({ flash: { text, seq: (s.flash?.seq ?? 0) + 1 } })),
+  showFlash: (text) =>
+    set((s) => ({ flash: { text, seq: (s.flash?.seq ?? 0) + 1 } })),
   setPendingDelete: (pendingDelete) => set({ pendingDelete }),
-  setNudge: (visible) => set((s) => ({ nudgeVisible: visible, nudgeShownThisSession: s.nudgeShownThisSession || visible })),
+  setNudge: (visible) =>
+    set((s) => ({
+      nudgeVisible: visible,
+      nudgeShownThisSession: s.nudgeShownThisSession || visible,
+    })),
   setUpdate: (update) => set({ update }),
   setDropText: (dropText) => set({ dropText }),
 }));
