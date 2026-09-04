@@ -37,8 +37,38 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
   const js = (code: string): Promise<unknown> => win.webContents.executeJavaScript(code, true);
   const log = (...a: unknown[]): void => console.log('[test]', ...a);
   const failures: string[] = [];
+
+  /**
+   * cond 가 참을 돌려줄 때까지 폴링한다. 고정 sleep 은 빠른 머신에서는 낭비이고 느린
+   * 머신에서는 부족해서 테스트가 흔들렸다. 실패하면 마지막으로 본 값을 메시지에 담는다.
+   */
+  const waitFor = async <T>(label: string, cond: () => T | Promise<T>, timeout = 8000): Promise<T> => {
+    const deadline = Date.now() + timeout;
+    let last: unknown = '(not evaluated)';
+    for (;;) {
+      try {
+        const v = await cond();
+        if (v) return v;
+        last = v;
+      } catch (err) {
+        last = err instanceof Error ? err.message : String(err);
+      }
+      if (Date.now() >= deadline) throw new Error(`timed out waiting for ${label} — last: ${JSON.stringify(last)}`);
+      await sleep(40);
+    }
+  };
+
+  /** get() 이 want 와 같아질 때까지 기다린다. 다르면 마지막 값을 보여 준다. */
+  const waitEqual = async <T>(label: string, get: () => T | Promise<T>, want: T): Promise<void> => {
+    const json = JSON.stringify(want);
+    await waitFor(`${label} to equal ${json}`, async () => JSON.stringify(await get()) === json);
+  };
+
   const check = async (name: string, fn: () => void | Promise<void>): Promise<void> => {
     try {
+      // 앞 테스트가 열어 둔 모달을 닫는다. 남아 있으면 elementFromPoint 가 백드롭을
+      // 집고, 스타 배너는 모달이 열린 동안 뜨지 않아 엉뚱한 테스트가 실패한다.
+      await js('__seorap.resetUi()');
       await fn();
       log('PASS', name);
     } catch (err) {
@@ -46,7 +76,10 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
       log('FAIL', name, '-', err instanceof Error ? err.message : String(err));
     }
   };
-  await sleep(800);
+
+  // 렌더러 부팅이 끝나기를 기다린다. 부팅 마지막의 setMode(lastMode) 가 테스트 도중에
+  // 끼어들면 모드가 되돌아가고, 그러면 목록 렌더가 멈춰 여러 테스트가 한꺼번에 깨졌다.
+  await waitFor('renderer boot', () => js('!!(window.__seorap && __seorap.booted && __seorap.booted())'), 20000);
 
   await check('clipboard text → item', async () => {
     await clipboard.writeText(`클립보드 테스트 문장 ${Date.now()}`);
@@ -97,9 +130,9 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
   await check('note autosave through editor', async () => {
     await js(`__seorap.setMode('notes')`);
     await js(`__seorap.newNote()`);
-    await sleep(300);
+    const newId = String(await waitFor('note created', () => js('__seorap.noteId()')));
     await js(`__seorap.typeIntoEditor('자동 저장 테스트\\n둘째 줄')`);
-    await sleep(900);
+    await waitFor('autosave to land', () => store.get(newId)?.title === '자동 저장 테스트');
     const id = await js('__seorap.noteId()');
     assert(typeof id === 'string');
     const it = store.get(id);
@@ -114,7 +147,7 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     const id = await js('__seorap.noteId()');
     assert(typeof id === 'string');
     await js(`__seorap.setMode('board')`);
-    await sleep(300);
+    await waitFor('board rendered', () => js("document.querySelectorAll('#grid .card').length > 0"));
     const onBoard = await js(`document.querySelectorAll('#grid .card[data-id="${id}"]').length`);
     assert.strictEqual(onBoard, 0, 'note card must not render on board');
     const clip = store.items.find((i) => i.type === 'text' && !i.note);
@@ -122,12 +155,12 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     const clipOnBoard = await js(`document.querySelectorAll('#grid .card[data-id="${clip.id}"]').length`);
     assert.strictEqual(clipOnBoard, 1, 'clipboard text still renders on board');
     await js(`__seorap.setMode('notes')`);
-    await sleep(200);
+    await waitFor('note list rendered', () => js("document.querySelectorAll('#noteList .note-item').length > 0"));
   });
 
   await check('Ctrl+F finds inside the open note, not the list', async () => {
     await js(`__seorap.typeIntoEditor('사과 바나나 사과\\n포도 사과')`);
-    await sleep(200);
+    await waitFor('editor filled', () => js("document.getElementById('editor').value.includes('사과')"));
     const r = (await js(`__seorap.findInNote('사과')`)) as { open: boolean; count: number; index: number; selStart: number; selEnd: number };
     assert(r.open, 'find bar open');
     assert.strictEqual(r.count, 3, 'three matches');
@@ -138,7 +171,8 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     await js(`__seorap.closeFind()`);
     assert.strictEqual(await js(`document.getElementById('findBar').hidden`), true);
     await js(`__seorap.typeIntoEditor('자동 저장 테스트\\n둘째 줄')`);
-    await sleep(700);
+    const openId = String(await js('__seorap.noteId()'));
+    await waitFor('note text restored', () => store.get(openId)?.title === '자동 저장 테스트');
   });
 
   await check('note list drag reorder switches to manual sort and persists order', async () => {
@@ -146,13 +180,10 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     const b = (await store.addText('정렬 B', { source: 'manual', note: true }))?.item;
     const c = (await store.addText('정렬 C', { source: 'manual', note: true }))?.item;
     assert(a && b && c);
-    await sleep(400);
-    const before = (await js('__seorap.noteListIds()')) as string[];
-    assert.deepStrictEqual(before.slice(0, 3), [c.id, b.id, a.id], 'recent first');
+    // 목록에 세 메모가 최신순으로 그려질 때까지 기다린다 (고정 sleep 은 느린 머신에서 부족했다)
+    await waitEqual('recent first', async () => ((await js('__seorap.noteListIds()')) as string[]).slice(0, 3), [c.id, b.id, a.id]);
     await js(`__seorap.moveNote(${JSON.stringify(a.id)}, ${JSON.stringify(c.id)})`); // A 를 C 앞으로
-    await sleep(500);
-    const after = (await js('__seorap.noteListIds()')) as string[];
-    assert.deepStrictEqual(after.slice(0, 3), [a.id, c.id, b.id], `manual order applied: ${after.join(',')}`);
+    await waitEqual('manual order applied', async () => ((await js('__seorap.noteListIds()')) as string[]).slice(0, 3), [a.id, c.id, b.id]);
     const s = (await js('scrap.getSettings().then(r => r.settings.notes.sort)')) as string;
     assert.strictEqual(s, 'manual');
     assert.strictEqual(store.get(a.id)?.order, 0);
@@ -160,18 +191,17 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     assert.strictEqual(store.get(b.id)?.order, 2);
     assert.strictEqual(await js(`document.querySelectorAll('#noteList .group').length`), 0, 'no group headers in manual mode');
     await js(`scrap.setSettings({ notes: { sort: 'recent' } })`);
-    await sleep(300);
+    await waitFor('sort back to recent', () => js("scrap.getSettings().then(r => r.settings.notes.sort === 'recent')"));
     await store.remove([a.id, b.id, c.id]);
-    await sleep(300);
+    await waitFor('notes removed', () => !store.get(a.id) && !store.get(b.id) && !store.get(c.id));
   });
 
   await check('empty note is discarded on leave', async () => {
     await js(`__seorap.newNote()`);
-    await sleep(300);
-    const id = await js('__seorap.noteId()');
+    const id = await waitFor('note created', () => js('__seorap.noteId()'));
     assert(typeof id === 'string' && store.get(id), 'created');
     await js(`__seorap.setMode('board')`);
-    await sleep(300);
+    await waitFor('empty note discarded', () => !store.get(id));
     assert(!store.get(id), 'deleted after leaving');
   });
 
@@ -202,11 +232,26 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
   await check('vault open state does not block clicks on the rail', async () => {
     await js(`__seorap.setMode('vault')`);
     await js(`__seorap.refreshVault()`);
-    await sleep(500);
-    const hit = await js(
-      `(() => { const el = document.elementFromPoint(33, 140); return (el && el.closest('.rail-btn') && el.closest('.rail-btn').dataset.mode) || (el && el.id) || (el && el.className) || 'none'; })()`,
+    await waitFor(
+      'vault panel rendered',
+      () =>
+        js(
+          "document.getElementById('app').dataset.mode === 'vault' && document.querySelectorAll('#vaultList .note-item, #vaultList .none').length > 0",
+        ),
     );
-    assert.strictEqual(hit, 'notes', `rail button expected under (33,140), got ${String(hit)}`);
+    // 좌표는 버튼 자기 사각형에서 구한다. 예전에는 (33,140) 을 박아 두어 레일 레이아웃이
+    // 바뀌거나 모달이 떠 있으면 엉뚱한 것을 집고 실패했다.
+    const hit = await js(
+      `(() => {
+        const btn = document.querySelector('.rail-btn[data-mode="notes"]');
+        if (!btn) return 'no-button';
+        const r = btn.getBoundingClientRect();
+        const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        const own = el && el.closest('.rail-btn');
+        return (own && own.dataset.mode) || (el && el.id) || (el && el.className) || 'none';
+      })()`,
+    );
+    assert.strictEqual(hit, 'notes', `notes rail button must be on top of its own center, got ${String(hit)}`);
     const paneHit = await js(`(() => { const el = document.elementFromPoint(700, 400); return el ? el.className : 'none'; })()`);
     assert(!String(paneHit).includes('editor-empty'), 'empty-state panel must not receive pointer events');
     await js(`__seorap.setMode('board')`);
@@ -218,9 +263,10 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     const r = await js(`scrap.vault.copy(${JSON.stringify(e.id)}, 'password')`);
     assert(isRecord(r) && r['ok'] === true && r['result'] === true, 'copy ok');
     assert.strictEqual(await clipboard.readText(), 'secret-value-1');
-    await sleep(5600);
+    await waitFor('clipboard cleared', async () => (await clipboard.readText()) !== 'secret-value-1', 12000);
     assert.notStrictEqual(await clipboard.readText(), 'secret-value-1', 'should be cleared');
     vault.remove(e.id);
+    await js(`scrap.setSettings({ vault: { clipboardClearSeconds: 30 } })`);
   });
 
   await check('cleanup removes only old unpinned', async () => {
@@ -255,21 +301,30 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
   await check('auto-collect watcher picks up new clipboard text', async () => {
     await js(`scrap.setSettings({ autoCollect: true })`);
     await sleep(1200);
+    // 앞선 비밀번호 복사가 watcher.ignore 창을 남겼을 수 있다. 그 창 안에서 바뀐 내용은
+    // 수집되지 않고 기준점으로 흡수되므로, 매번 다른 내용을 써서 창이 지나가면 잡히게 한다.
     const marker = `자동 수집 ${Date.now()}`;
-    await clipboard.writeText(marker);
-    await sleep(2500);
-    assert(store.items.some((i) => i.text === marker), 'collected');
+    let attempt = 0;
+    await waitFor(
+      'clipboard text collected',
+      async () => {
+        await clipboard.writeText(`${marker} #${attempt++}`);
+        await sleep(900);
+        return store.items.some((i) => (i.text ?? '').startsWith(marker));
+      },
+      15000,
+    );
     await js(`scrap.setSettings({ autoCollect: false })`);
   });
 
   await check('star nudge appears once after 7 days and respects dismissal', async () => {
     await js(`scrap.setSettings({ installedAt: Date.now() - 8 * 86400e3, starNudge: { done: false, snoozeUntil: 0 } })`);
     await js(`__seorap.setMode('board')`);
-    await sleep(200);
+    await waitFor('installedAt applied', () => js('__seorap.starNudgeState().installedAt < Date.now() - 7 * 86400e3'));
     await js(`__seorap.evaluateStarNudge()`);
     assert.strictEqual(await js('__seorap.starNudgeVisible()'), true, 'nudge should show');
     await js(`document.getElementById('nudgeNever').click()`);
-    await sleep(300);
+    await waitFor('nudge hidden', () => js('__seorap.starNudgeVisible() === false'));
     assert.strictEqual(await js('__seorap.starNudgeVisible()'), false, 'nudge hidden after dismiss');
     const r = await js('scrap.getSettings().then(r => r.settings.starNudge.done)');
     assert.strictEqual(r, true, 'dismissal persisted');
@@ -290,7 +345,7 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
 
   await check('language switch re-renders static and dynamic strings', async () => {
     await js(`scrap.setSettings({ language: 'en' })`);
-    await sleep(400);
+    await waitFor('en applied', () => js("document.documentElement.lang === 'en'"));
     assert.strictEqual(await js(`document.documentElement.lang`), 'en');
     assert.strictEqual(await js(`document.getElementById('search').placeholder`), 'Search (Ctrl+F)');
     assert.strictEqual(await js(`document.querySelector('.rail-btn[data-mode="board"] span').textContent`), 'Board');
@@ -300,7 +355,7 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     // 메인 프로세스 문자열도 같은 사전을 쓴다
     await assert.rejects(store.moveTo(path.join(store.dir, 'inner')), /inside the current one/);
     await js(`scrap.setSettings({ language: 'ko' })`);
-    await sleep(400);
+    await waitFor('ko applied', () => js("document.documentElement.lang === 'ko'"));
     assert.strictEqual(await js(`document.getElementById('search').placeholder`), '검색 (Ctrl+F)');
     assert.strictEqual(await js(`document.querySelector('.rail-btn[data-mode="board"] span').textContent`), '보드');
     await assert.rejects(store.moveTo(path.join(store.dir, 'inner')), /현재 폴더 안쪽/);

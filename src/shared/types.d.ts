@@ -355,6 +355,7 @@ declare namespace Seorap {
     noteId(): string | null;
     typeIntoEditor(text: string): void;
     starNudgeVisible(): boolean;
+    starNudgeState(): { visible: boolean; shownThisSession: boolean; mode: Mode; modal: string | null; items: number; installedAt: number | null; done: boolean | null; snoozeUntil: number | null };
     evaluateStarNudge(): void;
     findInNote(q: string): { open: boolean; count: number; index: number; selStart: number; selEnd: number };
     closeFind(): void;
@@ -362,6 +363,10 @@ declare namespace Seorap {
     moveNote(id: string, beforeId: string | null): Promise<void>;
     showUpdate(info: UpdateInfo): void;
     updateVisible(): boolean;
+    /** 부팅 시퀀스(설정 로드 → loadAll → setMode(lastMode))가 끝났는지 */
+    booted(): boolean;
+    /** 테스트 간 UI 상태 초기화: 열린 모달을 모두 닫는다 */
+    resetUi(): void;
   }
 }
 

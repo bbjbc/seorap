@@ -35,9 +35,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # 클립보드·창을 실제로 띄우는 테스트라 러너 환경에 따라 흔들릴 수 있어 실패해도 빌드를 막지 않는다.
+      # 클립보드·창을 실제로 띄우는 테스트다. 예전에는 흔들려서 continue-on-error 로 덮어
+      # 두었는데, 그 탓에 실제 경쟁 조건이 오래 방치됐다. 지금은 고정 sleep 대신 조건을
+      # 기다리므로 실패하면 진짜 회귀로 보고 빌드를 막는다.
       - run: npm test
-        continue-on-error: true
 
   build:
     name: Package (unpacked)

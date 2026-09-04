@@ -19,6 +19,9 @@
   const select = (sel: string): HTMLSelectElement => $<HTMLSelectElement>(sel);
   const button = (sel: string): HTMLButtonElement => $<HTMLButtonElement>(sel);
 
+  // 부팅 시퀀스가 끝났는지. 테스트가 이걸 기다린다 (아래 __seorap.booted).
+  let booted = false;
+
   // 비밀번호 생성 길이 범위. index.html 의 #vGenLen min/max, vault.ts 의 GEN_*_LENGTH 와 같아야 한다.
   const GEN_MIN = 8;
   const GEN_MAX = 64;
@@ -2245,6 +2248,16 @@
       el.editor.dispatchEvent(new Event('input'));
     },
     starNudgeVisible: () => !nudge.el.hidden,
+    starNudgeState: () => ({
+      visible: !nudge.el.hidden,
+      shownThisSession: nudge.shownThisSession,
+      mode: state.mode,
+      modal: anyModalOpen()?.id ?? null,
+      items: state.items.length,
+      installedAt: state.settings?.installedAt ?? null,
+      done: state.settings?.starNudge.done ?? null,
+      snoozeUntil: state.settings?.starNudge.snoozeUntil ?? null,
+    }),
     evaluateStarNudge,
     findInNote: (q) => {
       openFind();
@@ -2258,6 +2271,11 @@
     moveNote: (id, beforeId) => moveNote(id, beforeId, false),
     showUpdate,
     updateVisible: () => !railUpdate.hidden,
+    booted: () => booted,
+    // 모달만 닫는다. 모드는 테스트가 서로 이어받는 값이라 건드리지 않는다.
+    resetUi: () => {
+      for (const m of [el.detail, el.settings, el.prompt, el.switcher]) closeModal(m);
+    },
   };
 
   // =====================================================================
@@ -2272,6 +2290,7 @@
     setMode(r.settings.lastMode);
     await renderEditor();
     el.vaultDot.hidden = !(await api.vault.status()).unlocked;
+    booted = true;
     window.setInterval(() => {
       if (state.mode !== 'board') return;
       for (const s of $$('.card-meta > span:first-child', el.grid)) {
