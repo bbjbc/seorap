@@ -1,5 +1,6 @@
-// 서랍 렌더러. 번들러 없이 <script src="app.js"> 로 로드되는 단일 스크립트.
-// 타입 계약은 src/shared/types.d.ts (전역 Seorap 네임스페이스).
+// 서랍 렌더러. electron-vite 가 번들한다. 타입 계약은 src/shared/types.d.ts (전역 Seorap 네임스페이스).
+import { lookup, resolveLang, type Lang, type LocaleKey } from '../shared/locales';
+
 (() => {
   const api = window.scrap;
 
@@ -145,11 +146,11 @@
   const esc = (s: string | number | null | undefined): string => String(s ?? '').replace(/[&<>"']/g, (c) => ESC[c] ?? c);
 
   // ---------- 언어 ----------
-  // 사전은 ../shared/locales.js (전역 SEORAP_LOCALES). 마크업은 한국어로 쓰고 시작할 때 data-i18n* 을 현재 언어로 바꾼다.
-  let lang: SeorapLang = 'ko';
+  // 사전은 ../shared/locales. 마크업은 한국어로 쓰고 시작할 때 data-i18n* 을 현재 언어로 바꾼다.
+  let lang: Lang = 'ko';
   let appVersion = '';
-  function t(key: SeorapLocaleKey, vars?: Record<string, string | number>): string {
-    return seorapFormat(SEORAP_LOCALES[lang][key] ?? SEORAP_LOCALES.ko[key] ?? key, vars);
+  function t(key: LocaleKey, vars?: Record<string, string | number>): string {
+    return lookup(lang, key, vars);
   }
   function monthName(d: Date, style: 'short' | 'long' = 'short'): string {
     return new Intl.DateTimeFormat(lang === 'ko' ? 'ko-KR' : 'en-US', { month: style }).format(d);
@@ -157,7 +158,7 @@
   function applyI18n(): void {
     document.documentElement.lang = lang;
     document.title = t('app.name');
-    const key = (e: HTMLElement, attr: string): SeorapLocaleKey => (e.dataset[attr] ?? '') as SeorapLocaleKey;
+    const key = (e: HTMLElement, attr: string): LocaleKey => (e.dataset[attr] ?? '') as LocaleKey;
     for (const e of $$('[data-i18n]')) e.textContent = t(key(e, 'i18n'));
     for (const e of $$('[data-i18n-html]')) e.innerHTML = t(key(e, 'i18nHtml'));
     for (const e of $$('[data-i18n-title]')) e.title = t(key(e, 'i18nTitle'));
@@ -2063,7 +2064,7 @@
   function applySettingsToUi(): void {
     const s = state.settings;
     if (!s) return;
-    const nextLang = seorapResolveLang(s.language, navigator.language);
+    const nextLang = resolveLang(s.language, navigator.language);
     if (nextLang !== lang || document.documentElement.lang !== nextLang) {
       lang = nextLang;
       applyI18n();

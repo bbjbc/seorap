@@ -24,6 +24,7 @@ import * as cb from './clipboard';
 import { checkForUpdate } from './update';
 import { t, setLanguage } from './i18n';
 
+// out/main 기준. 개발 중에는 저장소의 assets/, 패키지에서는 app.asar 안의 assets/ (electron-builder files 참고).
 const ASSETS = path.join(__dirname, '..', '..', 'assets');
 const ICON_ICO = path.join(ASSETS, 'icon.ico');
 const ICON_PNG = path.join(ASSETS, 'icon.png');
@@ -181,7 +182,7 @@ function createWindow(): BrowserWindow {
     titleBarStyle: 'hidden',
     titleBarOverlay: { color: '#111114', symbolColor: '#c9c9cf', height: 44 },
     webPreferences: {
-      preload: path.join(__dirname, '..', 'preload.js'),
+      preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
@@ -189,7 +190,7 @@ function createWindow(): BrowserWindow {
     },
   });
   win = w;
-  void w.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+  void loadRenderer(w, 'index.html');
   w.on('close', (e) => {
     if (quitting) return;
     e.preventDefault();
@@ -207,6 +208,13 @@ function createWindow(): BrowserWindow {
     return { action: 'deny' };
   });
   return w;
+}
+
+/** 렌더러 페이지를 연다. `electron-vite dev` 로 띄웠을 때는 HMR 개발 서버에서, 그 외에는 out/renderer 에서. */
+function loadRenderer(w: BrowserWindow, page: string): Promise<void> {
+  const devUrl = process.env['ELECTRON_RENDERER_URL'];
+  if (!app.isPackaged && devUrl) return w.loadURL(`${devUrl}/${page}`);
+  return w.loadFile(path.join(__dirname, '..', 'renderer', page));
 }
 
 function saveBounds(): void {
@@ -250,11 +258,11 @@ function createToast(): BrowserWindow {
     movable: false,
     show: false,
     hasShadow: false,
-    webPreferences: { preload: path.join(__dirname, '..', 'toast', 'preload.js'), contextIsolation: true },
+    webPreferences: { preload: path.join(__dirname, '..', 'preload', 'toast.js'), contextIsolation: true },
   });
   t.setAlwaysOnTop(true, 'screen-saver');
   t.setIgnoreMouseEvents(true);
-  void t.loadFile(path.join(__dirname, '..', 'toast', 'toast.html'));
+  void loadRenderer(t, 'toast/toast.html');
   return t;
 }
 

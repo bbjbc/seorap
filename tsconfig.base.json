@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node10",
-    "rootDir": ".",
-    "outDir": "out",
-    "sourceMap": false,
-    "declaration": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
 

@@ -18,7 +18,7 @@ const result = spawnSync(electronPath, ['.'], {
     ...process.env,
     SEORAP_USER_DATA: path.join(tmp, 'userdata'),
     SEORAP_DATA_DIR: path.join(tmp, 'data'),
-    SEORAP_DEBUG_SCRIPT: path.join(root, 'out', 'scripts', 'dev-functional.js'),
+    SEORAP_DEBUG_SCRIPT: path.join(root, 'out', 'main', 'dev-functional.js'),
   },
   timeout: 5 * 60 * 1000,
 });

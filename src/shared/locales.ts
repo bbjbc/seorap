@@ -1,5 +1,4 @@
-// UI 문자열 사전. 렌더러는 <script> 로, 메인은 require 로 읽는다 (둘 다 번들러 없이).
-// 모듈이 아닌 전역 스크립트라서 import/export 를 쓰지 않고 globalThis 에 올린다.
+// UI 문자열 사전. 메인(i18n.ts)과 렌더러(lib/i18n.ts)가 같은 모듈을 import 한다.
 // 새 문자열은 SEORAP_KO 에 먼저 넣는다. SEORAP_EN 은 같은 키를 모두 가져야 컴파일된다.
 // {n}, {name} 같은 자리표시자는 t(key, { n, name }) 로 채운다.
 
@@ -325,10 +324,10 @@ const SEORAP_KO = {
   'vault.err_wrong_current': '현재 마스터 비밀번호가 맞지 않아요.',
 };
 
-type SeorapLocaleKey = keyof typeof SEORAP_KO;
-type SeorapLang = 'ko' | 'en';
+export type LocaleKey = keyof typeof SEORAP_KO;
+export type Lang = 'ko' | 'en';
 
-const SEORAP_EN: Record<SeorapLocaleKey, string> = {
+const SEORAP_EN: Record<LocaleKey, string> = {
   'app.name': 'Seorap',
   'app.name_full': 'Seorap (서랍)',
   'common.ok': 'OK',
@@ -636,22 +635,21 @@ const SEORAP_EN: Record<SeorapLocaleKey, string> = {
   'vault.err_wrong_current': 'The current master password is wrong.',
 };
 
-const SEORAP_LOCALES: Record<SeorapLang, Record<SeorapLocaleKey, string>> = { ko: SEORAP_KO, en: SEORAP_EN };
-
-/** 렌더러에서는 위 const 가 그대로 전역이고, 메인(Node)에서는 require 뒤 globalThis 로 꺼내 쓴다. */
-(globalThis as unknown as { SEORAP_LOCALES: typeof SEORAP_LOCALES }).SEORAP_LOCALES = SEORAP_LOCALES;
+export const LOCALES: Record<Lang, Record<LocaleKey, string>> = { ko: SEORAP_KO, en: SEORAP_EN };
 
 /** 'system' 은 OS 언어를 따른다. 한국어가 아니면 영어. */
-function seorapResolveLang(setting: string | undefined, systemLocale: string): SeorapLang {
+export function resolveLang(setting: string | undefined, systemLocale: string): Lang {
   if (setting === 'ko' || setting === 'en') return setting;
   return systemLocale.toLowerCase().startsWith('ko') ? 'ko' : 'en';
 }
 
 /** {name} 자리표시자를 채운다. 없는 키는 키 이름을 그대로 보여 줘서 눈에 띄게 한다. */
-function seorapFormat(template: string, vars?: Record<string, string | number>): string {
+export function format(template: string, vars?: Record<string, string | number>): string {
   if (!vars) return template;
   return template.replace(/\{(\w+)\}/g, (m: string, k: string) => (k in vars ? String(vars[k]) : m));
 }
 
-(globalThis as unknown as { seorapResolveLang: typeof seorapResolveLang; seorapFormat: typeof seorapFormat }).seorapResolveLang = seorapResolveLang;
-(globalThis as unknown as { seorapResolveLang: typeof seorapResolveLang; seorapFormat: typeof seorapFormat }).seorapFormat = seorapFormat;
+/** 사전에서 문자열을 꺼낸다. 없는 키는 한국어 → 키 이름 순으로 대체한다. */
+export function lookup(lang: Lang, key: LocaleKey, vars?: Record<string, string | number>): string {
+  return format(LOCALES[lang][key] ?? LOCALES.ko[key] ?? key, vars);
+}

@@ -3,7 +3,7 @@
   "productName": "Seorap",
   "version": "0.2.0",
   "description": "서랍 (Seorap): 이미지, 글, 링크, 파일을 잠시 넣어두는 Windows 트레이 앱. 자동 저장 메모와 마스터 비밀번호 금고 포함.",
-  "main": "out/src/main/main.js",
+  "main": "out/main/index.js",
   "author": "bbjbc",
   "license": "MIT",
   "private": true,
@@ -16,15 +16,16 @@
     "url": "https://github.com/bbjbc/seorap/issues"
   },
   "scripts": {
-    "compile": "tsc -b && node out/scripts/copy-static.js",
+    "compile": "electron-vite build",
+    "dev": "electron-vite dev",
     "start": "npm run compile && electron .",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
     "check": "npm run typecheck && npm run lint",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
-    "test:e2e": "npm run compile && node out/scripts/run-tests.js",
-    "icons": "npm run compile && electron out/scripts/gen-icons.js",
+    "test:e2e": "npm run compile && node out/main/run-tests.js",
+    "icons": "npm run compile && electron out/main/gen-icons.js",
     "build": "npm run compile && electron-builder --win",
     "build:dir": "npm run compile && electron-builder --win --dir",
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
@@ -33,10 +34,12 @@
     "@types/node": "^22.20.1",
     "electron": "^44.1.1",
     "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
     "eslint": "^10.9.1",
     "globals": "^17.12.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.69.0",
+    "vite": "^7.3.6",
     "vitest": "^5.0.0"
   },
   "build": {
@@ -47,6 +50,9 @@
     },
     "files": [
       "out/**/*",
+      "!out/main/{dev-functional,debug-shots,gen-icons,run-tests}.js",
+      "assets/icon.ico",
+      "assets/icon.png",
       "package.json"
     ],
     "win": {

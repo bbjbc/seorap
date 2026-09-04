@@ -1,6 +1,7 @@
 // 언어 해석과 문자열 조회. 사전은 src/shared/locales.ts 를 그대로 쓴다.
 import { describe, it, expect, beforeEach } from 'vitest';
 import { setLanguage, currentLanguage, t } from '../../src/main/i18n';
+import { LOCALES, type LocaleKey } from '../../src/shared/locales';
 
 beforeEach(() => {
   setLanguage('ko', 'ko-KR');
@@ -34,12 +35,11 @@ describe('t', () => {
     expect(t('vault.err_wait')).toContain('{s}');
   });
   it('falls back to the key itself so a missing string is noticeable, not blank', () => {
-    expect(t('no.such.key' as SeorapLocaleKey)).toBe('no.such.key');
+    expect(t('no.such.key' as LocaleKey)).toBe('no.such.key');
   });
   it('has every Korean key in English too (the type guarantees it, this guards the runtime table)', () => {
-    const g = globalThis as unknown as { SEORAP_LOCALES: Record<'ko' | 'en', Record<string, string>> };
-    const ko = Object.keys(g.SEORAP_LOCALES.ko);
-    const en = new Set(Object.keys(g.SEORAP_LOCALES.en));
+    const ko = Object.keys(LOCALES.ko);
+    const en = new Set(Object.keys(LOCALES.en));
     expect(ko.filter((k) => !en.has(k))).toEqual([]);
   });
 });

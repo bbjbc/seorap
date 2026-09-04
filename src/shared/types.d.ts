@@ -1,6 +1,5 @@
 // 메인 · preload · 렌더러가 공유하는 계약.
 // 전역 ambient 선언이라 import 없이 어디서든 Seorap.* 로 쓴다.
-// (렌더러는 번들러 없이 <script>로 로드되므로 모듈 import를 쓸 수 없다.)
 
 declare namespace Seorap {
   // ---------- 유틸 ----------

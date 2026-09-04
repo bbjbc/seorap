@@ -8,6 +8,7 @@ import type { DebugContext } from '../src/main/main';
 import { isNewer, parseRelease } from '../src/main/update';
 import { VaultError } from '../src/main/vault';
 import { t } from '../src/main/i18n';
+import type { LocaleKey } from '../src/shared/locales';
 
 const ROOT = path.join(__dirname, '..', '..');
 
@@ -218,7 +219,7 @@ export default async function run({ app, win, store, vault }: DebugContext): Pro
     vault.lock('test');
     assert(!vault.unlocked);
     // 문구는 현재 언어로 나온다. 한국어를 박아 두면 로케일이 en-US 인 CI 러너에서 깨진다.
-    const isVaultError = (want: SeorapLocaleKey) => (err: unknown) =>
+    const isVaultError = (want: LocaleKey) => (err: unknown) =>
       err instanceof VaultError && err.message === t(want);
     assert.throws(() => vault.list(), isVaultError('vault.err_locked'));
     assert.throws(() => vault.unlock('wrong-password-123'), isVaultError('vault.err_wrong'));

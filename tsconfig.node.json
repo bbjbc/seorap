@@ -7,7 +7,8 @@
   "include": [
     "src/shared/**/*",
     "src/main/**/*.ts",
-    "tests/**/*.ts",
-    "vitest.config.mts"
+    "src/preload/**/*.ts",
+    "scripts/**/*.ts",
+    "electron.vite.config.ts"
   ]
 }

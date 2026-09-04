@@ -40,11 +40,11 @@ export default tseslint.config(
     rules: { '@typescript-eslint/no-invalid-void-type': 'off' },
   },
   {
-    files: ['src/main/**/*.ts', 'src/preload.ts', 'src/toast/preload.ts', 'scripts/**/*.ts', 'tests/**/*.ts', 'vitest.config.mts'],
+    files: ['src/main/**/*.ts', 'src/preload/**/*.ts', 'scripts/**/*.ts', 'tests/**/*.ts', 'vitest.config.mts', 'electron.vite.config.ts'],
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ['src/renderer/**/*.ts', 'src/toast/toast.ts'],
+    files: ['src/renderer/**/*.ts'],
     languageOptions: { globals: { ...globals.browser } },
   },
   {
