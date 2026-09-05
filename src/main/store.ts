@@ -504,10 +504,11 @@ export class Store {
     return removed.length;
   }
 
+  /** 자동 정리는 보드만 훑는다. 메모는 사용자가 직접 지울 때까지 남는다. */
   async cleanup(days: number): Promise<number> {
     const cutoff = Date.now() - days * 86400000;
     const ids = this.items
-      .filter((it) => !it.pinned && it.createdAt < cutoff)
+      .filter((it) => !it.note && !it.pinned && it.createdAt < cutoff)
       .map((it) => it.id);
     if (!ids.length) return 0;
     return this.remove(ids);

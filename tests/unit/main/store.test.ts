@@ -214,6 +214,18 @@ describe('cleanup', () => {
     expect(store.get(fresh?.item.id ?? '')).not.toBeNull();
   });
 
+  it('never removes notes, however old they are', async () => {
+    const note = await store.addNote();
+    const item = store.get(note.item.id);
+    if (item) {
+      item.createdAt = daysAgo(400);
+      item.text = 'a note I still want';
+    }
+
+    expect(await store.cleanup(30)).toBe(0);
+    expect(store.get(note.item.id)).not.toBeNull();
+  });
+
   it('does nothing when everything is recent', async () => {
     await store.addText('recent');
     expect(await store.cleanup(30)).toBe(0);

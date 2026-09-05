@@ -16,11 +16,11 @@ export function closeSettings(): void {
   useUiStore.getState().setSettingsOpen(false);
 }
 
-/** days 일보다 오래된, 고정하지 않은 항목 수 */
+/** days 일보다 오래된, 고정하지 않은 보드 항목 수. 조건은 Store.cleanup 과 같아야 한다. */
 export function staleCount(items: readonly Item[], days: number): number {
   const cutoff = Date.now() - days * 86400e3;
   return days > 0
-    ? items.filter((i) => !i.pinned && i.createdAt < cutoff).length
+    ? items.filter((i) => !i.note && !i.pinned && i.createdAt < cutoff).length
     : 0;
 }
 
