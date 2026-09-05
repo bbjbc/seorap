@@ -188,6 +188,8 @@ src/renderer/           React 앱
   lib/                  api, i18n 훅, 포맷 함수, DOM 핸들
   styles/               영역별로 나눈 전역 CSS
   toast/                우하단 알림 창 (일반 TS)
+tests/unit/main/        메인 프로세스 로직: 금고, 설정, 업데이트, 클립보드, i18n
+tests/unit/renderer/    렌더러 로직: 문자열 서식, 목록 셀렉터, 찾기, 스토어, 단축키
 scripts/                테스트, 아이콘, 캡처 도구 (main 과 함께 번들)
 out/                    electron-vite 산출물 (커밋하지 않음)
 ```

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ClipboardWatcher,
   SELF_WRITE_IGNORE_MS,
-} from '../../src/main/clipboard';
+} from '../../../src/main/clipboard';
 
 vi.mock('electron', () => ({
   clipboard: {

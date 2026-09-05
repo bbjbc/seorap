@@ -2,12 +2,16 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
-    "types": ["node"]
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx"
   },
   "include": [
     "src/shared/**/*",
     "src/main/**/*.ts",
+    "src/renderer/**/*.ts",
+    "src/renderer/**/*.tsx",
     "tests/**/*.ts",
+    "tests/**/*.tsx",
     "vitest.config.mts"
   ]
 }

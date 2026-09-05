@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULTS, deepMerge, Settings } from '../../src/main/settings';
+import { DEFAULTS, deepMerge, Settings } from '../../../src/main/settings';
 
 let dir: string;
 let file: string;

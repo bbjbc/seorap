@@ -9,7 +9,7 @@ import {
   parseRelease,
   parseVersion,
   RELEASES_URL,
-} from '../../src/main/update';
+} from '../../../src/main/update';
 
 vi.mock('electron', () => ({ net: { fetch: vi.fn() } }));
 

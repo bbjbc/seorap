@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setLanguage, t } from '../../src/main/i18n';
+import { setLanguage, t } from '../../../src/main/i18n';
 import {
   checkStrength,
   GEN_MAX_LENGTH,
@@ -12,7 +12,7 @@ import {
   generatePassword,
   Vault,
   VaultError,
-} from '../../src/main/vault';
+} from '../../../src/main/vault';
 
 const MASTER = 'Correct-Horse-Battery-2026!';
 
