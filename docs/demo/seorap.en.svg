@@ -162,7 +162,7 @@ svg{--bg:#0d0d0d;--bar:#141414;--bd:#262626;--dot:#303030;--ti:#5c5c5c;--fg:#e5e
 <text class="fg t0_72" x="643.6" y="69" xml:space="preserve" textLength="8.4" lengthAdjust="spacing">x</text>
 <g class="c0"><rect class="cur blink" x="38.8" y="55" width="8.4" height="18" rx="1"/></g>
 <text class="dim o1" x="22.0" y="91" xml:space="preserve" textLength="235.2" lengthAdjust="spacing">→ checking latest release...</text>
-<text class="dim o2" x="22.0" y="113" xml:space="preserve" textLength="478.8" lengthAdjust="spacing">→ v0.3.1 · Seorap-Setup-0.3.1.exe (101 MB) downloading...</text>
+<text class="dim o2" x="22.0" y="113" xml:space="preserve" textLength="478.8" lengthAdjust="spacing">→ v0.3.2 · Seorap-Setup-0.3.2.exe (101 MB) downloading...</text>
 <text class="ok o3" x="22.0" y="135" xml:space="preserve" textLength="142.8" lengthAdjust="spacing">✓ SHA256 verified</text>
 <text class="dim o4" x="22.0" y="157" xml:space="preserve" textLength="201.6" lengthAdjust="spacing">→ installing silently...</text>
 <text class="ok o5" x="22.0" y="179" xml:space="preserve" textLength="554.4" lengthAdjust="spacing">✓ installed: C:\Users\you\AppData\Local\Programs\Seorap\Seorap.exe</text>
