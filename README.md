@@ -188,7 +188,7 @@ src/renderer/           React app
   lib/                  api, i18n hooks, formatting, DOM handles
   styles/               global CSS split by area
   toast/                bottom-right toast window (plain TS)
-tests/unit/main/        main-process logic: vault, settings, updates, clipboard, i18n
+tests/unit/main/        main-process logic: store, vault, settings, updates, clipboard, scrap:// paths, i18n
 tests/unit/renderer/    renderer logic: formatting, list selectors, find, stores, shortcuts
 scripts/                test, icon and screenshot tooling (bundled alongside main)
 out/                    electron-vite output (not committed)

@@ -1,4 +1,6 @@
-// 개발용 기능 점검: 클립보드 저장, 복사, 메모 자동 저장, 금고, 정리, 프로토콜.
+// 개발용 기능 점검: 화면과 메인 프로세스가 실제로 이어져 있는지 본다.
+// 화면이 필요 없는 로직(금고 암호화, 정리, 통계, 버전 비교, scrap:// 경로 규칙)은
+// tests/unit 이 훑으므로 여기서는 다루지 않는다.
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,11 +12,7 @@ import {
   nativeImage,
   net,
 } from 'electron';
-import { t } from '../src/main/i18n';
 import type { DebugContext } from '../src/main/main';
-import { isNewer, parseRelease } from '../src/main/update';
-import { VaultError } from '../src/main/vault';
-import type { LocaleKey } from '../src/shared/locales';
 
 const ROOT = path.join(__dirname, '..', '..');
 
@@ -369,46 +367,9 @@ export default async function run({
     assert(r.open, 'a note stays open after the clicks');
   });
 
-  await check(
-    'vault setup / lock / unlock / wrong password delay',
-    async () => {
-      if (!vault.exists) vault.setup('Correct-Horse-Battery-2026!');
-      else vault.unlock('Correct-Horse-Battery-2026!');
-      const e = vault.add({ name: '테스트', username: 'u', password: 'p@ss' });
-      assert(!('password' in e), 'password not returned by add');
-      assert.strictEqual(vault.getSecret(e.id), 'p@ss');
-      const raw = fs.readFileSync(vault.file, 'utf8');
-      assert(
-        !raw.includes('p@ss') && !raw.includes('테스트'),
-        'plaintext must not be on disk',
-      );
-      vault.lock('test');
-      assert(!vault.unlocked);
-      // 문구는 현재 언어로 나온다. 한국어를 박아 두면 로케일이 en-US 인 CI 러너에서 깨진다.
-      const isVaultError = (want: LocaleKey) => (err: unknown) =>
-        err instanceof VaultError && err.message === t(want);
-      assert.throws(() => vault.list(), isVaultError('vault.err_locked'));
-      assert.throws(
-        () => vault.unlock('wrong-password-123'),
-        isVaultError('vault.err_wrong'),
-      );
-      assert.throws(
-        () => vault.unlock('Correct-Horse-Battery-2026!'),
-        (err: unknown) => err instanceof VaultError && err.waitMs > 0,
-      );
-      await sleep(1100);
-      vault.unlock('Correct-Horse-Battery-2026!');
-      assert(vault.list().some((x) => x.name === '테스트'));
-      vault.changePassword(
-        'Correct-Horse-Battery-2026!',
-        'Another-Strong-Passphrase-99',
-      );
-      vault.lock('test');
-      vault.unlock('Another-Strong-Passphrase-99');
-      assert.strictEqual(vault.getSecret(e.id), 'p@ss');
-      vault.remove(e.id);
-    },
-  );
+  // 아래 두 검사는 열린 금고가 필요하다. 암호화·잠금·백오프는 tests/unit/main/vault.test.ts 가 본다.
+  if (!vault.exists) vault.setup('Correct-Horse-Battery-2026!');
+  else vault.unlock('Correct-Horse-Battery-2026!');
 
   // 회귀 방지: 금고가 열린 상태에서 빈 안내 패널이 창 전체를 덮어 클릭을 삼키던 버그 (v0.1.0)
   await check(
@@ -469,25 +430,10 @@ export default async function run({
     await js(`scrap.setSettings({ vault: { clipboardClearSeconds: 30 } })`);
   });
 
-  await check('cleanup removes only old unpinned', async () => {
-    const old = await store.addText(`오래된 항목 ${Date.now()}`, {
-      source: 'test',
-    });
-    const oldPinned = await store.addText(`오래된 고정 ${Date.now()}`, {
-      source: 'test',
-    });
-    assert(old && oldPinned);
-    old.item.createdAt = Date.now() - 40 * 86400e3;
-    oldPinned.item.createdAt = Date.now() - 40 * 86400e3;
-    oldPinned.item.pinned = true;
-    const n = await store.cleanup(30);
-    assert.strictEqual(n, 1);
-    assert(!store.get(old.item.id) && store.get(oldPinned.item.id));
-    await store.remove([oldPinned.item.id]);
-  });
-
+  // 어떤 주소를 허용하는지는 tests/unit/main/scrap-url.test.ts 가 훑는다.
+  // 여기서는 그 판단이 실제 프로토콜 핸들러에 연결돼 있는지만 본다.
   await check(
-    'protocol serves thumb, refuses vault.json & traversal',
+    'scrap:// protocol serves a thumb and refuses the vault',
     async () => {
       const img = store.items.find((i) => i.type === 'image' && i.thumb);
       assert(img?.thumb, 'image with thumb');
@@ -500,11 +446,6 @@ export default async function run({
       };
       assert.strictEqual(await status(`scrap://${img.thumb}`), 200);
       assert.notStrictEqual(await status('scrap://vault.json'), 200);
-      assert.notStrictEqual(
-        await status('scrap://items/..%2F..%2Fsettings.json'),
-        200,
-      );
-      assert.notStrictEqual(await status('scrap://items/../vault.json'), 200);
     },
   );
 
@@ -559,44 +500,18 @@ export default async function run({
     },
   );
 
-  await check(
-    'update check: version compare, release parsing, rail button',
-    async () => {
-      assert(
-        isNewer('0.2.0', '0.1.4') &&
-          isNewer('v1.0.0', '0.9.9') &&
-          isNewer('0.1.10', '0.1.9'),
-      );
-      assert(
-        !isNewer('0.1.4', '0.1.4') &&
-          !isNewer('0.1.3', '0.1.4') &&
-          !isNewer('garbage', '0.1.4'),
-      );
-      assert(
-        isNewer('0.2.0', '0.2.0-beta.1') && !isNewer('0.2.0-beta.1', '0.2.0'),
-      );
-      const rel = parseRelease({
-        tag_name: 'v0.2.0',
-        html_url: 'https://github.com/bbjbc/seorap/releases/tag/v0.2.0',
-        published_at: '2026-09-04T00:00:00Z',
-      });
-      assert(
-        rel?.version === '0.2.0' &&
-          rel.url.endsWith('/v0.2.0') &&
-          rel.publishedAt > 0,
-      );
-      assert.strictEqual(parseRelease({ tag_name: 'nightly' }), null);
-      assert.strictEqual(await js('__seorap.updateVisible()'), false);
-      await js(
-        `__seorap.showUpdate({ version: '9.9.9', url: 'https://example.com', publishedAt: 0 })`,
-      );
-      assert.strictEqual(await js('__seorap.updateVisible()'), true);
-      assert.strictEqual(
-        await js(`document.getElementById('railUpdateLabel').textContent`),
-        'v9.9.9',
-      );
-    },
-  );
+  // 버전 비교와 릴리스 파싱은 tests/unit/main/update.test.ts 가 본다.
+  await check('a new version shows up as a button in the rail', async () => {
+    assert.strictEqual(await js('__seorap.updateVisible()'), false);
+    await js(
+      `__seorap.showUpdate({ version: '9.9.9', url: 'https://example.com', publishedAt: 0 })`,
+    );
+    assert.strictEqual(await js('__seorap.updateVisible()'), true);
+    assert.strictEqual(
+      await js(`document.getElementById('railUpdateLabel').textContent`),
+      'v9.9.9',
+    );
+  });
 
   await check(
     'language switch re-renders static and dynamic strings',
@@ -627,11 +542,6 @@ export default async function run({
         await js(`document.getElementById('noteTitle').textContent`),
         'Notes',
       );
-      // 메인 프로세스 문자열도 같은 사전을 쓴다
-      await assert.rejects(
-        store.moveTo(path.join(store.dir, 'inner')),
-        /inside the current one/,
-      );
       await js(`scrap.setSettings({ language: 'ko' })`);
       await waitFor('ko applied', () =>
         js("document.documentElement.lang === 'ko'"),
@@ -646,17 +556,8 @@ export default async function run({
         ),
         '보드',
       );
-      await assert.rejects(
-        store.moveTo(path.join(store.dir, 'inner')),
-        /현재 폴더 안쪽/,
-      );
     },
   );
-
-  await check('stats', () => {
-    const s = store.stats();
-    assert(s.count === store.items.length && s.bytes > 0);
-  });
 
   log(failures.length ? `FAILED: ${failures.join(', ')}` : 'ALL PASSED');
   app.exit(failures.length ? 1 : 0);

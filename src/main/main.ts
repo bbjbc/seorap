@@ -19,6 +19,7 @@ import {
 } from 'electron';
 import * as cb from './clipboard';
 import { setLanguage, t } from './i18n';
+import { resolveScrapPath } from './scrap-url';
 import { Settings } from './settings';
 import { type ChangeEvent, Store } from './store';
 import { checkForUpdate } from './update';
@@ -709,14 +710,9 @@ async function copySecret(
 // ---------- 커스텀 프로토콜 ----------
 function registerProtocol(): void {
   protocol.handle('scrap', (req) => {
-    const u = new URL(req.url);
-    const rel = decodeURIComponent(u.hostname + u.pathname);
-    const abs = path.resolve(store.dir, rel);
-    if (
-      !abs.startsWith(store.dir + path.sep) ||
-      !fs.existsSync(abs) ||
-      path.basename(abs) === 'vault.json'
-    ) {
+    // 어떤 주소가 허용되는지는 scrap-url.ts 가 정한다 (단위 테스트가 그쪽을 훑는다).
+    const abs = resolveScrapPath(store.dir, req.url);
+    if (!abs || !fs.existsSync(abs)) {
       return new Response('not found', { status: 404 });
     }
     return net.fetch(pathToFileURL(abs).toString());
