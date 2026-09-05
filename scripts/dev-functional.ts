@@ -334,6 +334,41 @@ export default async function run({
     assert(!store.get(id), 'deleted after leaving');
   });
 
+  // 회귀 방지: + 를 연타하면 새 메모를 기다리는 동안 편집기가 비어 보이고 목록이 깜빡였다.
+  // 이제 새 메모를 받은 뒤에 이전 것을 정리하고, 겹친 요청은 하나로 합친다.
+  await check('rapid new-note clicks never blank the editor', async () => {
+    await js(`__seorap.setMode('notes')`);
+    await js(`__seorap.newNote()`);
+    await waitFor('first note open', () => js('!!__seorap.noteId()'));
+    const r = (await js(`(async () => {
+      let frames = 0;
+      let blank = 0;
+      let go = true;
+      const tick = () => {
+        frames++;
+        if (!document.getElementById('editorEmpty').hidden) blank++;
+        if (go) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      for (let i = 0; i < 10; i++) {
+        document.getElementById('btnNewNote').click();
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      await new Promise((r) => setTimeout(r, 400));
+      go = false;
+      return { frames, blank, open: !!__seorap.noteId() };
+    })()`)) as { frames: number; blank: number; open: boolean };
+    // 단정보다 먼저 정리한다. 실패해도 빈 메모가 남아 다음 테스트를 흔들지 않게.
+    await js(`__seorap.setMode('board')`);
+    assert(r.frames > 5, `expected to sample several frames, got ${r.frames}`);
+    assert.strictEqual(
+      r.blank,
+      0,
+      `editor was blank in ${r.blank}/${r.frames} frames while clicking +`,
+    );
+    assert(r.open, 'a note stays open after the clicks');
+  });
+
   await check(
     'vault setup / lock / unlock / wrong password delay',
     async () => {

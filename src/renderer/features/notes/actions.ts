@@ -50,12 +50,25 @@ export function openNote(id: string): void {
   onNoteSwitched();
 }
 
+/** 새 메모를 만드는 중인가. 연타로 요청이 겹치는 것을 막는다. */
+let creating = false;
+
 export async function newNote(): Promise<void> {
-  leaveNote();
-  const r = await api.addNote();
-  if (!r) return;
-  useItemsStore.getState().add(r.item);
-  openNote(r.item.id);
+  // 빈 메모는 어차피 하나만 남으므로, 겹친 클릭은 합치는 게 맞다. 그대로 두면
+  // 메모가 만들어졌다 지워지기를 반복하며 목록이 깜빡인다.
+  if (creating) return;
+  creating = true;
+  try {
+    // 새 메모를 먼저 받아 온 뒤에 연다. 이전 메모를 먼저 정리하면 응답을
+    // 기다리는 동안 '열린 메모 없음' 상태가 화면에 그대로 보인다.
+    // 이전 메모 정리는 openNote 가 leaveNote 로 처리한다.
+    const r = await api.addNote();
+    if (!r) return;
+    useItemsStore.getState().add(r.item);
+    openNote(r.item.id);
+  } finally {
+    creating = false;
+  }
 }
 
 /** 편집기를 떠날 때: 대기 중인 저장을 즉시 반영하고, 빈 메모는 조용히 지운다. */
