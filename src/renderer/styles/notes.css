@@ -124,6 +124,27 @@
   margin: 0; background: var(--bg-2); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 12px 14px; overflow-x: auto;
 }
+/* 코드 블록 NodeView: 머리줄(언어) + pre. 테두리는 래퍼가 그리고 pre 는 속만 채운다. */
+.md-editor .code-block {
+  position: relative; background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.md-editor .code-block pre { border: 0; border-radius: 0; background: none; padding: 8px 14px 12px; }
+.code-head {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 6px 8px 0; user-select: none;
+}
+.code-lang {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  pointer-events: none; padding-right: 6px;
+}
+/* 셀렉트는 투명하게 겹쳐 두고, 보이는 글자는 .code-lang 이 맡는다. */
+.code-lang-pick {
+  position: absolute; top: 4px; right: 6px; width: 100%; max-width: 160px; height: 22px;
+  opacity: 0; cursor: pointer;
+}
+.code-lang-pick:disabled { cursor: default; }
+.code-block:hover .code-lang, .code-lang-pick:focus-visible + .code-lang { color: var(--text-2); }
 .md-editor pre code { background: none; border: 0; padding: 0; font-size: 0.9em; }
 .md-editor hr { border: 0; border-top: 1px solid var(--line-2); margin: 1.2em 0; }
 .md-editor a { color: var(--blue); }
@@ -159,3 +180,65 @@
 .slash-hint {
   margin-left: auto; color: var(--muted); font-family: var(--mono); font-size: 11px;
 }
+
+/* 코드 블록 문법 강조 (lowlight/highlight.js).
+   highlight.js 가 붙이는 스코프 클래스를 앱 팔레트로 칠한다. 목록은 패키지의 테마
+   (highlight.js/styles/*.css)가 쓰는 전체 집합과 같게 맞춰 두었다 — 언어를 추가해도
+   색이 안 붙는 토큰이 남지 않도록. */
+.md-editor pre code .hljs-comment,
+.md-editor pre code .hljs-quote { color: var(--muted); font-style: italic; }
+
+.md-editor pre code .hljs-keyword,
+.md-editor pre code .hljs-selector-tag,
+.md-editor pre code .hljs-literal,
+.md-editor pre code .hljs-variable.language_ { color: #d19aff; }
+
+.md-editor pre code .hljs-string,
+.md-editor pre code .hljs-regexp,
+.md-editor pre code .hljs-char.escape_,
+.md-editor pre code .hljs-addition { color: var(--green); }
+
+.md-editor pre code .hljs-number,
+.md-editor pre code .hljs-symbol,
+.md-editor pre code .hljs-bullet { color: var(--accent); }
+
+.md-editor pre code .hljs-title,
+.md-editor pre code .hljs-title.function_,
+.md-editor pre code .hljs-section,
+.md-editor pre code .hljs-name,
+.md-editor pre code .hljs-built_in { color: var(--blue); }
+
+.md-editor pre code .hljs-type,
+.md-editor pre code .hljs-title.class_,
+.md-editor pre code .hljs-title.class_.inherited__ { color: #7fd6b4; }
+
+.md-editor pre code .hljs-attr,
+.md-editor pre code .hljs-attribute,
+.md-editor pre code .hljs-property,
+.md-editor pre code .hljs-variable,
+.md-editor pre code .hljs-template-variable,
+.md-editor pre code .hljs-selector-attr { color: #8ad9d0; }
+
+.md-editor pre code .hljs-selector-class,
+.md-editor pre code .hljs-selector-id,
+.md-editor pre code .hljs-selector-pseudo,
+.md-editor pre code .hljs-template-tag { color: var(--accent); }
+
+/* 연산자·구두점은 눈에 띄면 오히려 방해라 본문보다 살짝 흐리게만. */
+.md-editor pre code .hljs-operator,
+.md-editor pre code .hljs-punctuation,
+.md-editor pre code .hljs-tag { color: var(--text-2); }
+
+/* 인자 이름과 문자열 안 치환식은 본문 색 그대로 두는 편이 읽기 좋다. */
+.md-editor pre code .hljs-params,
+.md-editor pre code .hljs-subst { color: var(--text); }
+
+.md-editor pre code .hljs-meta,
+.md-editor pre code .hljs-doctag { color: #9a9aa4; }
+
+.md-editor pre code .hljs-deletion { color: var(--danger); }
+.md-editor pre code .hljs-link { color: var(--blue); text-decoration: underline; }
+.md-editor pre code .hljs-code,
+.md-editor pre code .hljs-formula { color: var(--text-2); }
+.md-editor pre code .hljs-emphasis { font-style: italic; }
+.md-editor pre code .hljs-strong { font-weight: 680; }

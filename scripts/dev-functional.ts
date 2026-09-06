@@ -343,6 +343,113 @@ export default async function run({
     await js(`__seorap.closeFind()`);
   });
 
+  await check(
+    'code blocks keep their language and get highlighted',
+    async () => {
+      await js(`__seorap.setNoteMd(true)`);
+      await waitFor('rich text editor mounted', () =>
+        js("!!document.getElementById('mdEditor')"),
+      );
+      const openId = String(await js('__seorap.noteId()'));
+      await js(
+        `__seorap.typeIntoEditor('\\u0060\\u0060\\u0060ts\\nconst n: number = 42;\\n\\u0060\\u0060\\u0060')`,
+      );
+      await waitFor('code block rendered', () =>
+        js("document.querySelectorAll('#mdEditor pre code').length === 1"),
+      );
+
+      // lowlight 가 언어를 알아야 토큰에 색이 붙는다.
+      assert.strictEqual(
+        await js(
+          "document.querySelector('#mdEditor pre code').className.includes('language-ts')",
+        ),
+        true,
+        'language kept on the node',
+      );
+      // 강조가 붙으면 코드 안이 span 으로 쪼개진다. 맨 코드 블록에는 span 이 없다.
+      assert(
+        Number(
+          await js(
+            "document.querySelectorAll('#mdEditor pre code span').length",
+          ),
+        ) > 0,
+        'tokens highlighted',
+      );
+
+      // 저장되는 본문은 여전히 언어가 붙은 마크다운 울타리다.
+      await waitFor(
+        'fence saved with language',
+        () => store.get(openId)?.text?.includes('```ts') === true,
+      );
+
+      // 순수 텍스트로 내려가도 울타리가 그대로 보인다.
+      await js(`__seorap.setNoteMd(false)`);
+      await waitFor('plain editor mounted', () =>
+        js("!!document.getElementById('editor')"),
+      );
+      const plain = String(await js("document.getElementById('editor').value"));
+      assert(plain.includes('```ts'), `fence kept in source: ${plain}`);
+      assert(plain.includes('const n: number = 42;'), 'code body kept');
+      await js(`__seorap.setNoteMd(true)`);
+    },
+  );
+
+  await check(
+    'the code block shows its language and can change it',
+    async () => {
+      await js(`__seorap.setNoteMd(true)`);
+      await waitFor('rich text editor mounted', () =>
+        js("!!document.getElementById('mdEditor')"),
+      );
+      const openId = String(await js('__seorap.noteId()'));
+      await js(
+        `__seorap.typeIntoEditor('\\u0060\\u0060\\u0060ts\\nconst n = 42;\\n\\u0060\\u0060\\u0060')`,
+      );
+      await waitFor('code block rendered', () =>
+        js("document.querySelectorAll('#mdEditor .code-block').length === 1"),
+      );
+
+      // 지금 언어가 보여야 한다. 울타리의 ts 가 아니라 읽을 수 있는 이름으로.
+      assert.strictEqual(
+        await js("document.querySelector('#mdEditor .code-lang').textContent"),
+        'TypeScript',
+        'current language shown',
+      );
+      assert.strictEqual(
+        await js("document.querySelector('#mdEditor .code-lang-pick').value"),
+        'typescript',
+        'picker matches the fence',
+      );
+      assert(
+        Number(
+          await js(
+            "document.querySelectorAll('#mdEditor .code-lang-pick option').length",
+          ),
+        ) > 5,
+        'languages listed',
+      );
+
+      // 드롭다운으로 파이썬을 고르면 본문의 울타리까지 따라 바뀌어야 한다.
+      await js(`(() => {
+      const sel = document.querySelector('#mdEditor .code-lang-pick');
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLSelectElement.prototype, 'value').set;
+      setter.call(sel, 'python');
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    })()`);
+      await waitFor('label follows the picker', async () => {
+        const v = await js(
+          "document.querySelector('#mdEditor .code-lang').textContent",
+        );
+        return v === 'Python';
+      });
+      await waitFor(
+        'fence rewritten in the saved body',
+        () => store.get(openId)?.text?.includes('```python') === true,
+      );
+    },
+  );
+
   await check('switching editors keeps the markdown body intact', async () => {
     const openId = String(await js('__seorap.noteId()'));
     await js(`__seorap.typeIntoEditor('# 제목\\n\\n**굵게** 그리고 보통')`);

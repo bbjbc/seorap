@@ -10,6 +10,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { useEffect } from 'react';
 import { useT } from '../../lib/i18n';
 import { editNoteText } from './actions';
+import { CodeBlock } from './CodeBlock';
 import { onEditorTextChanged } from './find';
 import { mdEditorHandle } from './handles';
 import { insertPastedFiles } from './images';
@@ -26,7 +27,9 @@ export const MarkdownEditor = ({ text }: Props) => {
     // 렌더러가 그리기 전에 DOM 을 만들어 두면 첫 프레임에서 깜빡이지 않는다.
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      // 코드 블록만 문법 강조가 되는 것으로 갈아 끼운다. 나머지는 StarterKit 그대로.
+      StarterKit.configure({ codeBlock: false }),
+      CodeBlock,
       Markdown,
       Image.configure({ inline: false, allowBase64: false }),
       Placeholder.configure({ placeholder: t('notes.editor_ph') }),
