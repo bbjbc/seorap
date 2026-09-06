@@ -99,6 +99,7 @@ function toItem(raw: unknown): Seorap.Item | null {
   set('linkTitle', optStr(raw['linkTitle']));
   if (typeof raw['truncated'] === 'boolean') item.truncated = raw['truncated'];
   if (typeof raw['note'] === 'boolean') item.note = raw['note'];
+  if (typeof raw['md'] === 'boolean') item.md = raw['md'];
   set('order', optNum(raw['order']));
   return item;
 }
@@ -162,6 +163,37 @@ export class Store {
     fs.mkdirSync(this.itemsDir, { recursive: true });
     fs.mkdirSync(this.thumbsDir, { recursive: true });
     this.items = this.loadIndex();
+    this.migrateNoteFiles();
+  }
+
+  /**
+   * 예전 메모는 items/<id>.txt 로 저장했다. 확장자를 .md 로 옮겨 데이터 폴더를
+   * 다른 마크다운 편집기로 바로 열 수 있게 한다. 이미 있던 메모는 위지위그가
+   * 본문을 다시 해석하면 곤란하니 순수 텍스트(md:false)로 고정한다.
+   */
+  private migrateNoteFiles(): void {
+    let changed = false;
+    for (const it of this.items) {
+      if (this.renameToMd(it)) {
+        if (it.md === undefined) it.md = false;
+        changed = true;
+      }
+    }
+    if (changed) this.saveNow();
+  }
+
+  /** items/<id>.txt 를 .md 로 옮긴다. 옮길 게 없으면 false. */
+  private renameToMd(item: Seorap.Item): boolean {
+    if (!item.note || !item.file?.endsWith('.txt')) return false;
+    const next = `${item.file.slice(0, -4)}.md`;
+    try {
+      fs.renameSync(path.join(this.dir, item.file), path.join(this.dir, next));
+    } catch {
+      // 원본이 사라졌으면 인덱스만 맞춰 둔다. 남아 있으면 이름을 바꾸지 않는다.
+      if (fs.existsSync(path.join(this.dir, item.file))) return false;
+    }
+    item.file = next;
+    return true;
   }
 
   private loadIndex(): Seorap.Item[] {
@@ -286,9 +318,9 @@ export class Store {
   }
 
   /** 메모 모드에서 만드는 빈 메모. 첫 타이핑 전까지 본문이 비어 있다. */
-  async addNote(): Promise<StoreResult> {
+  async addNote(md = true): Promise<StoreResult> {
     const id = this.newId();
-    const file = path.posix.join('items', `${id}.txt`);
+    const file = path.posix.join('items', `${id}.md`);
     await fsp.writeFile(path.join(this.dir, file), '', 'utf8');
     const item: Seorap.Item = {
       ...this.base('text', id, 'note'),
@@ -297,6 +329,7 @@ export class Store {
       text: '',
       truncated: false,
       note: true,
+      md,
       updatedAt: Date.now(),
     };
     return { duplicate: false, item: this.insert(item) };
@@ -459,6 +492,9 @@ export class Store {
     if (patch.title !== undefined) item.title = patch.title;
     if (patch.linkTitle !== undefined) item.linkTitle = patch.linkTitle;
     if (patch.note !== undefined) item.note = patch.note;
+    if (patch.md !== undefined) item.md = patch.md;
+    // 클립보드 글을 편집기에서 열면 그때 메모가 된다. 파일도 같이 .md 로 옮긴다.
+    if (item.note) this.renameToMd(item);
     if (
       typeof patch.text === 'string' &&
       (item.type === 'text' || item.type === 'link')

@@ -31,6 +31,8 @@ declare namespace Seorap {
     url?: string;
     linkTitle?: string;
     note?: boolean;
+    /** 메모 편집 방식. true 면 위지위그, false 면 순수 텍스트. 없으면 설정의 기본값을 따른다. */
+    md?: boolean;
     /** 메모 리스트 '직접 정렬' 순서. 작을수록 위. 없는 항목은 맨 위에 최신순으로. */
     order?: number;
   }
@@ -47,6 +49,7 @@ declare namespace Seorap {
     title?: string;
     linkTitle?: string;
     note?: boolean;
+    md?: boolean;
     text?: string;
   }
 
@@ -114,6 +117,8 @@ declare namespace Seorap {
       fontSize: number;
       showClipboardText: boolean;
       sort: NoteSort;
+      /** 새 메모를 위지위그로 열지. 메모마다 item.md 로 덮어쓸 수 있다. */
+      wysiwyg: boolean;
     };
     vault: {
       autoLockMinutes: number;

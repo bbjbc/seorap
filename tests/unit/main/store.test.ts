@@ -130,6 +130,70 @@ describe('addNote', () => {
     expect(a.item.id).not.toBe(b.item.id);
     expect(store.list()).toHaveLength(2);
   });
+
+  it('saves notes as .md so the data folder opens in any markdown editor', async () => {
+    const r = await store.addNote();
+    expect(r.item.file?.endsWith('.md')).toBe(true);
+  });
+
+  it('remembers which editor the note was made for', async () => {
+    expect((await store.addNote(true)).item.md).toBe(true);
+    expect((await store.addNote(false)).item.md).toBe(false);
+  });
+});
+
+describe('note file migration', () => {
+  it('moves an old .txt note to .md and pins it to plain text', async () => {
+    // 0.3.2 까지 쓰던 모양: 메모 본문이 items/<id>.txt 에 있고 md 플래그가 없다.
+    const r = await store.addText('old note', { note: true });
+    const id = r?.item.id ?? '';
+    const legacy = path.posix.join('items', `${id}.txt`);
+    fs.writeFileSync(path.join(dir, legacy), 'old note', 'utf8');
+    const raw = {
+      version: 1,
+      items: [{ ...r?.item, file: legacy, md: undefined }],
+    };
+    store.flush();
+    fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify(raw));
+
+    const reopened = new Store(dir);
+    const item = reopened.get(id);
+    expect(item?.file).toBe(path.posix.join('items', `${id}.md`));
+    expect(fs.existsSync(path.join(dir, item?.file ?? ''))).toBe(true);
+    // 이미 있던 메모를 위지위그가 다시 해석하면 본문이 바뀔 수 있으므로 그대로 둔다.
+    expect(item?.md).toBe(false);
+  });
+
+  it('keeps one file per note when the editor mode is toggled', async () => {
+    const r = await store.addNote(true);
+    const id = r.item.id;
+    store.update(id, { text: '# 제목' });
+
+    // 서식 편집을 껐다 켜도 파일은 그대로 items/<id>.md 하나다.
+    for (const md of [false, true, false]) {
+      const item = store.update(id, { md });
+      expect(item?.md).toBe(md);
+      expect(item?.file).toBe(path.posix.join('items', `${id}.md`));
+    }
+    const files = fs
+      .readdirSync(path.join(dir, 'items'))
+      .filter((f) => f.startsWith(id));
+    expect(files).toEqual([`${id}.md`]);
+    expect(fs.readFileSync(path.join(dir, 'items', `${id}.md`), 'utf8')).toBe(
+      '# 제목',
+    );
+  });
+
+  it('leaves clipboard text alone until it is opened as a note', async () => {
+    const r = await store.addText('just a clipboard snippet');
+    expect(r?.item.file?.endsWith('.txt')).toBe(true);
+
+    const id = r?.item.id ?? '';
+    const promoted = store.update(id, { note: true });
+    expect(promoted?.file?.endsWith('.md')).toBe(true);
+    expect(fs.existsSync(path.join(dir, promoted?.file ?? ''))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'items', `${id}.txt`))).toBe(false);
+  });
 });
 
 describe('update', () => {

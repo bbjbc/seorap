@@ -20,6 +20,7 @@ export const DEFAULTS: Seorap.Settings = {
     fontSize: 15,
     showClipboardText: false,
     sort: 'recent',
+    wysiwyg: true,
   },
   vault: {
     autoLockMinutes: 5,

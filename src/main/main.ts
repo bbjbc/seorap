@@ -837,7 +837,9 @@ function handle<C extends Seorap.IpcChannel>(
 
 handle('items:list', () => store.list().map(serialize));
 handle('items:fullText', (id) => store.readFullText(store.get(id)));
-handle('items:addNote', async () => wrap(await store.addNote()));
+handle('items:addNote', async () =>
+  wrap(await store.addNote(settings.data.notes.wysiwyg)),
+);
 handle('items:addText', async (text, opts) => {
   const res = await store.addText(text, {
     source: 'manual',
