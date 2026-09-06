@@ -540,11 +540,34 @@ export class Store {
     return removed.length;
   }
 
-  /** 자동 정리는 보드만 훑는다. 메모는 사용자가 직접 지울 때까지 남는다. */
+  /**
+   * 메모 본문이 가리키는 첨부 id. 메모에 넣은 이미지는 보드 항목으로도 남아 있어서,
+   * 이걸 빼 두지 않으면 자동 정리가 이미지만 지워 메모에 깨진 링크가 남는다.
+   * 플래그로 표시해 두는 대신 그때그때 본문에서 센다. 그래야 이미지를 본문에서
+   * 지웠을 때 표시가 남아 영영 정리되지 않는 일이 없다.
+   */
+  referencedIds(): Set<string> {
+    const out = new Set<string>();
+    const re = /scrap:\/\/items\/([a-z0-9]+)\.[a-z0-9]+/gi;
+    for (const it of this.items) {
+      if (!it.note) continue;
+      for (const m of this.readFullText(it).matchAll(re)) {
+        const id = m[1];
+        if (id) out.add(id);
+      }
+    }
+    return out;
+  }
+
+  /** 자동 정리는 보드만 훑는다. 메모와 메모가 쓰는 첨부는 사용자가 직접 지울 때까지 남는다. */
   async cleanup(days: number): Promise<number> {
     const cutoff = Date.now() - days * 86400000;
+    const keep = this.referencedIds();
     const ids = this.items
-      .filter((it) => !it.note && !it.pinned && it.createdAt < cutoff)
+      .filter(
+        (it) =>
+          !it.note && !it.pinned && it.createdAt < cutoff && !keep.has(it.id),
+      )
       .map((it) => it.id);
     if (!ids.length) return 0;
     return this.remove(ids);

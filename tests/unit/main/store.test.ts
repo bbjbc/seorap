@@ -302,6 +302,58 @@ describe('cleanup', () => {
     if (item) item.createdAt = daysAgo(29);
     expect(await store.cleanup(30)).toBe(0);
   });
+
+  it('keeps an old image while a note still shows it', async () => {
+    const img = await store.addBuffer(Buffer.from('fake png'), 'shot.png');
+    const imgId = img?.item.id ?? '';
+    const stale = store.get(imgId);
+    if (stale) stale.createdAt = daysAgo(40);
+
+    const note = await store.addNote();
+    store.update(note.item.id, {
+      text: `see this
+
+![](scrap://items/${imgId}.png)`,
+    });
+
+    expect(await store.cleanup(30)).toBe(0);
+    expect(store.get(imgId)).not.toBeNull();
+  });
+
+  it('lets the image go once the note no longer points at it', async () => {
+    const img = await store.addBuffer(Buffer.from('fake png'), 'shot.png');
+    const imgId = img?.item.id ?? '';
+    const stale = store.get(imgId);
+    if (stale) stale.createdAt = daysAgo(40);
+
+    const note = await store.addNote();
+    store.update(note.item.id, {
+      text: `![](scrap://items/${imgId}.png)`,
+    });
+    // 본문에서 지우면 표시가 남지 않아야 한다. 그래야 영영 안 지워지는 일이 없다.
+    store.update(note.item.id, { text: 'never mind' });
+
+    expect(await store.cleanup(30)).toBe(1);
+    expect(store.get(imgId)).toBeNull();
+  });
+
+  it('finds references in a note too long to keep whole in the index', async () => {
+    const img = await store.addBuffer(Buffer.from('fake png'), 'shot.png');
+    const imgId = img?.item.id ?? '';
+    const stale = store.get(imgId);
+    if (stale) stale.createdAt = daysAgo(40);
+
+    const note = await store.addNote();
+    // 인덱스에는 앞 5만자만 남는다. 링크는 그 뒤에 둬서 파일을 읽어야만 보이게 한다.
+    store.update(note.item.id, {
+      text: `${'x'.repeat(60000)}
+![](scrap://items/${imgId}.png)`,
+    });
+    expect(store.get(note.item.id)?.truncated).toBe(true);
+
+    expect(await store.cleanup(30)).toBe(0);
+    expect(store.get(imgId)).not.toBeNull();
+  });
 });
 
 describe('stats', () => {

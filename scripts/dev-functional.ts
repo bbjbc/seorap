@@ -148,6 +148,44 @@ export default async function run({
     assert.strictEqual(thumb.getSize().width, 400, 'thumb width 400');
   });
 
+  await check(
+    'the same image put into a note reuses the board item',
+    async () => {
+      const img = store.items.find((i) => i.type === 'image');
+      assert(img, 'image item exists');
+      const itemsDir = path.join(store.dir, 'items');
+      const thumbsDir = path.join(store.dir, 'thumbs');
+      const before = {
+        items: fs.readdirSync(itemsDir).length,
+        thumbs: fs.readdirSync(thumbsDir).length,
+        count: store.items.length,
+      };
+      // 보드에 담길 때 이미 원본(items/)과 썸네일(thumbs/)이 둘 다 만들어져 있다.
+      assert(img.file?.startsWith('items/'), `original in items/: ${img.file}`);
+      assert(
+        img.thumb?.startsWith('thumbs/'),
+        `thumb in thumbs/: ${img.thumb}`,
+      );
+
+      // 편집기에 붙여넣는 것과 같은 경로. 같은 바이트라 해시가 걸린다.
+      const bytes = fs.readFileSync(path.join(store.dir, img.file ?? ''));
+      const again = await store.addBuffer(bytes, 'pasted.png');
+      assert.strictEqual(
+        again?.duplicate,
+        true,
+        'recognised as the same image',
+      );
+      assert.strictEqual(again?.item.id, img.id, 'same item, not a copy');
+
+      const after = {
+        items: fs.readdirSync(itemsDir).length,
+        thumbs: fs.readdirSync(thumbsDir).length,
+        count: store.items.length,
+      };
+      assert.deepStrictEqual(after, before, 'no new file and no new item');
+    },
+  );
+
   await check('clipboard url → link', async () => {
     await clipboard.writeText('https://example.com/');
     const r = asAdd(await js('scrap.captureClipboard()'));

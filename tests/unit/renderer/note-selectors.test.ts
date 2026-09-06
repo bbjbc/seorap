@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type NoteFilter,
   noteItems,
+  noteRefIds,
   noteRows,
 } from '../../../src/renderer/features/notes/selectors';
 import { ids, item, note } from './helpers';
@@ -133,5 +134,41 @@ describe('noteRows', () => {
     const rows = noteRows([note('a'), note('b')], true, 'en');
     expect(rows.every((r) => r.kind === 'note')).toBe(true);
     expect(rows).toHaveLength(2);
+  });
+});
+
+describe('noteRefIds', () => {
+  it('collects the attachments a note points at', () => {
+    const list = [
+      note('shot:\n\n![](scrap://items/abc123.png)'),
+      note(
+        'two here ![](scrap://items/def456.jpg) and ![](scrap://items/ghi789.webp)',
+      ),
+    ];
+    expect([...noteRefIds(list)].sort()).toEqual([
+      'abc123',
+      'def456',
+      'ghi789',
+    ]);
+  });
+
+  it('ignores clipboard items, so only what a note shows is protected', () => {
+    const list = [item({ text: '![](scrap://items/abc123.png)', note: false })];
+    expect(noteRefIds(list).size).toBe(0);
+  });
+
+  it('ignores links that are not attachment paths', () => {
+    const list = [
+      note('![](https://example.com/a.png) ![](scrap://thumbs/abc123.png)'),
+    ];
+    expect(noteRefIds(list).size).toBe(0);
+  });
+
+  it('counts an image used by two notes once', () => {
+    const list = [
+      note('![](scrap://items/same1.png)'),
+      note('![](scrap://items/same1.png)'),
+    ];
+    expect([...noteRefIds(list)]).toEqual(['same1']);
   });
 });

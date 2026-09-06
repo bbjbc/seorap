@@ -6,6 +6,7 @@ import { findItem, type Item, useItemsStore } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
 import { useUiStore } from '../../stores/ui';
 import { openNote } from '../notes/actions';
+import { noteRefIds } from '../notes/selectors';
 import { flash } from '../overlays/actions';
 import { setMode } from '../shell/actions';
 
@@ -61,6 +62,10 @@ export function softDelete(rawIds: readonly string[]): void {
   const notes = useNotesStore.getState();
   if (notes.noteId && ids.includes(notes.noteId)) notes.setNoteId(null);
   useUiStore.getState().setPendingDelete({ ids, removed });
+  // 메모가 쓰고 있는 이미지를 지우면 그 메모에 깨진 그림이 남는다. 6초 안에 되돌릴 수 있다.
+  const refs = noteRefIds(items.items);
+  const used = removed.filter((i) => refs.has(i.id)).length;
+  if (used) flash(t('flash.image_in_use', { n: used }));
   if (undoTimer !== null) clearTimeout(undoTimer);
   undoTimer = window.setTimeout(commitDelete, 6000);
 }

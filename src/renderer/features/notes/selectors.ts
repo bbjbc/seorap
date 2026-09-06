@@ -36,6 +36,24 @@ export function noteItems(items: readonly Item[], f: NoteFilter): Item[] {
   return list;
 }
 
+/**
+ * 메모 본문이 가리키는 첨부 id. 메인의 store.referencedIds() 와 같은 규칙이다.
+ * 여기서는 삭제 경고를 띄우는 데만 쓴다. 잘린(truncated) 메모는 뒷부분을 못 보지만,
+ * 실제로 지우지 않고 지켜 주는 판단은 메인이 전체 본문을 읽어 따로 한다.
+ */
+export function noteRefIds(items: readonly Item[]): Set<string> {
+  const out = new Set<string>();
+  const re = /scrap:\/\/items\/([a-z0-9]+)\.[a-z0-9]+/gi;
+  for (const it of items) {
+    if (!it.note) continue;
+    for (const m of (it.text ?? '').matchAll(re)) {
+      const id = m[1];
+      if (id) out.add(id);
+    }
+  }
+  return out;
+}
+
 export type NoteRow =
   | { kind: 'group'; label: string }
   | { kind: 'note'; item: Item };

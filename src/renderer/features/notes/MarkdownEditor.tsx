@@ -2,6 +2,7 @@
 // 그걸 파싱해 그린 뒤 편집 결과를 다시 마크다운으로 직렬화해 돌려준다. 그래서 검색·제목·
 // 중복 판정처럼 item.text 를 보는 기존 코드는 이 편집기를 몰라도 그대로 동작한다.
 import FindAndReplace from '@tiptap/extension-find-and-replace';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Markdown } from '@tiptap/markdown';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -11,6 +12,7 @@ import { useT } from '../../lib/i18n';
 import { editNoteText } from './actions';
 import { onEditorTextChanged } from './find';
 import { mdEditorHandle } from './handles';
+import { insertPastedFiles } from './images';
 
 interface Props {
   /** 마크다운 원문. 편집기를 처음 세울 때만 읽는다 (이후 정본은 편집기 안에 있다). */
@@ -25,6 +27,7 @@ export const MarkdownEditor = ({ text }: Props) => {
     extensions: [
       StarterKit,
       Markdown,
+      Image.configure({ inline: false, allowBase64: false }),
       Placeholder.configure({ placeholder: t('notes.editor_ph') }),
       // 하이라이트 색은 앱 테마를 따라야 하므로 확장이 넣는 기본 CSS 는 끈다.
       FindAndReplace.configure({ injectCSS: false, searchDebounceMs: 0 }),
@@ -33,6 +36,15 @@ export const MarkdownEditor = ({ text }: Props) => {
     contentType: 'markdown',
     editorProps: {
       attributes: { id: 'mdEditor', class: 'md-editor' },
+      handlePaste: (_view, event) => insertPastedFiles(event.clipboardData),
+      handleDrop: (_view, event) => {
+        if (!(event instanceof DragEvent)) return false;
+        if (!insertPastedFiles(event.dataTransfer)) return false;
+        // 창 전체 드롭 핸들러(app/drop.ts)까지 올라가면 같은 이미지를 한 번 더 저장하려 든다.
+        event.preventDefault();
+        event.stopPropagation();
+        return true;
+      },
     },
     onUpdate: ({ editor: ed }) => {
       editNoteText(ed.getMarkdown());
