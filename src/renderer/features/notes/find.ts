@@ -1,10 +1,19 @@
 // 메모 안 찾기 (Ctrl+F). 브라우저처럼 대소문자 구분 없이 앉은 자리부터 다음 일치를 찾아 선택한다.
-// 일치 목록·인덱스는 스토어에, 선택 범위는 textarea 에 직접 적용한다 (선택은 DOM 만이 안다).
-// 현재 일치 위에 덧그리는 강조는 FindHighlight 컴포넌트가 스토어를 보고 그린다.
+// 편집기가 두 가지라 뒤쪽 구현도 둘이다.
+//   - 순수 텍스트: textarea 의 문자열 위치를 직접 세고, 강조는 FindHighlight 가 덧그린다.
+//   - 위지위그: Tiptap 의 FindAndReplace 확장에 맡기고 결과만 스토어로 옮겨 온다.
+// 어느 쪽이든 스토어의 find.matches 길이와 index 가 찾기 막대의 "3 / 12" 를 만든다.
+import type { Editor } from '@tiptap/react';
 import { flushSync } from 'react-dom';
 import { findItem } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
-import { editorHandle, findInputHandle } from './handles';
+import { editorHandle, findInputHandle, mdEditorHandle } from './handles';
+
+/** 지금 화면에 있는 위지위그 편집기. 순수 텍스트 모드면 null. */
+function md(): Editor | null {
+  const ed = mdEditorHandle.get();
+  return ed && !ed.isDestroyed ? ed : null;
+}
 
 function editorText(): string {
   const ta = editorHandle.get();
@@ -22,20 +31,40 @@ export function computeMatches(text: string, query: string): number[] {
   return out;
 }
 
+/** 확장이 들고 있는 결과를 스토어로 옮긴다. 위치는 ProseMirror 좌표라 개수·순서에만 쓴다. */
+function syncFromMd(ed: Editor): void {
+  const st = ed.storage.findAndReplace;
+  useNotesStore.getState().setFind({
+    matches: st.results.map((r) => r.from),
+    index: st.currentIndex ?? -1,
+  });
+}
+
+/** 지금 선택된 글. 찾기를 열 때 검색어 기본값으로 쓴다. */
+function selectedText(): string {
+  const ed = md();
+  if (ed) {
+    const { from, to } = ed.state.selection;
+    return from === to ? '' : ed.state.doc.textBetween(from, to, ' ');
+  }
+  const ta = editorHandle.get();
+  return ta ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : '';
+}
+
 export function openFind(): void {
   const notes = useNotesStore.getState();
   if (!notes.noteId) return;
-  const ta = editorHandle.get();
   let query = notes.find.query;
-  const sel = ta ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : '';
+  const sel = selectedText();
   if (sel && !sel.includes('\n') && sel.length <= 100) query = sel;
+  const ed = md();
   // 찾기 막대가 그려진 다음에 포커스를 줘야 하므로 동기로 반영한다.
   flushSync(() =>
     notes.setFind({
       open: true,
       query,
       index: -1,
-      matches: computeMatches(editorText(), query),
+      matches: ed ? [] : computeMatches(editorText(), query),
     }),
   );
   const input = findInputHandle.get();
@@ -47,8 +76,12 @@ export function openFind(): void {
 export function closeFind(): void {
   const notes = useNotesStore.getState();
   if (!notes.find.open) return;
+  md()?.commands.clearSearch();
   flushSync(() => notes.setFind({ open: false, matches: [], index: -1 }));
-  if (notes.noteId) editorHandle.get()?.focus({ preventScroll: true });
+  if (!notes.noteId) return;
+  const ed = md();
+  if (ed) ed.commands.focus();
+  else editorHandle.get()?.focus({ preventScroll: true });
 }
 
 export function setFindQuery(query: string): void {
@@ -60,6 +93,26 @@ export function setFindQuery(query: string): void {
 export function findStep(dir: 1 | -1): void {
   const notes = useNotesStore.getState();
   const { query, index } = notes.find;
+  const ed = md();
+  if (ed) {
+    // searchDebounceMs 를 0 으로 켜 두어 검색어를 넣으면 결과가 바로 선다.
+    ed.commands.setSearchTerm(query);
+    if (query) {
+      // 아직 아무 일치에도 앉지 않았으면 첫(또는 마지막) 일치로 간다. 이미 앉아 있고
+      // 우리 쪽 index 도 살아 있을 때만 다음으로 넘긴다. 그러지 않으면 찾기를 여는
+      // 것만으로 한 칸씩 밀린다.
+      const cur = ed.storage.findAndReplace.currentIndex;
+      if (cur === null || index >= 0) {
+        if (dir === 1) ed.commands.goToNextResult();
+        else ed.commands.goToPreviousResult();
+      }
+    }
+    syncFromMd(ed);
+    // 결과로 이동하면 포커스가 본문으로 넘어간다. 계속 타이핑할 수 있게 되돌린다.
+    findInputHandle.get()?.focus({ preventScroll: true });
+    return;
+  }
+
   const matches = computeMatches(editorText(), query);
   if (!matches.length) {
     notes.setFind({ matches, index: -1 });
@@ -108,6 +161,13 @@ function scrollEditorToSelection(ta: HTMLTextAreaElement, pos: number): void {
 export function onEditorTextChanged(): void {
   const notes = useNotesStore.getState();
   if (!notes.find.open) return;
+  const ed = md();
+  if (ed) {
+    ed.commands.setSearchTerm(notes.find.query);
+    syncFromMd(ed);
+    notes.setFind({ index: -1 });
+    return;
+  }
   notes.setFind({
     index: -1,
     matches: computeMatches(editorText(), notes.find.query),
@@ -121,6 +181,7 @@ export interface FindInNoteResult {
   open: boolean;
   count: number;
   index: number;
+  /** 순수 텍스트 모드는 문자열 위치, 위지위그는 ProseMirror 위치. */
   selStart: number;
   selEnd: number;
 }
@@ -131,12 +192,14 @@ export function findInNote(query: string): FindInNoteResult {
   useNotesStore.getState().setFind({ query, index: -1 });
   findStep(1);
   const f = useNotesStore.getState().find;
+  const ed = md();
+  const sel = ed?.state.selection;
   const ta = editorHandle.get();
   return {
     open: f.open,
     count: f.matches.length,
     index: f.index,
-    selStart: ta?.selectionStart ?? 0,
-    selEnd: ta?.selectionEnd ?? 0,
+    selStart: sel?.from ?? ta?.selectionStart ?? 0,
+    selEnd: sel?.to ?? ta?.selectionEnd ?? 0,
   };
 }

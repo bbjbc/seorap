@@ -2,7 +2,13 @@
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { EmptyArt } from '../../components/EmptyArt';
-import { IconCopy, IconMono, IconPin, IconTrash } from '../../components/icons';
+import {
+  IconCopy,
+  IconMarkdown,
+  IconMono,
+  IconPin,
+  IconTrash,
+} from '../../components/icons';
 import { RichText } from '../../components/RichText';
 import { TagInput, TagList } from '../../components/TagList';
 import { firstLineOf, fmtTime } from '../../lib/format';
@@ -18,10 +24,11 @@ import {
   togglePin,
 } from '../items/actions';
 import { flash } from '../overlays/actions';
-import { editNoteText } from './actions';
+import { editNoteText, setNoteMode } from './actions';
 import { FindBar } from './FindBar';
 import { FindHighlight } from './FindHighlight';
 import { editorHandle } from './handles';
+import { MarkdownEditor } from './MarkdownEditor';
 
 export const NoteEditor = () => {
   const t = useT();
@@ -36,12 +43,14 @@ export const NoteEditor = () => {
   const text = item?.text ?? '';
   const has = item !== undefined;
   const mono = settings?.notes.mono ?? false;
+  // 메모별 설정이 우선, 없으면 설정의 기본값을 따른다.
+  const wysiwyg = item?.md ?? settings?.notes.wysiwyg ?? true;
 
   const taRef = useRef<HTMLTextAreaElement | null>(null);
-  // 메모를 열면 편집기에 포커스
+  // 메모를 열면 편집기에 포커스 (위지위그는 자기 쪽에서 처리한다)
   useEffect(() => {
-    if (noteId) taRef.current?.focus();
-  }, [noteId]);
+    if (noteId && !wysiwyg) taRef.current?.focus();
+  }, [noteId, wysiwyg]);
 
   const saveLabel =
     saveState === 'saving'
@@ -77,6 +86,16 @@ export const NoteEditor = () => {
           </button>
           <button
             type="button"
+            className={`icon-btn${wysiwyg ? ' active' : ''}`}
+            id="btnNoteMd"
+            title={t(wysiwyg ? 'notes.md_on_title' : 'notes.md_off_title')}
+            disabled={!has}
+            onClick={() => noteId && void setNoteMode(noteId, !wysiwyg)}
+          >
+            <IconMarkdown />
+          </button>
+          <button
+            type="button"
             className={`icon-btn${mono ? ' active' : ''}`}
             id="btnNoteMono"
             title={t('notes.mono_title')}
@@ -109,26 +128,39 @@ export const NoteEditor = () => {
       </header>
       <FindBar />
       <div className="editor-wrap">
-        <textarea
-          id="editor"
-          ref={(el) => {
-            taRef.current = el;
-            editorHandle.attach(el);
-          }}
-          hidden={!has}
-          value={text}
-          spellCheck={false}
-          placeholder={t('notes.editor_ph')}
-          onChange={(e) => editNoteText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key !== 'Tab') return;
-            e.preventDefault();
-            const ta = e.currentTarget;
-            ta.setRangeText('\t', ta.selectionStart, ta.selectionEnd, 'end');
-            editNoteText(ta.value);
-          }}
-        />
-        <FindHighlight text={text} textareaRef={taRef} />
+        {has && wysiwyg ? (
+          // key 로 메모마다 새 인스턴스를 만든다. 그래야 실행 취소가 이전 메모의
+          // 내용을 되살리지 않고, 본문도 열 때 한 번만 파싱된다.
+          <MarkdownEditor key={noteId} text={text} />
+        ) : (
+          <>
+            <textarea
+              id="editor"
+              ref={(el) => {
+                taRef.current = el;
+                editorHandle.attach(el);
+              }}
+              hidden={!has}
+              value={text}
+              spellCheck={false}
+              placeholder={t('notes.editor_ph')}
+              onChange={(e) => editNoteText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Tab') return;
+                e.preventDefault();
+                const ta = e.currentTarget;
+                ta.setRangeText(
+                  '\t',
+                  ta.selectionStart,
+                  ta.selectionEnd,
+                  'end',
+                );
+                editNoteText(ta.value);
+              }}
+            />
+            <FindHighlight text={text} textareaRef={taRef} />
+          </>
+        )}
         <div className="editor-empty" id="editorEmpty" hidden={has}>
           <EmptyArt small />
           <h2>{t('notes.empty_title')}</h2>

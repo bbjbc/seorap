@@ -22,6 +22,13 @@ export const NotesSection = ({
   return (
     <Section title={t('settings.notes')}>
       <CheckRow
+        id="optWysiwyg"
+        checked={s.notes.wysiwyg}
+        onChange={(c) => void saveSettings({ notes: { wysiwyg: c } })}
+        label={t('settings.wysiwyg')}
+        hint={t('settings.wysiwyg_hint')}
+      />
+      <CheckRow
         id="optMono"
         checked={s.notes.mono}
         onChange={(c) => void saveSettings({ notes: { mono: c } })}

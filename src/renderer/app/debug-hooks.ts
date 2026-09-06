@@ -3,10 +3,12 @@
 
 import { openDetail } from '../features/items/actions';
 import {
-  editNoteText,
+  editorText,
   moveNote,
   newNote,
   openNote,
+  setEditorText,
+  setNoteMode,
 } from '../features/notes/actions';
 import { closeFind, findInNote } from '../features/notes/find';
 import { evaluateStarNudge } from '../features/nudge/actions';
@@ -45,7 +47,12 @@ export function installDebugHooks(): void {
     vaultEntryIds: () => useVaultStore.getState().entries.map((x) => x.id),
     items: () => useItemsStore.getState().items,
     noteId: () => useNotesStore.getState().noteId,
-    typeIntoEditor: editNoteText,
+    typeIntoEditor: setEditorText,
+    editorText,
+    setNoteMd: (md) => {
+      const id = useNotesStore.getState().noteId;
+      return id ? setNoteMode(id, md) : Promise.resolve();
+    },
     starNudgeVisible: () => useUiStore.getState().nudgeVisible,
     starNudgeState: () => {
       const ui = useUiStore.getState();

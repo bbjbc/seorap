@@ -86,3 +86,58 @@
   border-top: 1px solid var(--line); font-size: 12px;
 }
 .editor-foot .tag-list.inline { margin-left: auto; }
+
+/* ---------- 위지위그 편집기 (Tiptap) ---------- */
+/* 순수 텍스트 편집기(#editor)와 같은 여백·글꼴·줄높이를 써서 모드를 바꿔도 글이 제자리에 있다. */
+.md-editor-wrap { flex: 1; min-width: 0; min-height: 0; overflow: auto; display: flex; }
+.md-editor {
+  flex: 1; outline: 0; background: var(--bg); color: var(--text);
+  padding: 22px 28px; line-height: 1.65;
+  font-family: var(--editor-font); font-size: var(--editor-size);
+  tab-size: 4; overflow-wrap: break-word;
+}
+.md-editor > * + * { margin-top: 0.6em; }
+.md-editor > :first-child { margin-top: 0; }
+.md-editor p { margin: 0; }
+.md-editor h1, .md-editor h2, .md-editor h3,
+.md-editor h4, .md-editor h5, .md-editor h6 {
+  margin: 1.1em 0 0; font-weight: 650; line-height: 1.35;
+}
+.md-editor h1 { font-size: 1.65em; }
+.md-editor h2 { font-size: 1.35em; }
+.md-editor h3 { font-size: 1.15em; }
+.md-editor h4, .md-editor h5, .md-editor h6 { font-size: 1em; color: var(--text-2); }
+.md-editor ul, .md-editor ol { margin: 0; padding-left: 1.4em; }
+.md-editor li > ul, .md-editor li > ol { margin-top: 0.2em; }
+.md-editor li p { margin: 0; }
+.md-editor li + li { margin-top: 0.2em; }
+.md-editor blockquote {
+  margin: 0; padding: 0.1em 0 0.1em 0.9em;
+  border-left: 3px solid var(--line-2); color: var(--text-2);
+}
+.md-editor code {
+  font-family: var(--mono); font-size: 0.92em;
+  background: var(--bg-3); border: 1px solid var(--line);
+  border-radius: 5px; padding: 0.1em 0.35em;
+}
+.md-editor pre {
+  margin: 0; background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 12px 14px; overflow-x: auto;
+}
+.md-editor pre code { background: none; border: 0; padding: 0; font-size: 0.9em; }
+.md-editor hr { border: 0; border-top: 1px solid var(--line-2); margin: 1.2em 0; }
+.md-editor a { color: var(--blue); }
+.md-editor img {
+  max-width: 100%; height: auto; border-radius: var(--radius);
+  display: block; border: 1px solid var(--line);
+}
+.md-editor img.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 2px; }
+.md-editor strong { font-weight: 680; }
+/* 빈 문서일 때만 안내 문구를 띄운다 (textarea 의 placeholder 와 같은 자리). */
+.md-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder); color: var(--muted);
+  float: left; height: 0; pointer-events: none;
+}
+/* 찾기 강조. 확장의 기본 CSS 는 꺼 두고 앱 테마 색을 쓴다. */
+.md-editor .find-and-replace-result { background: var(--accent-soft); border-radius: 3px; }
+.md-editor .find-and-replace-result-current { background: var(--accent); color: #1b1405; }

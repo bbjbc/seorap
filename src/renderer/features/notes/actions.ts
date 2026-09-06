@@ -4,6 +4,7 @@ import { findItem, useItemsStore } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
 import { saveSettings, useSettingsStore } from '../../stores/settings';
 import { onEditorTextChanged, onNoteSwitched } from './find';
+import { mdEditorHandle } from './handles';
 import { noteItems } from './selectors';
 
 const AUTOSAVE_MS = 500;
@@ -107,6 +108,37 @@ export async function saveNoteNow(): Promise<void> {
   const saved = await api.updateItem(id, { text: it.text ?? '', note: true });
   if (saved && useNotesStore.getState().noteId === id)
     useNotesStore.getState().setSaveState('saved');
+}
+
+/**
+ * 본문을 통째로 갈아 끼운다 (개발용 훅). 위지위그가 떠 있으면 편집기 쪽을 먼저 바꾸고,
+ * 거기서 다시 뽑은 마크다운을 정본으로 삼는다. 그래야 두 모드의 결과가 같아진다.
+ */
+export function setEditorText(text: string): void {
+  const ed = mdEditorHandle.get();
+  if (ed && !ed.isDestroyed) {
+    ed.commands.setContent(text, { contentType: 'markdown' });
+    editNoteText(ed.getMarkdown());
+    return;
+  }
+  editNoteText(text);
+}
+
+/** 지금 편집기에 보이는 본문. 어느 모드인지 몰라도 읽을 수 있다. */
+export function editorText(): string {
+  const ed = mdEditorHandle.get();
+  if (ed && !ed.isDestroyed) return ed.getMarkdown();
+  return findItem(useNotesStore.getState().noteId)?.text ?? '';
+}
+
+/**
+ * 이 메모를 위지위그로 볼지 순수 텍스트로 볼지 바꾼다. 저장되는 본문(마크다운)은
+ * 그대로고 해석 방식만 달라진다. 바꾸기 전에 편집 중이던 내용을 먼저 확정한다.
+ */
+export async function setNoteMode(id: string, md: boolean): Promise<void> {
+  flushNoteSave();
+  useItemsStore.getState().patch(id, { md });
+  await api.updateItem(id, { md });
 }
 
 /** 창이 숨겨질 때 등, 기다리지 않고 지금 저장한다. */

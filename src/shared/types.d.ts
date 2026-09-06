@@ -437,6 +437,8 @@ declare namespace Seorap {
       snoozeUntil: number | null;
     };
     evaluateStarNudge(): void;
+    editorText(): string;
+    setNoteMd(md: boolean): Promise<void>;
     findInNote(q: string): {
       open: boolean;
       count: number;

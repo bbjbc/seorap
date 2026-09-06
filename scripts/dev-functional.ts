@@ -236,6 +236,11 @@ export default async function run({
   });
 
   await check('Ctrl+F finds inside the open note, not the list', async () => {
+    // 순수 텍스트 모드. 여기서는 일치 위치가 문자열 오프셋이라 선택 범위까지 확인한다.
+    await js(`__seorap.setNoteMd(false)`);
+    await waitFor('plain editor mounted', () =>
+      js("!!document.getElementById('editor')"),
+    );
     await js(`__seorap.typeIntoEditor('사과 바나나 사과\\n포도 사과')`);
     await waitFor('editor filled', () =>
       js("document.getElementById('editor').value.includes('사과')"),
@@ -267,6 +272,75 @@ export default async function run({
     await waitFor(
       'note text restored',
       () => store.get(openId)?.title === '자동 저장 테스트',
+    );
+  });
+
+  await check('the same find works in the rich text editor', async () => {
+    await js(`__seorap.setNoteMd(true)`);
+    await waitFor('rich text editor mounted', () =>
+      js("!!document.getElementById('mdEditor')"),
+    );
+    await js(`__seorap.typeIntoEditor('사과 바나나 사과\\n\\n포도 사과')`);
+    await waitFor('editor filled', () =>
+      js("__seorap.editorText().includes('사과')"),
+    );
+
+    const r = (await js(`__seorap.findInNote('사과')`)) as {
+      open: boolean;
+      count: number;
+      index: number;
+    };
+    assert(r.open, 'find bar open');
+    assert.strictEqual(r.count, 3, 'three matches');
+    assert.strictEqual(r.index, 0);
+    // 강조는 확장이 덧그린다. 순수 텍스트 모드의 거울 div 는 여기 없다.
+    assert.strictEqual(
+      await js(
+        "document.querySelectorAll('#mdEditor .find-and-replace-result').length",
+      ),
+      3,
+      'all matches highlighted',
+    );
+    assert.strictEqual(await js(`document.activeElement.id`), 'findInput');
+    await js(`__seorap.closeFind()`);
+  });
+
+  await check('switching editors keeps the markdown body intact', async () => {
+    const openId = String(await js('__seorap.noteId()'));
+    await js(`__seorap.typeIntoEditor('# 제목\\n\\n**굵게** 그리고 보통')`);
+    await waitFor(
+      'markdown saved',
+      () => store.get(openId)?.text?.includes('**굵게**') === true,
+    );
+
+    // 위지위그 -> 순수 텍스트: 원문이 그대로 보여야 한다.
+    await js(`__seorap.setNoteMd(false)`);
+    await waitFor('plain editor mounted', () =>
+      js("!!document.getElementById('editor')"),
+    );
+    const plain = String(await js("document.getElementById('editor').value"));
+    assert(plain.includes('# 제목'), 'heading kept as markdown source');
+    assert(plain.includes('**굵게**'), 'bold kept as markdown source');
+
+    // 다시 위지위그로: 마크다운이 요소로 그려져야 한다.
+    await js(`__seorap.setNoteMd(true)`);
+    await waitFor('rich text editor mounted', () =>
+      js("!!document.getElementById('mdEditor')"),
+    );
+    assert.strictEqual(
+      await js("document.querySelectorAll('#mdEditor h1').length"),
+      1,
+      'heading rendered',
+    );
+    assert.strictEqual(
+      await js("document.querySelectorAll('#mdEditor strong').length"),
+      1,
+      'bold rendered',
+    );
+    // 저장된 본문은 어느 쪽을 거쳐도 여전히 마크다운이다.
+    assert(
+      String(store.get(openId)?.text).includes('# 제목'),
+      'file still holds markdown',
     );
   });
 
