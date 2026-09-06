@@ -13,6 +13,7 @@ import { editNoteText } from './actions';
 import { onEditorTextChanged } from './find';
 import { mdEditorHandle } from './handles';
 import { insertPastedFiles } from './images';
+import { SlashMenu } from './slash';
 
 interface Props {
   /** 마크다운 원문. 편집기를 처음 세울 때만 읽는다 (이후 정본은 편집기 안에 있다). */
@@ -31,6 +32,7 @@ export const MarkdownEditor = ({ text }: Props) => {
       Placeholder.configure({ placeholder: t('notes.editor_ph') }),
       // 하이라이트 색은 앱 테마를 따라야 하므로 확장이 넣는 기본 CSS 는 끈다.
       FindAndReplace.configure({ injectCSS: false, searchDebounceMs: 0 }),
+      SlashMenu,
     ],
     content: text,
     contentType: 'markdown',

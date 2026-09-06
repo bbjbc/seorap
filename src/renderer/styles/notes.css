@@ -141,3 +141,21 @@
 /* 찾기 강조. 확장의 기본 CSS 는 꺼 두고 앱 테마 색을 쓴다. */
 .md-editor .find-and-replace-result { background: var(--accent-soft); border-radius: 3px; }
 .md-editor .find-and-replace-result-current { background: var(--accent); color: #1b1405; }
+
+/* ---------- 슬래시 메뉴 ---------- */
+.slash-menu {
+  position: fixed; z-index: 60; min-width: 200px; max-height: 280px; overflow-y: auto;
+  padding: 5px; border-radius: var(--radius);
+  background: var(--bg-3); border: 1px solid var(--line-2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.slash-menu[hidden] { display: none; }
+.slash-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 7px 10px; border: 0; border-radius: 8px; background: transparent;
+  color: var(--text); font-size: 13px; text-align: left; cursor: pointer;
+}
+.slash-row.on { background: var(--bg-4); }
+.slash-hint {
+  margin-left: auto; color: var(--muted); font-family: var(--mono); font-size: 11px;
+}
