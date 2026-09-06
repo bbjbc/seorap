@@ -9,7 +9,8 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'eslint.config.mjs'] },
+  // site/ 는 별도의 npm 프로젝트(Next.js)라 자체 tsconfig 와 Biome 설정을 쓴다.
+  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'site/**', 'eslint.config.mjs'] },
   ...tseslint.configs.strictTypeChecked,
   {
     languageOptions: {

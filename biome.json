@@ -66,6 +66,16 @@
   },
   "overrides": [
     {
+      "includes": ["site/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noImgElement": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/shared/types.d.ts"],
       "linter": {
         "rules": {
