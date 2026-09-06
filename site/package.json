@@ -1,0 +1,25 @@
+{
+  "name": "seorap-site",
+  "version": "0.0.0",
+  "private": true,
+  "description": "서랍 (Seorap) 랜딩 페이지. 정적 export 라 GitHub Pages 에 그대로 올라간다.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve out",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "next": "^15.5.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.12",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "typescript": "^5.9.3"
+  }
+}

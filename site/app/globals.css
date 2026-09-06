@@ -1,0 +1,296 @@
+/* 서랍 랜딩. 앱(src/renderer/styles/base.css)의 토큰을 그대로 따른다.
+   @font-face 는 basePath 를 붙여야 해서 app/fonts.tsx 에서 인라인으로 넣는다. */
+
+:root {
+  --bg: #0c0c0f;
+  --bg-2: #0a0a0d;
+  --panel: #131317;
+  --card: #17171b;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --text: #e8e8ec;
+  --text-2: #b4b4bc;
+  --muted: #86868f;
+  --accent: #f5b342;
+  --accent-ink: #16130c;
+  --blue: #7aa2ff;
+  --green: #6fd39a;
+  --pad: 72px;
+  --font: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "Cascadia Code", "Cascadia Mono", "D2Coding", Consolas, monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-feature-settings: "ss05" 1;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { max-width: 100%; height: auto; display: block; }
+h1, h2, h3 { margin: 0; letter-spacing: -.03em; text-wrap: balance; word-break: keep-all; }
+p { margin: 0; word-break: keep-all; }
+ul { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { max-width: 1296px; margin: 0 auto; padding: 0 var(--pad); }
+.mono { font-family: var(--mono); }
+.amber { color: var(--accent); }
+.spacer { flex: 1; }
+.dot { opacity: .4; }
+.kbdish { color: var(--text); }
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+.grain {
+  position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.16'/></svg>");
+}
+
+/* ===== 등장 연출 =====
+   히어로는 순수 CSS. animation-fill-mode: both 라 시작 상태가 곧 초기 모습이고,
+   끝나면 그 자리에 머문다. 스크롤 진입만 IntersectionObserver 가 data-reveal 을 붙인다
+   (components/ScrollFx.tsx). 둘 다 동작 줄이기 설정이면 아래에서 통째로 꺼진다. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(44px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fly-in {
+  from { opacity: 0; transform: translateY(70px) rotate(0deg) scale(.92); }
+  to { opacity: 1; transform: translateY(0) rotate(var(--rot, 0deg)) scale(1); }
+}
+
+[data-reveal] { transition: opacity .7s ease, transform .7s ease, clip-path .9s cubic-bezier(.22, 1, .36, 1); }
+[data-reveal='off'] { opacity: 0; transform: translateY(28px); }
+/* 스크린샷은 아래에서 열리듯 드러난다. 위치는 그대로 두고 clip-path 만 움직인다. */
+.js-reveal[data-reveal='off'] { opacity: 1; transform: none; clip-path: inset(100% 0 0 0); }
+.js-reveal[data-reveal='on'] { clip-path: inset(0 0 0 0); }
+
+/* ===== 버튼 ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 11px;
+  padding: 13px 22px; border-radius: 13px;
+  background: var(--accent); color: var(--accent-ink);
+  font-weight: 700; font-size: 15px; white-space: nowrap;
+  transition: transform .14s ease, box-shadow .14s ease, background-color .14s ease;
+}
+.btn:hover { background: #ffc55c; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-lg { padding: 17px 30px; font-size: 17px; box-shadow: 0 14px 40px rgba(245, 179, 66, .28); }
+.btn-lg:hover { box-shadow: 0 18px 46px rgba(245, 179, 66, .34); }
+.btn-sm { padding: 9px 18px; font-size: 14px; border-radius: 10px; }
+.btn-ghost {
+  background: transparent; border: 1px solid var(--line-2);
+  color: var(--text); font-weight: 500; box-shadow: none;
+}
+.btn-ghost:hover { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .24); }
+
+/* ===== 네비 ===== */
+.nav {
+  position: sticky; top: 0; z-index: 40;
+  border-bottom: 1px solid var(--line);
+  background: rgba(12, 12, 15, .78);
+  backdrop-filter: blur(14px);
+}
+.nav-inner { display: flex; align-items: center; gap: 14px; padding-top: 18px; padding-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 16px; }
+.brand img { border-radius: 8px; }
+.brand em { color: var(--muted); font-weight: 400; font-style: normal; }
+.nav-links { display: flex; align-items: center; gap: 26px; margin-left: auto; font-size: 14px; color: var(--text-2); }
+.nav-links a:hover { color: var(--text); }
+.nav-gh { display: flex; align-items: center; gap: 7px; }
+.lang { display: flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid rgba(255, 255, 255, .10); border-radius: 999px; }
+.lang > * { padding: 5px 13px; border-radius: 999px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.lang > a:hover { color: var(--text); }
+.lang .is-on { background: rgba(255, 255, 255, .09); color: var(--text); font-weight: 500; }
+
+/* ===== 히어로 ===== */
+.hero { position: relative; padding: 92px 0 104px; overflow: hidden; }
+.hero-glow {
+  position: absolute; top: -280px; left: 120px; width: 900px; height: 900px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 179, 66, .16), rgba(245, 179, 66, 0) 62%);
+}
+.hero-inner { position: relative; display: flex; align-items: center; gap: 56px; }
+.hero-copy { width: 640px; flex: none; }
+.hero h1 { margin-top: 20px; font-size: clamp(34px, 3.7vw, 54px); line-height: 1.2; font-weight: 700; }
+.lead { margin-top: 26px; max-width: 540px; font-size: 18px; line-height: 1.72; color: var(--text-2); text-wrap: pretty; }
+.cta-row { display: flex; align-items: center; gap: 14px; margin-top: 38px; flex-wrap: wrap; }
+.meta { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+
+.hero-art { position: relative; flex: 1; min-width: 0; height: 520px; }
+.chip {
+  position: absolute; padding: 13px; border-radius: 13px;
+  background: var(--card); border: 1px solid rgba(255, 255, 255, .09);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, .55);
+  transform: rotate(var(--rot, 0deg));
+  animation: fly-in .85s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.chip-img { left: 8px; top: 6px; width: 154px; --rot: -7deg; animation-delay: .45s; }
+.chip-thumb { height: 78px; border-radius: 8px; background: linear-gradient(135deg, #2b2b34, #1b1b21); }
+.chip-name { margin-top: 10px; font-size: 11px; color: var(--muted); }
+.chip-link {
+  left: 176px; top: -26px; width: 206px; padding: 14px; --rot: 5deg; animation-delay: .59s;
+  border-color: rgba(122, 162, 255, .28);
+  background-image: linear-gradient(180deg, rgba(122, 162, 255, .14), transparent 68%);
+}
+.chip-host { font-size: 11px; font-weight: 600; color: var(--blue); }
+.chip-title { margin-top: 6px; font-size: 13px; font-weight: 600; line-height: 1.42; word-break: keep-all; }
+.chip-url { margin-top: 8px; font-size: 11px; color: var(--muted); }
+.chip-pw { left: 406px; top: 22px; width: 168px; padding: 14px; --rot: -3deg; animation-delay: .73s; border-color: rgba(245, 179, 66, .32); }
+.chip-pw-head { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+.chip-dots { margin-top: 9px; font-size: 13px; letter-spacing: .22em; color: var(--text-2); }
+
+.drawer {
+  position: absolute; left: 0; bottom: 0; width: 660px; max-width: 100%;
+  border-radius: 20px; overflow: hidden;
+  background: linear-gradient(180deg, #1a1a20, #101014);
+  border: 1px solid rgba(255, 255, 255, .09);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, .65);
+  animation: rise-in .9s cubic-bezier(.22, 1, .36, 1) .1s both;
+}
+.drawer-bar { display: flex; align-items: center; height: 40px; padding-left: 16px; border-bottom: 1px solid var(--line); }
+.drawer-bar span { flex: 1; min-width: 0; font-size: 11px; color: #86868f; }
+/* 앱은 Electron titleBarOverlay 라 창 조절 버튼이 윈도우 기본 모양으로 오른쪽 위에 붙는다.
+   장식이라 hover 상태는 두지 않는다. 눌리는 것처럼 보이면 안 된다. */
+.winctl { display: flex; align-self: stretch; color: #c9c9cf; opacity: .78; }
+.winctl i { display: flex; align-items: center; justify-content: center; width: 44px; }
+.drawer-fade { height: 26px; background: linear-gradient(180deg, rgba(12, 12, 15, 0), var(--bg)); }
+.drawer-handle { position: absolute; left: 258px; bottom: -13px; width: 144px; height: 7px; border-radius: 999px; background: rgba(255, 255, 255, .16); }
+
+/* ===== 기능 ===== */
+.features { padding: 110px 0; }
+.features h2, .install h2 { margin-top: 16px; font-size: 46px; font-weight: 700; }
+.cards-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; margin-top: 58px; }
+.cards-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; margin-top: 26px; }
+/* 서랍의 세 칸. 설명 길이가 달라도 스크린샷 윗선을 맞춘다. */
+.cards-main { margin-top: 58px; }
+.cards-main .card { display: flex; flex-direction: column; }
+.cards-main .shot { margin-top: auto; }
+.card-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; margin-bottom: 20px;
+  border-radius: 11px; background: rgba(245, 179, 66, .14);
+}
+.card { padding: 30px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); }
+.card h3 { font-size: 22px; font-weight: 600; }
+.card p { margin-top: 12px; font-size: 15px; line-height: 1.72; color: var(--text-2); }
+.card-sm { padding: 28px; }
+.card-sm h3 { font-size: 18px; }
+.card-sm p { margin-top: 10px; font-size: 14px; line-height: 1.7; }
+.shot { margin-top: 24px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .08); }
+
+/* ===== 보안 ===== */
+.privacy {
+  position: relative; overflow: hidden;
+  padding: 84px 64px; border-radius: 26px;
+  background: linear-gradient(135deg, #16130c, #0f0f13 62%);
+  border: 1px solid rgba(245, 179, 66, .18);
+}
+.privacy-inner { position: relative; display: flex; align-items: flex-start; gap: 64px; }
+.privacy-copy { width: 620px; flex: none; }
+.privacy-h2 { font-size: 44px; font-weight: 700; line-height: 1.16; }
+/* 한 줄에 하나씩. inline-block 이면 세 줄이 옆으로 붙어버린다. */
+.privacy-h2 span { display: block; }
+.privacy-copy p { margin-top: 22px; font-size: 17px; line-height: 1.75; color: var(--text-2); }
+.checks { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.checks li {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 22px; border-radius: 14px; font-size: 15px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--line);
+}
+.checks svg { flex: none; }
+
+/* ===== 설치 ===== */
+.install { padding: 110px 0; }
+.card-pick { border-color: rgba(245, 179, 66, .28); }
+.tag { font-size: 12px; letter-spacing: .14em; color: var(--muted); }
+.install .card h3 { margin-top: 14px; font-size: 24px; }
+.install .card .btn { margin-top: 28px; padding: 17px 28px; font-size: 16px; }
+.fine { margin-top: 16px; font-size: 13px; color: var(--muted); }
+.fine a { color: var(--accent); }
+.fine a:hover { color: #ffcd74; }
+.codeline {
+  display: flex; align-items: center; gap: 16px; margin-top: 28px;
+  padding: 18px 20px; border-radius: 12px;
+  background: var(--bg-2); border: 1px solid rgba(255, 255, 255, .09);
+}
+.codeline code { flex: 1; min-width: 0; font-size: 13px; color: var(--text); word-break: break-all; }
+.copy {
+  flex: none; padding: 7px 13px; border: 0; border-radius: 8px;
+  background: rgba(255, 255, 255, .08); color: var(--text-2);
+  font-size: 12px; cursor: pointer; transition: background-color .14s ease, color .14s ease;
+}
+.copy:hover { background: rgba(255, 255, 255, .14); color: var(--text); }
+.copy.is-done { background: rgba(111, 211, 154, .16); color: var(--green); }
+
+/* ===== 마지막 CTA ===== */
+.final { position: relative; padding: 118px 0 104px; border-top: 1px solid var(--line); overflow: hidden; }
+.final-glow {
+  position: absolute; bottom: -400px; left: 50%; width: 1000px; height: 800px; margin-left: -500px;
+  border-radius: 50%; background: radial-gradient(circle, rgba(245, 179, 66, .15), rgba(245, 179, 66, 0) 62%);
+}
+.final-inner { position: relative; text-align: center; }
+.final h2 { font-size: 54px; font-weight: 700; line-height: 1.14; }
+.final-lead { margin: 20px auto 0; max-width: 520px; font-size: 17px; line-height: 1.72; color: var(--text-2); }
+.final .btn { margin-top: 40px; }
+.final .meta { justify-content: center; }
+
+/* ===== 푸터 ===== */
+.foot { border-top: 1px solid var(--line); background: var(--bg-2); }
+.foot-inner { display: flex; align-items: center; gap: 16px; padding-top: 34px; padding-bottom: 34px; font-size: 13px; color: var(--muted); }
+.foot img { border-radius: 6px; opacity: .8; }
+.foot a:hover { color: var(--text); }
+.foot-inner a + a { margin-left: 10px; }
+
+/* ===== 반응형 ===== */
+@media (max-width: 1180px) {
+  :root { --pad: 40px; }
+  .hero-copy { width: 520px; }
+  .hero-art { height: 440px; }
+  .privacy-copy { width: 440px; }
+  .privacy { padding: 64px 44px; }
+}
+@media (max-width: 900px) {
+  :root { --pad: 24px; }
+  /* 링크 묶음이 숨으면 오른쪽으로 밀어주던 margin 도 같이 사라진다.
+     언어 토글과 다운로드 버튼이 오른쪽 끝에 붙도록 브랜드가 남는 폭을 먹는다. */
+  .nav-links { display: none; }
+  .brand { margin-right: auto; gap: 9px; font-size: 15px; }
+  .brand em { display: none; }
+  .lang > * { padding: 5px 10px; }
+  .hero { padding: 56px 0 72px; }
+  .hero-inner { flex-direction: column; align-items: stretch; gap: 48px; }
+  .hero-copy { width: auto; }
+  .lead { font-size: 16px; }
+  .cta-row .btn { flex: 1; justify-content: center; }
+  .hero-art { height: auto; }
+  .chip, .drawer-handle { display: none; }
+  .drawer { position: static; width: auto; }
+  .features, .install { padding: 72px 0; }
+  .features h2, .install h2 { font-size: 30px; }
+  .cards-2, .cards-3 { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 32px; }
+  .cards-main { margin-top: 32px; }
+  .privacy { padding: 44px 26px; border-radius: 20px; }
+  .privacy-inner { flex-direction: column; gap: 32px; }
+  .privacy-copy { width: auto; }
+  .privacy-h2 { font-size: 30px; }
+  .final { padding: 72px 0; }
+  .final h2 { font-size: 32px; }
+  .foot-inner { flex-wrap: wrap; row-gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .chip, .drawer { animation: none; }
+  [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
