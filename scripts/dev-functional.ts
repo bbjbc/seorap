@@ -450,6 +450,59 @@ export default async function run({
     },
   );
 
+  await check(
+    'markdown keeps < > & literal instead of HTML entities',
+    async () => {
+      const openId = String(await js('__seorap.noteId()'));
+      // 순수 텍스트로 적어 두고 위지위그로 넘어갔다가, 거기서 한 글자 고쳐 저장까지 시킨다.
+      // 직렬화가 한 번이라도 돌면 그때 엔티티가 파일에 박힌다.
+      const cases = ['a -> b', 'x > y', 'a & b', '5 < 6 and 7 > 6'];
+      for (const src of cases) {
+        await js(`__seorap.setNoteMd(false)`);
+        await waitFor('plain editor', () =>
+          js("!!document.getElementById('editor')"),
+        );
+        await js(`__seorap.typeIntoEditor(${JSON.stringify(src)})`);
+        await js(`__seorap.setNoteMd(true)`);
+        await waitFor('rich editor', () =>
+          js("!!document.getElementById('mdEditor')"),
+        );
+
+        const back = String(await js('__seorap.editorText()'));
+        assert.strictEqual(back, src, `round trip of ${JSON.stringify(src)}`);
+        assert(
+          !back.includes('&gt;') &&
+            !back.includes('&lt;') &&
+            !back.includes('&amp;'),
+          `no entities in ${JSON.stringify(back)}`,
+        );
+        await waitFor(
+          'saved body stays literal',
+          () => store.get(openId)?.text === src,
+        );
+      }
+
+      // 코드 블록 안에 일부러 적은 엔티티는 그대로 남아야 한다. 되돌리면 그것도 손상이다.
+      const fence = String.fromCharCode(96, 96, 96);
+      const withCode = `${fence}html\n&lt;div&gt; and <b>\n${fence}`;
+      await js(`__seorap.setNoteMd(false)`);
+      await waitFor('plain editor', () =>
+        js("!!document.getElementById('editor')"),
+      );
+      await js(`__seorap.typeIntoEditor(${JSON.stringify(withCode)})`);
+      await js(`__seorap.setNoteMd(true)`);
+      await waitFor('rich editor', () =>
+        js("!!document.getElementById('mdEditor')"),
+      );
+      const codeBack = String(await js('__seorap.editorText()'));
+      assert(
+        codeBack.includes('&lt;div&gt;'),
+        `entities inside code left alone: ${codeBack}`,
+      );
+      assert(codeBack.includes('<b>'), `raw tag inside code kept: ${codeBack}`);
+    },
+  );
+
   await check('switching editors keeps the markdown body intact', async () => {
     const openId = String(await js('__seorap.noteId()'));
     await js(`__seorap.typeIntoEditor('# 제목\\n\\n**굵게** 그리고 보통')`);

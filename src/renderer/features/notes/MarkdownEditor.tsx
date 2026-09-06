@@ -14,6 +14,7 @@ import { CodeBlock } from './CodeBlock';
 import { onEditorTextChanged } from './find';
 import { mdEditorHandle } from './handles';
 import { insertPastedFiles } from './images';
+import { keepMarkdownTextLiteral } from './markdown-text';
 import { SlashMenu } from './slash';
 
 interface Props {
@@ -50,6 +51,10 @@ export const MarkdownEditor = ({ text }: Props) => {
         event.stopPropagation();
         return true;
       },
+    },
+    // 첫 직렬화(onUpdate)보다 먼저 걸어야 한다.
+    onCreate: ({ editor: ed }) => {
+      keepMarkdownTextLiteral(ed);
     },
     onUpdate: ({ editor: ed }) => {
       editNoteText(ed.getMarkdown());
