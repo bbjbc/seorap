@@ -97,7 +97,7 @@ Ctrl + 3                       Vault. Create a master password the first time (i
 | Drawer | What goes in | Muscle memory |
 |---|---|---|
 | **Board** | Images, text, links and files as a card grid. Search, type filters, tags, pinning. | click = copy, drag = drop as file, `Delete` = remove (undoable) |
-| **Notes** | A Notepad replacement. Recency-sorted list instead of tabs, autosave instead of a save button. Drop `.txt` files to import. | `Ctrl+N` new note, `Ctrl+K` quick open |
+| **Notes** | A Notepad replacement. Recency-sorted list instead of tabs, autosave instead of a save button. Each note is plain text or rich text (headings, images, highlighted code) and is saved as Markdown. Drop `.txt` or `.md` files to import. | `Ctrl+N` new note, `Ctrl+K` quick open |
 | **Vault** | Passwords, API keys, certificate PINs. Each entry is encrypted whole; nothing is readable while locked, not even names. | "Copy" clears the clipboard after 30 s, locks after 5 min idle |
 
 More screenshots are in [docs/screenshots](docs/screenshots).
