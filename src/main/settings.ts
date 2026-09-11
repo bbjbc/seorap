@@ -21,6 +21,7 @@ export const DEFAULTS: Seorap.Settings = {
     showClipboardText: false,
     sort: 'recent',
     wysiwyg: true,
+    wrap: true,
   },
   vault: {
     autoLockMinutes: 5,

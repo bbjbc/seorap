@@ -87,11 +87,22 @@
 }
 .editor-foot .tag-list.inline { margin-left: auto; }
 
+/* 줄바꿈 끔(상단바 아이콘): 긴 줄을 접지 않고 편집기 전체가 가로로 스크롤된다.
+   textarea 는 wrap="off" 가 같은 일을 하지만, 거울(.editor-mirror)은 규칙을 직접 맞춰야 한다. */
+.editor-wrap.nowrap #editor, .editor-wrap.nowrap .editor-mirror { white-space: pre; overflow-wrap: normal; }
+.editor-wrap.nowrap #editor { overflow-x: auto; }
+/* Tiptap 이 .ProseMirror 에 넣는 pre-wrap 규칙보다 구체적이어야 한다. */
+.editor-wrap.nowrap .md-editor,
+.editor-wrap.nowrap .md-editor pre { white-space: pre; overflow-wrap: normal; }
+/* 가장 긴 줄만큼 넓어져 .md-editor-wrap(overflow: auto)이 스크롤한다. */
+.editor-wrap.nowrap .md-editor { min-width: max-content; }
+
 /* ---------- 위지위그 편집기 (Tiptap) ---------- */
 /* 순수 텍스트 편집기(#editor)와 같은 여백·글꼴·줄높이를 써서 모드를 바꿔도 글이 제자리에 있다. */
 .md-editor-wrap { flex: 1; min-width: 0; min-height: 0; overflow: auto; display: flex; }
 .md-editor {
-  flex: 1; outline: 0; background: var(--bg); color: var(--text);
+  /* min-width: 0 — 안 그러면 띄어쓰기 없는 긴 낱말이 편집기를 옆으로 늘려 가로 스크롤이 생긴다. */
+  flex: 1; min-width: 0; outline: 0; background: var(--bg); color: var(--text);
   padding: 22px 28px; line-height: 1.65;
   font-family: var(--editor-font); font-size: var(--editor-size);
   tab-size: 4; overflow-wrap: break-word;

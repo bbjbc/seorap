@@ -47,10 +47,13 @@ const CodeBlockView = ({ node, updateAttributes, editor }: NodeViewProps) => {
         </select>
       </div>
       <pre>
-        {/* NodeView 가 그리므로 확장의 renderHTML 이 안 돈다. 강조용 클래스는 여기서 붙인다. */}
+        {/* NodeView 가 그리므로 확장의 renderHTML 이 안 돈다. 강조용 클래스는 여기서 붙인다.
+            NodeViewContent 는 인라인으로 pre-wrap 을 박아 두는데, 그러면 줄바꿈 끄기(notes.css 의
+            .nowrap)가 코드 블록에는 안 먹는다. pre 의 규칙을 그대로 따르게 한다. */}
         <NodeViewContent<'code'>
           as="code"
           className={language ? `language-${language}` : undefined}
+          style={{ whiteSpace: 'inherit' }}
         />
       </pre>
     </NodeViewWrapper>

@@ -8,6 +8,7 @@ import {
   IconMono,
   IconPin,
   IconTrash,
+  IconWrap,
 } from '../../components/icons';
 import { RichText } from '../../components/RichText';
 import { TagInput, TagList } from '../../components/TagList';
@@ -43,6 +44,8 @@ export const NoteEditor = () => {
   const text = item?.text ?? '';
   const has = item !== undefined;
   const mono = settings?.notes.mono ?? false;
+  // 긴 줄을 접을지(기본) 가로로 스크롤할지. 두 편집기 모두 .editor-wrap 의 클래스로 따른다.
+  const wrap = settings?.notes.wrap ?? true;
   // 메모별 설정이 우선, 없으면 설정의 기본값을 따른다.
   const wysiwyg = item?.md ?? settings?.notes.wysiwyg ?? true;
 
@@ -106,6 +109,16 @@ export const NoteEditor = () => {
           </button>
           <button
             type="button"
+            className={`icon-btn${wrap ? ' active' : ''}`}
+            id="btnNoteWrap"
+            title={t(wrap ? 'notes.wrap_on_title' : 'notes.wrap_off_title')}
+            disabled={!has}
+            onClick={() => void saveSettings({ notes: { wrap: !wrap } })}
+          >
+            <IconWrap />
+          </button>
+          <button
+            type="button"
             className="icon-btn"
             id="btnNoteCopy"
             title={t('notes.copy_all')}
@@ -127,7 +140,7 @@ export const NoteEditor = () => {
         </div>
       </header>
       <FindBar />
-      <div className="editor-wrap">
+      <div className={`editor-wrap${wrap ? '' : ' nowrap'}`}>
         {has && wysiwyg ? (
           // key 로 메모마다 새 인스턴스를 만든다. 그래야 실행 취소가 이전 메모의
           // 내용을 되살리지 않고, 본문도 열 때 한 번만 파싱된다.
@@ -142,6 +155,7 @@ export const NoteEditor = () => {
               }}
               hidden={!has}
               value={text}
+              wrap={wrap ? 'soft' : 'off'}
               spellCheck={false}
               placeholder={t('notes.editor_ph')}
               onChange={(e) => editNoteText(e.target.value)}

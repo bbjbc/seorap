@@ -82,6 +82,12 @@ export const IconMono = (p: IconProps) => (
     <path d="M7 8 3 12l4 4M17 8l4 4-4 4M14 4l-4 16" />
   </Svg>
 );
+export const IconWrap = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 6h18M3 12h13a3 3 0 0 1 0 6h-4M3 18h6" />
+    <path d="M14.5 15.5 12 18l2.5 2.5" />
+  </Svg>
+);
 export const IconCopy = (p: IconProps) => (
   <Svg {...p}>
     <rect x="9" y="9" width="11" height="11" rx="2" />

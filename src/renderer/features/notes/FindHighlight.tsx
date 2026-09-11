@@ -51,10 +51,17 @@ export const FindHighlight = ({ text, textareaRef }: Props) => {
       if (r) {
         const base = m.getBoundingClientRect();
         const top = r.top - base.top - ta.scrollTop;
-        if (top >= -r.height && top <= ta.clientHeight)
+        // 줄바꿈을 끄면 가로로도 스크롤되므로 양쪽 다 뺀다.
+        const left = r.left - base.left - ta.scrollLeft;
+        if (
+          top >= -r.height &&
+          top <= ta.clientHeight &&
+          left >= -r.width &&
+          left <= ta.clientWidth
+        )
           next = {
             top,
-            left: r.left - base.left,
+            left,
             width: Math.max(2, r.width),
             height: r.height,
           };

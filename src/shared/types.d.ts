@@ -119,6 +119,8 @@ declare namespace Seorap {
       sort: NoteSort;
       /** 새 메모를 위지위그로 열지. 메모마다 item.md 로 덮어쓸 수 있다. */
       wysiwyg: boolean;
+      /** 긴 줄을 화면 끝에서 접을지. 끄면 가로 스크롤. */
+      wrap: boolean;
     };
     vault: {
       autoLockMinutes: number;
