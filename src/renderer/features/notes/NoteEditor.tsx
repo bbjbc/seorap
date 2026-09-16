@@ -17,15 +17,9 @@ import { t as tr, useLang, useT } from '../../lib/i18n';
 import { useItemsStore } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
 import { saveSettings, useSettings } from '../../stores/settings';
-import {
-  addTag,
-  copyItem,
-  removeTag,
-  softDelete,
-  togglePin,
-} from '../items/actions';
+import { addTag, copyItem, removeTag, togglePin } from '../items/actions';
 import { flash } from '../overlays/actions';
-import { editNoteText, setNoteMode } from './actions';
+import { confirmDeleteNote, editNoteText, setNoteMode } from './actions';
 import { FindBar } from './FindBar';
 import { FindHighlight } from './FindHighlight';
 import { editorHandle } from './handles';
@@ -133,7 +127,7 @@ export const NoteEditor = () => {
             id="btnNoteDelete"
             title={t('common.delete')}
             disabled={!has}
-            onClick={() => noteId && softDelete([noteId])}
+            onClick={() => noteId && void confirmDeleteNote(noteId)}
           >
             <IconTrash />
           </button>

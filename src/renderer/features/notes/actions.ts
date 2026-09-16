@@ -1,8 +1,12 @@
 // 메모 열기·만들기·자동 저장·정렬. 편집기 텍스트의 정본은 items 스토어의 item.text 다.
 import { api } from '../../lib/api';
+import { firstLineOf } from '../../lib/format';
+import { t } from '../../lib/i18n';
 import { findItem, useItemsStore } from '../../stores/items';
 import { useNotesStore } from '../../stores/notes';
 import { saveSettings, useSettingsStore } from '../../stores/settings';
+import { softDelete } from '../items/actions';
+import { confirmDialog } from '../prompt/actions';
 import { onEditorTextChanged, onNoteSwitched } from './find';
 import { mdEditorHandle } from './handles';
 import { noteItems } from './selectors';
@@ -189,4 +193,16 @@ function applyOrder(ids: readonly string[]): void {
       order.has(it.id) ? { ...it, order: order.get(it.id) } : it,
     ),
   );
+}
+
+/** 편집기의 삭제 버튼. 실수로 지우는 일이 없게 한 번 묻는다. */
+export async function confirmDeleteNote(id: string): Promise<void> {
+  const it = findItem(id);
+  if (!it) return;
+  const name = firstLineOf(it.text ?? '') || t('common.new_note');
+  const ok = await confirmDialog(
+    t('notes.delete_title', { name }),
+    t('notes.delete_desc'),
+  );
+  if (ok) softDelete([id]);
 }

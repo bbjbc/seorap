@@ -136,6 +136,9 @@ const SEORAP_KO = {
   'notes.find_prev': '이전 (Shift+Enter)',
   'notes.find_next': '다음 (Enter)',
   'notes.find_none': '결과 없음',
+  'notes.delete_title': "'{name}' 삭제",
+  'notes.delete_desc':
+    '6초 안에는 실행 취소로 되돌릴 수 있어요. 그 뒤에는 휴지통에도 남지 않고 완전히 지워져요.',
 
   // 빠른 전환
   'switcher.ph': '메모 · 항목 검색해서 바로 열기',
@@ -493,6 +496,9 @@ const SEORAP_EN: Record<LocaleKey, string> = {
   'notes.find_prev': 'Previous (Shift+Enter)',
   'notes.find_next': 'Next (Enter)',
   'notes.find_none': 'No matches',
+  'notes.delete_title': "Delete '{name}'",
+  'notes.delete_desc':
+    'You can undo this for 6 seconds. After that it is gone for good — deleted notes do not go to the Recycle Bin.',
 
   'switcher.ph': 'Search notes and items, open instantly',
   'switcher.no_result': 'No results',
