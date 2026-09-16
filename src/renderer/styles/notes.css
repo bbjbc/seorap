@@ -32,9 +32,9 @@
   white-space: pre-wrap; overflow-wrap: break-word; tab-size: 4; font-feature-settings: "ss05" 1;
 }
 .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; position: relative; } /* .editor-empty(inset:0) 의 기준 */
-.pane-actions { display: flex; gap: 2px; margin-left: auto; }
+.pane-actions { display: flex; gap: 2px; margin-left: auto; flex: none; }
 .pane-actions .icon-btn:disabled { opacity: .35; cursor: default; }
-.save-state { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.save-state { font-size: 11px; color: var(--muted); white-space: nowrap; flex: none; }
 .save-state.saving { color: var(--accent); }
 
 .notelist { flex: 1; overflow-y: auto; padding: 6px; }

@@ -82,4 +82,4 @@ body, input, textarea, button, select { font-feature-settings: "ss05" 1; } /* Pr
   background: var(--bg);
 }
 .side .viewbar { padding-right: 10px; }
-.pane-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pane-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
