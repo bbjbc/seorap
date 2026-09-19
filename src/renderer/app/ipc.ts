@@ -1,7 +1,11 @@
 // 메인 → 렌더러 이벤트 구독. 한 번만 설치하고, 스토어와 액션으로 흘려보낸다.
 
 import { openDetail, softDelete } from '../features/items/actions';
-import { newNote, openNote } from '../features/notes/actions';
+import {
+  confirmDeleteNote,
+  newNote,
+  openNote,
+} from '../features/notes/actions';
 import { editorHandle } from '../features/notes/handles';
 import { evaluateStarNudge } from '../features/nudge/actions';
 import { flash } from '../features/overlays/actions';
@@ -83,7 +87,10 @@ function onUiAction(msg: Seorap.UiAction): void {
       if (first) void promptRename(first);
       break;
     case 'delete':
-      softDelete(ids);
+      // 메모는 편집기의 휴지통 버튼과 똑같이 한 번 묻는다. 보드 항목은 되돌리기 막대가 있어 바로 지운다.
+      if (first && ids.length === 1 && findItem(first)?.note)
+        void confirmDeleteNote(first);
+      else softDelete(ids);
       break;
   }
 }
