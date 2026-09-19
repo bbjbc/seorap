@@ -27,6 +27,8 @@
   --card: 200px;
   --card-h: 200px;
   --rail: 68px;
+  --side-w: 290px;
+  --side-anim: .18s;
   --titlebar: 44px;
   --overlay-w: 140px;
   --font: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
@@ -72,7 +74,7 @@ body, input, textarea, button, select { font-feature-settings: "ss05" 1; } /* Pr
 .app { display: flex; height: 100vh; }
 .view { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .view[hidden] { display: none; }
-.view.split { flex-direction: row; }
+.view.split { flex-direction: row; overflow: hidden; } /* 접힌 .side 가 왼쪽으로 빠져나간 만큼 잘라낸다 */
 
 .viewbar {
   height: var(--titlebar); flex: none;

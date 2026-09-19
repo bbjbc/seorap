@@ -1,7 +1,18 @@
 /* ===== 2단 (메모/금고) ===== */
 .side {
-  width: 290px; flex: none; display: flex; flex-direction: column;
+  width: var(--side-w); flex: none; display: flex; flex-direction: column;
   border-right: 1px solid var(--line); background: var(--bg-2); min-height: 0;
+  transition: margin-left var(--side-anim) ease, opacity var(--side-anim) ease, visibility 0s;
+}
+/* 폭 대신 왼쪽 여백을 줄여 밀어낸다. 안쪽 폭이 그대로라 목록이 찌그러지지 않는다.
+   다 밀려난 뒤에야 visibility 를 꺼서 탭 순서와 클릭에서 빠지게 한다. */
+.side.collapsed {
+  margin-left: calc(-1 * var(--side-w)); opacity: 0; visibility: hidden;
+  transition: margin-left var(--side-anim) ease, opacity var(--side-anim) ease,
+    visibility 0s linear var(--side-anim);
+}
+@media (prefers-reduced-motion: reduce) {
+  .side, .side.collapsed { transition: none; }
 }
 .side-head { display: flex; gap: 8px; padding: 10px 10px 8px; align-items: center; }
 .side-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; min-height: 40px; }

@@ -185,6 +185,18 @@ export function toggleNoteSort(): void {
   void saveSettings({ notes: { sort: 'manual' } });
 }
 
+export const noteSidebarOpen = (): boolean =>
+  useSettingsStore.getState().settings?.notes.sidebar ?? true;
+
+export function toggleNoteSidebar(): void {
+  void saveSettings({ notes: { sidebar: !noteSidebarOpen() } });
+}
+
+/** 목록을 써야 하는 동작(목록 검색 등) 전에 접혀 있으면 펼친다. */
+export function showNoteSidebar(): void {
+  if (!noteSidebarOpen()) void saveSettings({ notes: { sidebar: true } });
+}
+
 function applyOrder(ids: readonly string[]): void {
   const order = new Map(ids.map((x, i) => [x, i] as const));
   const items = useItemsStore.getState();

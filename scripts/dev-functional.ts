@@ -595,6 +595,24 @@ export default async function run({
     },
   );
 
+  await check('the note list folds away and comes back', async () => {
+    const collapsed = () =>
+      js(
+        "document.querySelector('#viewNotes .side').classList.contains('collapsed')",
+      );
+    assert.strictEqual(await collapsed(), false, 'starts open');
+    await js("document.getElementById('btnNoteSidebar').click()");
+    await waitFor('list folded', collapsed);
+    assert.strictEqual(
+      await js('scrap.getSettings().then(r => r.settings.notes.sidebar)'),
+      false,
+      'fold is remembered',
+    );
+    // 접힌 채로 메모가 없어도 되돌릴 수 있어야 한다
+    await js("document.getElementById('btnNoteSidebar').click()");
+    await waitFor('list back', async () => !(await collapsed()));
+  });
+
   await check('empty note is discarded on leave', async () => {
     await js(`__seorap.newNote()`);
     const id = await waitFor('note created', () => js('__seorap.noteId()'));

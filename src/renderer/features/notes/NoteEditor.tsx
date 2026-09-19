@@ -7,6 +7,7 @@ import {
   IconMarkdown,
   IconMono,
   IconPin,
+  IconSidebar,
   IconTrash,
   IconWrap,
 } from '../../components/icons';
@@ -19,7 +20,12 @@ import { useNotesStore } from '../../stores/notes';
 import { saveSettings, useSettings } from '../../stores/settings';
 import { addTag, copyItem, removeTag, togglePin } from '../items/actions';
 import { flash } from '../overlays/actions';
-import { confirmDeleteNote, editNoteText, setNoteMode } from './actions';
+import {
+  confirmDeleteNote,
+  editNoteText,
+  setNoteMode,
+  toggleNoteSidebar,
+} from './actions';
 import { FindBar } from './FindBar';
 import { FindHighlight } from './FindHighlight';
 import { editorHandle } from './handles';
@@ -42,6 +48,7 @@ export const NoteEditor = () => {
   const wrap = settings?.notes.wrap ?? true;
   // 메모별 설정이 우선, 없으면 설정의 기본값을 따른다.
   const wysiwyg = item?.md ?? settings?.notes.wysiwyg ?? true;
+  const sidebar = settings?.notes.sidebar ?? true;
 
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   // 메모를 열면 편집기에 포커스 (위지위그는 자기 쪽에서 처리한다)
@@ -61,6 +68,18 @@ export const NoteEditor = () => {
   return (
     <div className="pane">
       <header className="viewbar drag">
+        {/* 목록 접기. 접힌 채로 메모가 없어도 되돌릴 수 있어야 하므로 비활성화하지 않는다. */}
+        <button
+          type="button"
+          className={`icon-btn nodrag${sidebar ? '' : ' active'}`}
+          id="btnNoteSidebar"
+          title={t(
+            sidebar ? 'notes.sidebar_hide_title' : 'notes.sidebar_show_title',
+          )}
+          onClick={toggleNoteSidebar}
+        >
+          <IconSidebar />
+        </button>
         <div className="pane-title" id="noteTitle">
           {has ? firstLineOf(text) || t('common.new_note') : t('common.notes')}
         </div>

@@ -6,7 +6,13 @@ import {
   selectAllVisible,
 } from '../features/board/actions';
 import { commitDelete, openAny, softDelete } from '../features/items/actions';
-import { flushNoteSave, leaveNote, newNote } from '../features/notes/actions';
+import {
+  flushNoteSave,
+  leaveNote,
+  newNote,
+  showNoteSidebar,
+  toggleNoteSidebar,
+} from '../features/notes/actions';
 import { closeFind, findStep, openFind } from '../features/notes/find';
 import { editorHandle, noteSearchHandle } from '../features/notes/handles';
 import { cancelPrompt } from '../features/prompt/actions';
@@ -75,7 +81,13 @@ function onKeyDown(e: KeyboardEvent): void {
   }
   if (mod && e.key === 'n' && ui.mode === 'notes') {
     e.preventDefault();
+    showNoteSidebar();
     void newNote();
+    return;
+  }
+  if (mod && e.key === '\\' && ui.mode === 'notes') {
+    e.preventDefault();
+    toggleNoteSidebar();
     return;
   }
   if (mod && (e.key === 'f' || e.key === 'F')) {
@@ -84,7 +96,11 @@ function onKeyDown(e: KeyboardEvent): void {
     else if (ui.mode === 'notes') {
       // 메모가 열려 있으면 그 메모 안에서 찾고, 리스트 검색은 Shift 를 더한다.
       if (notes.noteId && !e.shiftKey) openFind();
-      else noteSearchHandle.get()?.focus();
+      else {
+        // 목록 검색은 목록이 보여야 쓸모가 있다.
+        showNoteSidebar();
+        noteSearchHandle.get()?.focus();
+      }
     } else vaultSearchHandle.get()?.focus();
     return;
   }

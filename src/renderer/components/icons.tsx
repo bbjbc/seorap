@@ -88,6 +88,12 @@ export const IconWrap = (p: IconProps) => (
     <path d="M14.5 15.5 12 18l2.5 2.5" />
   </Svg>
 );
+export const IconSidebar = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M10 4v16" />
+  </Svg>
+);
 export const IconCopy = (p: IconProps) => (
   <Svg {...p}>
     <rect x="9" y="9" width="11" height="11" rx="2" />

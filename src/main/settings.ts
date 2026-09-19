@@ -22,6 +22,7 @@ export const DEFAULTS: Seorap.Settings = {
     sort: 'recent',
     wysiwyg: true,
     wrap: true,
+    sidebar: true,
   },
   vault: {
     autoLockMinutes: 5,

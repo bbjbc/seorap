@@ -11,7 +11,13 @@ import { NoteList } from './NoteList';
 
 const SEARCH_DEBOUNCE_MS = 100;
 
-export const NoteSidebar = ({ active }: { active: boolean }) => {
+export const NoteSidebar = ({
+  active,
+  collapsed,
+}: {
+  active: boolean;
+  collapsed: boolean;
+}) => {
   const t = useT();
   const settings = useSettings();
   const setQuery = useNotesStore((s) => s.setQuery);
@@ -22,7 +28,7 @@ export const NoteSidebar = ({ active }: { active: boolean }) => {
   const [count, setCount] = useState(0);
 
   return (
-    <aside className="side">
+    <aside className={`side${collapsed ? ' collapsed' : ''}`}>
       <header className="viewbar drag">
         <SearchBox
           id="noteSearch"

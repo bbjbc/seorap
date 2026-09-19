@@ -121,6 +121,8 @@ declare namespace Seorap {
       wysiwyg: boolean;
       /** 긴 줄을 화면 끝에서 접을지. 끄면 가로 스크롤. */
       wrap: boolean;
+      /** 왼쪽 메모 목록을 펼쳐 둘지. 끄면 편집기만 남는다. */
+      sidebar: boolean;
     };
     vault: {
       autoLockMinutes: number;
