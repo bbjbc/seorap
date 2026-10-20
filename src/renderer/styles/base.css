@@ -29,8 +29,10 @@
   --rail: 68px;
   --side-w: 290px;
   --side-anim: .18s;
-  --titlebar: 44px;
-  --overlay-w: 140px;
+  /* 창 조절 버튼(titleBarOverlay)은 페이지 확대/축소와 상관없이 크기가 같다. env() 는 배율에 맞춰
+     다시 계산되므로 고정 px 대신 이걸 써야 Ctrl+- 에서도 버튼 밑으로 숨지 않는다. */
+  --titlebar: env(titlebar-area-height, 44px);
+  --overlay-w: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, calc(100vw - 136px)) + 4px);
   --font: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
   --mono: "Cascadia Code", "Cascadia Mono", "D2Coding", Consolas, "Pretendard Variable", monospace;
   --editor-font: var(--font);
